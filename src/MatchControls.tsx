@@ -21,7 +21,7 @@ type Props = {
 export const MatchControls = ({ robot, onStart }: Props) => {
   const [fightStatus, setFightStatus] = useState<FightStatus>("INACTIVE");
   const [matchTimeSec, setMatchTimeSec] = useState<number>(MATCH_LENGTH);
-  const timerRef = useRef<number>(null);
+  const timerRef = useRef<NodeJS.Timeout>(null);
 
   const addMatchMarker = useAddMatchMarker();
 
