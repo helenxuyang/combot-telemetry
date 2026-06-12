@@ -1,0 +1,19 @@
+#root {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  margin: 16px;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+button {
+  border: 2px solid black;
+}
