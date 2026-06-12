@@ -8,6 +8,8 @@ export type HandleReceiveDataCallbackRef =
 export type HandleConnectCallback = () => void;
 export type HandleConnectCallbackRef = RefObject<HandleConnectCallback | null>;
 
+const TELEMETRY_BOARD_IP = "192.168.4.1";
+
 export const useWebSocket = (
   shouldAutoRetryConnection: boolean,
   onHandleReceiveData: HandleReceiveDataCallbackRef,
@@ -23,7 +25,8 @@ export const useWebSocket = (
   useEffect(() => {
     console.log("websocket setup start");
     connection.current = new WebSocket(
-      `ws://${isFakeData ? "localhost" : "192.168.4.1"}:81`,
+      // TODO: figure out how to get local IP address for fake data
+      `ws://${isFakeData ? "192.168.0.129" : TELEMETRY_BOARD_IP}:81`,
       ["arduino"],
     );
     const checkStatus = setInterval(() => {
