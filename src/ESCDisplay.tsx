@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { CURRENT, RPM, TEMPERATURE, type ESC } from "./robot";
 import { BarDisplay } from "./BarDisplay";
 import { ArcDisplay } from "./ArcDisplay";
-import { Container, MEDIUM_VIEWPORT } from "./styles";
+import { Container, MEDIUM_VIEWPORT, SMALL_VIEWPORT } from "./styles";
 import { ErrorDisplay } from "./ErrorDisplay";
 import { useEffect, useRef, useState } from "react";
 import beepAudio from "./assets/beep.wav";
@@ -41,6 +41,11 @@ const DisplayLayout = styled.div`
   @media (max-width: ${MEDIUM_VIEWPORT}px) {
     display: grid;
     grid-template-areas: "arc arc" "temp input";
+  }
+
+  @media (max-width: ${SMALL_VIEWPORT}px) {
+    display: grid;
+    grid-template-areas: "arc" "temp" "input";
   }
 `;
 

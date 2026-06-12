@@ -11,6 +11,10 @@ type Props = {
   orientation?: "vertical" | "horizontal";
 };
 
+const Label = styled.h4`
+  text-wrap: wrap;
+`;
+
 const BarDisplayWrapper = styled.div<{
   $orientation: "vertical" | "horizontal";
 }>`
@@ -54,7 +58,7 @@ export const BarDisplay = ({
   return (
     <div className={className}>
       <Container>
-        <h4>{name}</h4>
+        <Label>{name}</Label>
         <BarDisplayWrapper $orientation={orientation}>
           {orientation === "vertical" ? (
             <>

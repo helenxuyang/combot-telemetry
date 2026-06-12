@@ -73,6 +73,10 @@ const HorizontalBarsHolder = styled.div`
   display: flex;
   gap: 8px;
   background: ${BACKGROUND};
+
+  @media (max-width: ${SMALL_VIEWPORT}px) {
+    flex-direction: column;
+  }
 `;
 
 const FlexBar = styled(BarDisplay)`
