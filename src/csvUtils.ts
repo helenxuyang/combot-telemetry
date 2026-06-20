@@ -60,8 +60,8 @@ export const getCsvData = (robot: Robot): CSVRow[] => {
     matchMarkerRows.forEach((row) => rows.push(row));
   }
 
-  const unknownMessages = robot.unknownMessages.map(({ message, reason }) => {
-    return [message, reason];
+  const unknownMessages = robot.unknownMessages.map(({ rawMessage }) => {
+    return [rawMessage];
   });
   if (unknownMessages.length > 0) {
     const unknownMessageHeaderRow = ["unknownMessage", "reason"];
@@ -202,8 +202,7 @@ export const importRobot = (
 
     if (currentSection === "unknownMessage") {
       robot.unknownMessages.push({
-        message: row[0],
-        reason: row[1],
+        rawMessage: row[0],
       });
       return;
     }

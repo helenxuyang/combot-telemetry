@@ -41,10 +41,7 @@ export const DebugDisplay = () => {
           Unknown errors:
           {robot.unknownMessages
             .slice(-numValuesToShow)
-            .map(
-              (unknownMessage) =>
-                `${unknownMessage.message} (${unknownMessage.reason})`,
-            )
+            .map((unknownMessage) => `${unknownMessage.rawMessage}`)
             .join(",")}
         </div>
       </div>

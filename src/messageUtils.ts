@@ -1,40 +1,4 @@
-import {
-  ARM_ESC,
-  CONSUMPTION,
-  CURRENT,
-  DRIVE_LEFT_ESC,
-  DRIVE_RIGHT_ESC,
-  INPUT,
-  RPM,
-  TEMPERATURE,
-  VOLTAGE,
-  WEAPON_ESC,
-  type EscName,
-  type Robot,
-} from "./robot";
-
-export const mergeBytes = (byte1: number, byte2: number) => {
-  return (byte1 << 8) + byte2;
-};
-
-export const convertHexStrToNum = (hexStr: string): number =>
-  Number("0x" + hexStr);
-
-const escDataIds = ["a", "b", "c"] as const;
-const escInputIds = ["w", "x", "y", "z"] as const;
-type EscDataId = (typeof escDataIds)[number];
-type EscInputId = (typeof escInputIds)[number];
-type EscId = EscDataId | EscInputId;
-
-export const idToEscMap: Record<EscId, EscName> = {
-  a: DRIVE_LEFT_ESC,
-  b: DRIVE_RIGHT_ESC,
-  c: WEAPON_ESC,
-  w: DRIVE_LEFT_ESC,
-  x: DRIVE_RIGHT_ESC,
-  y: WEAPON_ESC,
-  z: ARM_ESC,
-};
+import { EscName, Robot } from "./robot";
 
 export type EscDataMessage = {
   messageType: "dataMessage";

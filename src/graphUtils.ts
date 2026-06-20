@@ -77,19 +77,19 @@ export const getMeasurementOrInput = (
 
 export const getSeriesColor = (measurementName: PlotMeasurementName) => {
   switch (measurementName) {
-    case "Temp":
+    case "temperature":
       return "darkred";
-    case "RPM":
+    case "rpm":
       return "darkorange";
-    case "Voltage":
+    case "voltage":
       return "goldenrod";
-    case "Current":
+    case "current":
       return "darkgreen";
-    case "Consumption":
+    case "consumption":
       return "blue";
-    case "Power":
+    case "power":
       return "purple";
-    case "Input":
+    case "input":
       return "gray";
     default:
       return "black";
