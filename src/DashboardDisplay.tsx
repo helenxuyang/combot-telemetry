@@ -28,6 +28,7 @@ import type {
 } from "./useWebSocket";
 import { WebSocketConnector } from "./WebSocketConnector";
 import { RawDataImporter } from "./RawDataImporter";
+import { TauriWebSocketConnector } from "./TauriWebSocketConnector";
 
 const Layout = styled.div`
   display: flex;
@@ -204,10 +205,11 @@ export const DashboardDisplay = () => {
           <FullscreenButton />
         </ControlsSection>
         <ControlsSection>
-          <WebSocketConnector
+          {/* <WebSocketConnector
             onReceiveData={handleMessageCallback}
             onConnect={handleConnectCallback}
-          />
+          /> */}
+          <TauriWebSocketConnector />
           Messages: {messages.length}
         </ControlsSection>
         <ControlsSection>
