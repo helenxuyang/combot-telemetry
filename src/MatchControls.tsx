@@ -1,8 +1,7 @@
 import { useRef, useState } from "react";
 import { ButtonsHolder } from "./styles";
 import styled from "styled-components";
-import type { Robot } from "./robot";
-import { useAddMatchMarker } from "./store";
+import { useAddMatchMarker, useRobot } from "./store";
 
 type FightStatus = "INACTIVE" | "FIGHTING" | "PAUSED";
 
@@ -14,16 +13,13 @@ const MatchControlsSection = styled.div`
 
 const MATCH_LENGTH = 180;
 
-type Props = {
-  robot: Robot;
-  onStart: () => void;
-};
-export const MatchControls = ({ robot, onStart }: Props) => {
+export const MatchControls = () => {
+  const robot = useRobot();
+  const addMatchMarker = useAddMatchMarker();
+
   const [fightStatus, setFightStatus] = useState<FightStatus>("INACTIVE");
   const [matchTimeSec, setMatchTimeSec] = useState<number>(MATCH_LENGTH);
   const timerRef = useRef<NodeJS.Timeout>(null);
-
-  const addMatchMarker = useAddMatchMarker();
 
   const min = Math.floor(matchTimeSec / 60);
   const sec = matchTimeSec % 60;
@@ -52,7 +48,6 @@ export const MatchControls = ({ robot, onStart }: Props) => {
     });
     setFightStatus("FIGHTING");
     setTimer();
-    onStart();
   };
 
   const handlePause = () => {

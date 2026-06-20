@@ -1,5 +1,8 @@
-#[derive(Debug, PartialEq)]
-pub struct DataMessage {
+use serde::Serialize;
+
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Data {
     esc_name: String,
     timestamp: u32,
     temperature: u32,
@@ -9,30 +12,36 @@ pub struct DataMessage {
     rpm: u32,
 }
 
-#[derive(Debug, PartialEq)]
-pub struct InputMessage {
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Input {
     esc_name: String,
     timestamp: u32,
     input: i32,
 }
 
-#[derive(Debug, PartialEq)]
-pub struct ErrorMessage {
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Error {
     esc_name: String,
     timestamp: u32,
     error_code: u32,
 }
 
-#[derive(Debug, PartialEq)]
-pub struct UnknownMessage {
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Unknown {
     raw_message: String,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+#[serde(tag = "messageType")]
 pub enum TelemetryMessage {
-    DataMessage(DataMessage),
-    InputMessage(InputMessage),
-    ErrorMessage(ErrorMessage),
-    UnknownMessage(UnknownMessage),
+    DataMessage(Data),
+    InputMessage(Input),
+    ErrorMessage(Error),
+    UnknownMessage(Unknown),
 }
 
 const ERROR_MARKER: &str = "!";
@@ -84,7 +93,7 @@ fn parse_two_bytes(raw_high: &str, raw_low: &str, scale_factor: Option<f32>) -> 
 10. Checksum
 11. Timestamp
  */
-fn parse_data_message(message_components: Vec<&str>) -> DataMessage {
+fn parse_data_message(message_components: Vec<&str>) -> Data {
     let esc_id = message_components[0];
     let esc_name = convert_esc_id_to_name(esc_id).to_string();
     let temperature = parse_hex(message_components[1]);
@@ -110,7 +119,7 @@ fn parse_data_message(message_components: Vec<&str>) -> DataMessage {
 
     // TODO: validate checksum
 
-    return DataMessage {
+    return Data {
         esc_name,
         temperature,
         voltage,
@@ -126,14 +135,14 @@ fn parse_data_message(message_components: Vec<&str>) -> DataMessage {
 1. Input
 2. Timestamp
  */
-fn parse_input_message(message_components: Vec<&str>) -> InputMessage {
+fn parse_input_message(message_components: Vec<&str>) -> Input {
     let esc_id = message_components[0];
     let esc_name = convert_esc_id_to_name(esc_id).to_string();
     let raw_input = parse_hex(message_components[1]) as f32;
     let input = (0.2 * raw_input - 300.0) as i32; // scale from [1000, 2000] -> [-100, 100]
     let timestamp = parse_hex(message_components[2]);
 
-    return InputMessage {
+    return Input {
         esc_name,
         input,
         timestamp,
@@ -146,13 +155,13 @@ fn parse_input_message(message_components: Vec<&str>) -> InputMessage {
 2. Error code
 3. Timestamp
  */
-fn parse_error_message(message_components: Vec<&str>) -> ErrorMessage {
+fn parse_error_message(message_components: Vec<&str>) -> Error {
     let esc_id = message_components[0];
     let esc_name = convert_esc_id_to_name(esc_id).to_string();
     let error_code = parse_hex(message_components[2]);
     let timestamp = parse_hex(message_components[3]);
 
-    return ErrorMessage {
+    return Error {
         esc_name,
         timestamp,
         error_code,
@@ -162,14 +171,11 @@ fn parse_error_message(message_components: Vec<&str>) -> ErrorMessage {
 pub fn parse_message(raw_message: String) -> TelemetryMessage {
     // TODO: handle pong, errors, unknowns
 
-    println!("{raw_message}");
-
     // remove < and >
     let innards = &raw_message[1..(raw_message.len() - 1)];
 
     // split into vec
     let message_components: Vec<&str> = innards.split(" ").collect();
-    println!("{:?}", message_components);
 
     if message_components[0] == ERROR_MARKER {
         return TelemetryMessage::ErrorMessage(parse_error_message(message_components));
@@ -178,8 +184,10 @@ pub fn parse_message(raw_message: String) -> TelemetryMessage {
     let esc_id = message_components[0];
     match esc_id {
         "a" | "b" | "c" => TelemetryMessage::DataMessage(parse_data_message(message_components)),
-        "x" | "y" | "z" => TelemetryMessage::InputMessage(parse_input_message(message_components)),
-        _ => TelemetryMessage::UnknownMessage(UnknownMessage { raw_message }),
+        "w" | "x" | "y" | "z" => {
+            TelemetryMessage::InputMessage(parse_input_message(message_components))
+        }
+        _ => TelemetryMessage::UnknownMessage(Unknown { raw_message }),
     }
 }
 
@@ -269,7 +277,7 @@ mod tests {
             ]
             .to_vec(),
         );
-        let expected = DataMessage {
+        let expected = Data {
             esc_name: "Weapon".to_string(),
             temperature: 31,
             voltage: 9.28,
@@ -284,7 +292,7 @@ mod tests {
     #[test]
     fn parse_input_message_weapon() {
         let result = parse_input_message(["y", "6D6", "4C5"].to_vec());
-        let expected = InputMessage {
+        let expected = Input {
             esc_name: "Weapon".to_string(),
             input: 50,
             timestamp: 1221,
@@ -295,7 +303,7 @@ mod tests {
     #[test]
     fn parse_input_message_drive() {
         let result = parse_error_message(["a", "!", "2", "529"].to_vec());
-        let expected = ErrorMessage {
+        let expected = Error {
             esc_name: "DriveLeft".to_string(),
             error_code: 2,
             timestamp: 1321,

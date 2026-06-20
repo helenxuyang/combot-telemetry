@@ -25,14 +25,14 @@ export type Input = Omit<Measurement, "name"> & {
   shouldShow: boolean;
 };
 
-export const TEMPERATURE = "Temp";
-export const RPM = "RPM";
-export const VOLTAGE = "Voltage";
-export const CURRENT = "Current";
-export const CONSUMPTION = "Consumption";
-export const INPUT = "Input" as const;
-export const POWER = "Power" as const;
-export const ERROR = "Error" as const;
+export const TEMPERATURE = "temperature";
+export const RPM = "rpm";
+export const VOLTAGE = "voltage";
+export const CURRENT = "current";
+export const CONSUMPTION = "consumption";
+export const INPUT = "input" as const;
+export const POWER = "power" as const;
+export const ERROR = "error" as const;
 
 export const UNITS: Record<MeasurementName, string> = {
   [TEMPERATURE]: "°C",
@@ -167,8 +167,7 @@ export type MatchMarker = {
 };
 
 export type UnknownMessage = {
-  message: string;
-  reason: string;
+  rawMessage: string;
 };
 
 export const DRIVE_LEFT_ESC = "DriveLeft" as const;

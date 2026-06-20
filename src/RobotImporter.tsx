@@ -9,5 +9,10 @@ export const RobotImporter = () => {
     const robot = importRobot(getCurrentRobotConfig(), data);
     setRobot(robot);
   };
-  return <CSVReader onFileLoaded={handleFileLoaded} />;
+  return (
+    <>
+      <h2>Import CSV</h2>
+      <CSVReader onFileLoaded={handleFileLoaded} />
+    </>
+  );
 };

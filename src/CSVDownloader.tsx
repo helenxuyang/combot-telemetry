@@ -106,9 +106,9 @@ const getCsvText = (text: string, robot: Robot) => {
   }
 
   if (robot.unknownMessages.length > 0) {
-    outputRows.push(["unknownMessage", "reason"]);
+    outputRows.push(["unknownMessage"]);
     robot.unknownMessages.forEach((unknownMessage) => {
-      outputRows.push([unknownMessage.message, unknownMessage.reason]);
+      outputRows.push([unknownMessage.rawMessage]);
     });
   }
 
@@ -134,39 +134,42 @@ export const CSVDownloader = () => {
   }, [hasUserSaved]);
 
   return (
-    <button
-      onClick={async () => {
-        const now = new Date();
+    <>
+      <h2>Export CSV</h2>
+      <button
+        onClick={async () => {
+          const now = new Date();
 
-        const dateOptions: Intl.DateTimeFormatOptions = {
-          month: "short",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        };
+          const dateOptions: Intl.DateTimeFormatOptions = {
+            month: "short",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          };
 
-        const formattedDate = new Intl.DateTimeFormat(
-          "en-US",
-          dateOptions,
-        ).format(now);
+          const formattedDate = new Intl.DateTimeFormat(
+            "en-US",
+            dateOptions,
+          ).format(now);
 
-        setHasUserSaved(true);
-        const root = await navigator.storage.getDirectory();
-        const fileHandle = await root.getFileHandle("data.csv");
-        const file = await fileHandle.getFile();
-        const fileText = await file.text();
-        const csvText = getCsvText(fileText, robot);
-        const blob = new Blob([csvText], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${formattedDate}-${robot.name}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }}
-    >
-      Download CSV
-    </button>
+          setHasUserSaved(true);
+          const root = await navigator.storage.getDirectory();
+          const fileHandle = await root.getFileHandle("data.csv");
+          const file = await fileHandle.getFile();
+          const fileText = await file.text();
+          const csvText = getCsvText(fileText, robot);
+          const blob = new Blob([csvText], { type: "text/csv" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${formattedDate}-${robot.name}.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }}
+      >
+        Download CSV
+      </button>
+    </>
   );
 };
