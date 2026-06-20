@@ -36,17 +36,6 @@ export const TauriWebSocketConnector = () => {
     };
   }, []);
 
-  // use ref so websocket doesn't re-render
-  const handleMessageCallback =
-    useRef<(message: TauriTelemetryMessage) => void>(null);
-
-  useEffect(() => {
-    handleMessageCallback.current = handleMessage;
-    return () => {
-      handleMessageCallback.current = null;
-    };
-  }, [handleMessage]);
-
   const invokeWebSocketConnect = () => {
     invoke(WEBSOCKET_CONNECT_COMMAND);
   };
@@ -55,7 +44,7 @@ export const TauriWebSocketConnector = () => {
     const unlisten = listen<TauriTelemetryMessage>(
       TELEMETRY_MESSAGE_EVENT,
       (event) => {
-        handleMessageCallback.current?.(event.payload);
+        handleMessage(event.payload);
       },
     );
 
