@@ -1,3 +1,4 @@
+use regex::Regex;
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -130,6 +131,14 @@ fn parse_data_message(message_components: Vec<&str>) -> Data {
     };
 }
 
+const HEX_REGEX: &str = "[0-9a-fA-F]+";
+
+fn validate_data_message_format(raw_message: &str) -> bool {
+    let data_format = format!("^<[abcd](?: {HEX_REGEX}){{11}}>$");
+    let data_regex = Regex::new(&data_format).unwrap();
+    return data_regex.is_match(raw_message);
+}
+
 /* ESC input:
 0. ESC ID (w, x, y, z)
 1. Input
@@ -147,6 +156,12 @@ fn parse_input_message(message_components: Vec<&str>) -> Input {
         input,
         timestamp,
     };
+}
+
+fn validate_input_message_format(raw_message: &str) -> bool {
+    let input_format = format!("^<[wxyz](?: {HEX_REGEX}){{2}}>$");
+    let input_regex = Regex::new(&input_format).unwrap();
+    return input_regex.is_match(raw_message);
 }
 
 /* ESC error:
@@ -168,8 +183,20 @@ fn parse_error_message(message_components: Vec<&str>) -> Error {
     };
 }
 
+fn validate_error_message_format(raw_message: &str) -> bool {
+    let error_format = format!("^<[abcd] !(?: {HEX_REGEX}){{2}}>$");
+    let error_regex = Regex::new(&error_format).unwrap();
+    return error_regex.is_match(raw_message);
+}
+
 pub fn parse_message(raw_message: String) -> TelemetryMessage {
     // TODO: handle pong, errors, unknowns
+
+    let is_valid_message =
+        validate_data_message_format(&raw_message) || validate_input_message_format(&raw_message);
+    if !is_valid_message {
+        return TelemetryMessage::UnknownMessage(Unknown { raw_message });
+    }
 
     // remove < and >
     let innards = &raw_message[1..(raw_message.len() - 1)];
@@ -194,7 +221,6 @@ pub fn parse_message(raw_message: String) -> TelemetryMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::assert_matches;
 
     #[test]
     fn test_parse_hex_zero() {
@@ -309,5 +335,73 @@ mod tests {
             timestamp: 1321,
         };
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn validate_data_message_format_valid() {
+        let message = "<c 1F 3 A0 0 16 0 4 0 0 E0 5D24>";
+        assert_eq!(validate_data_message_format(message), true);
+    }
+
+    #[test]
+    fn validate_data_message_format_not_data_esc() {
+        let message = "<w 1F 3 A0 0 16 0 4 0 0 E0 5D24>";
+        assert_eq!(validate_data_message_format(message), false);
+    }
+
+    #[test]
+    fn validate_data_message_format_missing_start() {
+        let message = "c 1F 3 A0 0 16 0 4 0 0 E0 5D24>";
+        assert_eq!(validate_data_message_format(message), false);
+    }
+
+    #[test]
+    fn validate_data_message_format_missing_end() {
+        let message = "<c 1F 3 A0 0 16 0 4 0 0 E0 5D24";
+        assert_eq!(validate_data_message_format(message), false);
+    }
+
+    #[test]
+    fn validate_data_message_format_not_enough_hex() {
+        let message = "<c 1F A0 0 16 0 4 0 0 E0 5D24";
+        assert_eq!(validate_data_message_format(message), false);
+        let message = "<c 1F 5D24>";
+        assert_eq!(validate_data_message_format(message), false);
+    }
+
+    #[test]
+    fn validate_data_message_format_extra_space() {
+        let message = "<c  1F 3 A0 0 16 0 4 0 0 E0 5D24>";
+        assert_eq!(validate_data_message_format(message), false);
+    }
+
+    #[test]
+    fn validate_input_message_format_valid() {
+        let message = "<w 1F 5D24>";
+        assert_eq!(validate_input_message_format(message), true);
+    }
+
+    #[test]
+    fn validate_input_message_format_not_input_esc() {
+        let message = "<a 1F 5D24>";
+        assert_eq!(validate_input_message_format(message), false);
+    }
+
+    #[test]
+    fn validate_input_message_format_not_enough_hex() {
+        let message = "<a 5D24>";
+        assert_eq!(validate_input_message_format(message), false);
+    }
+
+    #[test]
+    fn validate_error_message_format_valid() {
+        let message = "<a ! 1 5D24>";
+        assert_eq!(validate_error_message_format(message), true);
+    }
+
+    #[test]
+    fn validate_error_message_format_no_code() {
+        let message = "<a ! 5D24>";
+        assert_eq!(validate_error_message_format(message), false);
     }
 }

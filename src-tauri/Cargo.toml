@@ -26,4 +26,5 @@ tokio-tungstenite = "0.29"
 tokio = { version = "1.43.0", features = ["full"] }
 tungstenite = "0.26.1"
 futures-util = "0.3"
+regex = "1.12.4"
 
