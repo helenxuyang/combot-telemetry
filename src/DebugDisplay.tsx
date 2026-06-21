@@ -30,7 +30,7 @@ export const DebugDisplay = () => {
               <div>
                 Error timestamps: [
                 {esc.errors
-                  .map((error) => `${error.timestamp}: ${error.code}`)
+                  .map((error) => `${error.timestamp}: ${error.errorCode}`)
                   .join(",")}
                 ]
               </div>

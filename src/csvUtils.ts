@@ -186,7 +186,7 @@ export const importRobot = (
       robot.escs[row[1]]
     ) {
       robot.escs[row[1]].errors.push({
-        code: Number(row[2]),
+        errorCode: Number(row[2]),
         timestamp: Number(row[3]),
       });
       return;

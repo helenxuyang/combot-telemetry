@@ -1,4 +1,4 @@
-use crate::parser::{self, TelemetryMessage::DataMessage};
+use crate::parser::{self};
 use futures_util::StreamExt;
 use tauri::{AppHandle, Emitter};
 use tokio_tungstenite::connect_async;
@@ -8,7 +8,7 @@ pub async fn websocket_connect(app: AppHandle) {
     println!("connect called from JS");
     let local_ip = "192.168.0.129";
     let telemetry_board_ip = "192.168.4.1";
-    let url = format!("ws://{telemetry_board_ip}:81");
+    let url = format!("ws://{local_ip}:81");
 
     let (ws_stream, _response) = connect_async(url).await.expect("Failed to connect");
     println!("WebSocket handshake has been successfully completed");

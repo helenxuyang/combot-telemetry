@@ -315,7 +315,10 @@ export const parsePlotData = (robot: Robot, plots: Plot[]) => {
           silent: true,
           symbolSize: 5,
           data: escErrors.map((error) => {
-            return { name: `error ${error.code} `, xAxis: error.timestamp };
+            return {
+              name: `error ${error.errorCode} `,
+              xAxis: error.timestamp,
+            };
           }),
           label: {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

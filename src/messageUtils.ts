@@ -21,7 +21,7 @@ export type EscInputMessage = {
 export type EscErrorMessage = {
   messageType: "errorMessage";
   escName: EscName;
-  code: number;
+  errorCode: number;
   timestamp: number;
 };
 
@@ -63,10 +63,10 @@ export const getUpdatedRobot = (
   }
 
   if (messageType === "errorMessage") {
-    const { code } = message;
-    console.log("error", timestamp, code);
+    const { errorCode } = message;
+    console.log("error", timestamp, errorCode);
 
-    newRobot.escs[escName].errors.push({ code, timestamp });
+    newRobot.escs[escName].errors.push({ errorCode, timestamp });
     return newRobot;
   }
 
