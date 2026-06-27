@@ -1,4 +1,4 @@
-use crate::session;
+use crate::telemetry_session;
 use futures_util::StreamExt;
 use tauri::AppHandle;
 use tokio_tungstenite::connect_async;
@@ -12,7 +12,7 @@ pub async fn websocket_connect(app: AppHandle) {
 
     let (ws_stream, _response) = connect_async(url).await.expect("Failed to connect");
     println!("WebSocket handshake has been successfully completed");
-    session::handle_start(&app);
+    telemetry_session::handle_start(&app);
 
     let (mut _write, read) = ws_stream.split();
 
@@ -21,7 +21,7 @@ pub async fn websocket_connect(app: AppHandle) {
         let raw_message = String::from_utf8(data.to_vec()).expect("Invalid UTF-8");
         println!("websocket read {raw_message}");
         if raw_message.len() > 0 {
-            session::handle_message(&app, raw_message);
+            telemetry_session::handle_message(&app, raw_message);
         }
     });
 

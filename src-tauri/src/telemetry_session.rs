@@ -1,5 +1,5 @@
-use crate::csv;
-use crate::parser;
+use crate::csv_writer;
+use crate::message_parser;
 use chrono::{DateTime, Local};
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
@@ -19,12 +19,12 @@ pub fn handle_start(app: &AppHandle) {
 // TODO: figure out async tokio stuff to do these in "parallel"?
 pub fn handle_message(app: &AppHandle, raw_message: String) {
     // save raw to txt
-    if let Err(error) = csv::write_raw_messages_txt(&app, &raw_message) {
+    if let Err(error) = csv_writer::write_raw_messages_txt(&app, &raw_message) {
         println!("CSV ERROR: Failed to write raw data: {}", error);
     };
 
     // parse
-    let parsed_message = parser::parse_message(raw_message);
+    let parsed_message = message_parser::parse_message(raw_message);
 
     // send to frontend
     if let Err(error) = app.emit("telemetry-message", &parsed_message) {
@@ -32,7 +32,7 @@ pub fn handle_message(app: &AppHandle, raw_message: String) {
     }
 
     // save parsed to CSV
-    if let Err(error) = csv::write_parsed_messages_csv(&app, parsed_message) {
+    if let Err(error) = csv_writer::write_parsed_messages_csv(&app, parsed_message) {
         println!("CSV ERROR: Failed to write parsed data: {}", error);
     };
 }

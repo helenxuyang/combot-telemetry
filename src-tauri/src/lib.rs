@@ -1,6 +1,6 @@
-mod csv;
-mod parser;
-mod session;
+mod csv_writer;
+mod message_parser;
+mod telemetry_session;
 mod websocket;
 
 use std::sync::Mutex;
@@ -11,7 +11,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            app.manage(Mutex::new(session::AppState {
+            app.manage(Mutex::new(telemetry_session::AppState {
                 session_start_time: None,
             }));
             Ok(())
