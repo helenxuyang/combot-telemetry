@@ -15,7 +15,7 @@ pub struct TelemetryData {
     rpm: u32,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryInput {
     esc_name: String,
@@ -23,7 +23,7 @@ pub struct TelemetryInput {
     input: i32,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryError {
     esc_name: String,
@@ -31,7 +31,7 @@ pub struct TelemetryError {
     error_code: u32,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryUnknown {
     raw_message: String,

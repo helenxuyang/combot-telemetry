@@ -23,11 +23,16 @@ pub fn handle_message(app: &AppHandle, raw_message: String) {
         println!("CSV ERROR: Failed to write raw data: {}", error);
     };
 
-    // parse and send to frontend
+    // parse
     let parsed_message = parser::parse_message(raw_message);
+
+    // send to frontend
     if let Err(error) = app.emit("telemetry-message", &parsed_message) {
         println!("GUI ERROR: Failed to emit telemetry-message: {}", error);
     }
 
     // save parsed to CSV
+    if let Err(error) = csv::write_parsed_messages_csv(&app, parsed_message) {
+        println!("CSV ERROR: Failed to write parsed data: {}", error);
+    };
 }
