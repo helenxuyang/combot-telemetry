@@ -1,25 +1,49 @@
-use std::num::ParseIntError;
-
 use regex::Regex;
 use serde::Serialize;
+use std::{fmt::Display, num::ParseIntError};
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryData {
     esc_name: String,
-    timestamp: u32,
-    temperature: u32,
+    timestamp: u64,
+    temperature: u8,
     voltage: f32,
     current: f32,
     consumption: u32,
     rpm: u32,
 }
 
+#[derive(Debug)]
+enum TelemetryDataParseError {
+    ParseError(ParseIntError),
+    IncorrectChecksumError,
+}
+
+impl std::error::Error for TelemetryDataParseError {}
+
+impl Display for TelemetryDataParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TelemetryDataParseError::ParseError(parse_int_error) => {
+                write!(f, "{}", parse_int_error)
+            }
+            TelemetryDataParseError::IncorrectChecksumError => write!(f, "Incorrect checksum",),
+        }
+    }
+}
+
+impl From<ParseIntError> for TelemetryDataParseError {
+    fn from(err: ParseIntError) -> Self {
+        TelemetryDataParseError::ParseError(err)
+    }
+}
+
 #[derive(Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryInput {
     esc_name: String,
-    timestamp: u32,
+    timestamp: u64,
     input: i32,
 }
 
@@ -27,8 +51,8 @@ pub struct TelemetryInput {
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryError {
     esc_name: String,
-    timestamp: u32,
-    error_code: u32,
+    timestamp: u64,
+    error_code: u8,
 }
 
 #[derive(Serialize, Debug, PartialEq)]
@@ -60,12 +84,22 @@ fn convert_esc_id_to_name(esc_id: &str) -> &str {
     }
 }
 
-fn parse_hex(hex_str: &str) -> Result<u32, ParseIntError> {
+fn parse_hex(hex_str: &str) -> Result<u8, ParseIntError> {
+    return u8::from_str_radix(hex_str, 16);
+}
+
+fn parse_input(hex_str: &str) -> Result<u32, ParseIntError> {
     return u32::from_str_radix(hex_str, 16);
 }
 
-fn merge_bytes(high_byte: u32, low_byte: u32) -> u32 {
-    return (high_byte << 8) + low_byte;
+fn parse_timestamp(hex_str: &str) -> Result<u64, ParseIntError> {
+    return u64::from_str_radix(hex_str, 16);
+}
+
+fn merge_bytes(high_byte: u8, low_byte: u8) -> u16 {
+    let extended_high_byte = high_byte as u16;
+    let extended_low_byte = low_byte as u16;
+    return (extended_high_byte << 8) + extended_low_byte;
 }
 
 fn round_to_two_decimals(num: f32) -> f32 {
@@ -80,8 +114,43 @@ fn parse_two_bytes(raw_high: &str, raw_low: &str, scale_factor: f32) -> Result<f
     return Ok(raw * scale_factor);
 }
 
+// from KISS telemetry protocol
+fn update_checksum(crc: u8, crc_seed: u8) -> u8 {
+    let mut crc_u = crc ^ crc_seed;
+
+    for _ in 0..8 {
+        crc_u = if (crc_u & 0x80) != 0 {
+            0x07 ^ (crc_u << 1)
+        } else {
+            crc_u << 1
+        };
+    }
+    return crc_u;
+}
+
+// from KISS telemetry protocol
+fn calculate_checksum(buf: &[u8]) -> u8 {
+    let mut crc = 0u8;
+
+    for &byte in buf {
+        crc = update_checksum(byte, crc);
+    }
+    return crc;
+}
+
+fn validate_checksum(data: &[&str], received_checksum: u8) -> Result<bool, ParseIntError> {
+    let parsed_data: Result<Vec<u8>, std::num::ParseIntError> =
+        data.iter().map(|&raw| parse_hex(raw)).collect();
+    match parsed_data {
+        Ok(parsed) => {
+            return Ok(calculate_checksum(&parsed) == received_checksum);
+        }
+        Err(err) => return Err(err),
+    }
+}
+
 /* ESC data:
-1.  ESC ID (a, b, c, d)
+0.  ESC ID (a, b, c, d)
 1.  Temperature
 2.  Voltage high byte
 3.  Voltage low byte
@@ -94,7 +163,9 @@ fn parse_two_bytes(raw_high: &str, raw_low: &str, scale_factor: f32) -> Result<f
 10. Checksum
 11. Timestamp
  */
-fn parse_data_message(message_components: Vec<&str>) -> Result<TelemetryData, ParseIntError> {
+fn parse_data_message(
+    message_components: Vec<&str>,
+) -> Result<TelemetryData, TelemetryDataParseError> {
     let esc_id = message_components[0];
     let esc_name = convert_esc_id_to_name(esc_id).to_string();
     let temperature = parse_hex(message_components[1])?;
@@ -112,19 +183,32 @@ fn parse_data_message(message_components: Vec<&str>) -> Result<TelemetryData, Pa
         parse_two_bytes(message_components[6], message_components[7], 1.0)?.round() as u32;
     let rpm =
         parse_two_bytes(message_components[8], message_components[9], 100.0 / 7.0)?.round() as u32;
-    let timestamp = parse_hex(message_components[11])?;
+    let timestamp = parse_timestamp(message_components[11])?;
 
-    // TODO: validate checksum
+    let checksum = parse_hex(message_components[10])?;
 
-    return Ok(TelemetryData {
-        esc_name,
-        temperature,
-        voltage,
-        current,
-        consumption,
-        rpm,
-        timestamp,
-    });
+    let is_valid_checksum = validate_checksum(&message_components[1..=9], checksum);
+
+    match is_valid_checksum {
+        Ok(is_correct_checksum) => {
+            if is_correct_checksum {
+                return Ok(TelemetryData {
+                    esc_name,
+                    temperature,
+                    voltage,
+                    current,
+                    consumption,
+                    rpm,
+                    timestamp,
+                });
+            } else {
+                return Err(TelemetryDataParseError::IncorrectChecksumError);
+            }
+        }
+        Err(error) => {
+            return Err(TelemetryDataParseError::ParseError(error));
+        }
+    }
 }
 
 const HEX_REGEX: &str = "[0-9a-fA-F]+";
@@ -143,9 +227,9 @@ fn validate_data_message_format(raw_message: &str) -> bool {
 fn parse_input_message(message_components: Vec<&str>) -> Result<TelemetryInput, ParseIntError> {
     let esc_id = message_components[0];
     let esc_name = convert_esc_id_to_name(esc_id).to_string();
-    let raw_input = parse_hex(message_components[1])? as f32;
+    let raw_input = parse_input(message_components[1])? as f32;
     let input = (0.2 * raw_input - 300.0) as i32; // scale from [1000, 2000] -> [-100, 100]
-    let timestamp = parse_hex(message_components[2])?;
+    let timestamp = parse_timestamp(message_components[2])?;
 
     return Ok(TelemetryInput {
         esc_name,
@@ -170,7 +254,7 @@ fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, 
     let esc_id = message_components[0];
     let esc_name = convert_esc_id_to_name(esc_id).to_string();
     let error_code = parse_hex(message_components[2])?;
-    let timestamp = parse_hex(message_components[3])?;
+    let timestamp = parse_timestamp(message_components[3])?;
 
     return Ok(TelemetryError {
         esc_name,
@@ -246,12 +330,6 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_hex_many_digits() {
-        let result = parse_hex("4943D");
-        assert_eq!(result, Ok(300093));
-    }
-
-    #[test]
     fn test_parse_hex_too_big() {
         let result = parse_hex("100000000");
         assert!(result.is_err());
@@ -264,21 +342,33 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_input() {
+        let result = parse_input("7D0");
+        assert_eq!(result, Ok(2000));
+    }
+
+    #[test]
+    fn test_parse_timestamp() {
+        let result = parse_timestamp("123456ABC");
+        assert_eq!(result, Ok(4886719164));
+    }
+
+    #[test]
     fn test_merge_bytes() {
-        let result = merge_bytes(0x01_u32, 0xff_u32);
-        assert_eq!(result, 0x01ff_u32);
+        let result = merge_bytes(0x01_u8, 0xff_u8);
+        assert_eq!(result, 0x01ff_u16);
     }
 
     #[test]
     fn test_merge_bytes_start_with_zeroes() {
-        let result = merge_bytes(0x01_u32, 0x02_u32);
-        assert_eq!(result, 0x0102_u32);
+        let result = merge_bytes(0x01_u8, 0x02_u8);
+        assert_eq!(result, 0x0102_u16);
     }
 
     #[test]
     fn test_merge_bytes_end_with_zeroes() {
-        let result = merge_bytes(0x30_u32, 0x40_u32);
-        assert_eq!(result, 0x3040_u32);
+        let result = merge_bytes(0x30_u8, 0x40_u8);
+        assert_eq!(result, 0x3040_u16);
     }
 
     #[test]
@@ -313,13 +403,44 @@ mod tests {
     }
 
     #[test]
+    fn calculate_checksum_correct() {
+        let components = [
+            0x1f_u8, 0x3_u8, 0xA0_u8, 0x0_u8, 0x16_u8, 0x0_u8, 0x4_u8, 0x0_u8, 0x0_u8,
+        ];
+        let calculated_checksum = calculate_checksum(&components);
+        assert_eq!(calculated_checksum, 0xE0_u8);
+    }
+
+    #[test]
+    fn validate_checksum_correct() {
+        let components = ["1F", "3", "A0", "0", "16", "0", "4", "0", "0"];
+        let result = validate_checksum(&components, 0xE0_u8);
+        assert_eq!(result, Ok(true));
+    }
+
+    #[test]
+    fn validate_checksum_wrong() {
+        let components = ["1F", "3", "A0", "0", "16", "0", "4", "0", "0"];
+        let result = validate_checksum(&components, 0x0);
+        assert_eq!(result, Ok(false));
+    }
+
+    #[test]
+    fn validate_checksum_parse_error() {
+        let components = ["invalid", "3", "A0", "0", "16", "0", "4", "0", "0"];
+        let result = validate_checksum(&components, 0xE0_u8);
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn parse_data_message_weapon() {
         let result = parse_data_message(
             [
                 "c", "1F", "3", "A0", "0", "16", "0", "4", "0", "0", "E0", "5D24",
             ]
             .to_vec(),
-        );
+        )
+        .unwrap();
         let expected = TelemetryData {
             esc_name: "Weapon".to_string(),
             temperature: 31,
@@ -329,7 +450,7 @@ mod tests {
             rpm: 0,
             timestamp: 23844,
         };
-        assert_eq!(result, Ok(expected));
+        assert_eq!(result, expected);
     }
 
     #[test]
