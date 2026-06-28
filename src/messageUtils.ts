@@ -1,8 +1,8 @@
-import { EscName, Robot } from "./robot";
+import { EscId, MeasurementName, Robot } from "./robot";
 
 export type EscDataMessage = {
   messageType: "dataMessage";
-  escName: EscName;
+  escId: EscId;
   temperature: number;
   voltage: number;
   current: number;
@@ -13,14 +13,14 @@ export type EscDataMessage = {
 
 export type EscInputMessage = {
   messageType: "inputMessage";
-  escName: EscName;
+  escId: EscId;
   input: number;
   timestamp: number;
 };
 
 export type EscErrorMessage = {
   messageType: "errorMessage";
-  escName: EscName;
+  escId: EscId;
   errorCode: number;
   timestamp: number;
 };
@@ -51,10 +51,11 @@ export const getUpdatedRobot = (
     return newRobot;
   }
 
-  const { timestamp, escName } = message;
+  const { timestamp, escId } = message;
+  const esc = newRobot.escs[escId];
 
   // for Stack--no drive but can still get drive inputs from noise
-  if (!newRobot.escs[escName]) {
+  if (!esc) {
     return newRobot;
   }
 
@@ -66,22 +67,22 @@ export const getUpdatedRobot = (
     const { errorCode } = message;
     console.log("error", timestamp, errorCode);
 
-    newRobot.escs[escName].errors.push({ errorCode, timestamp });
+    esc.errors.push({ errorCode, timestamp });
     return newRobot;
   }
 
   if (messageType === "dataMessage") {
-    const { messageType, escName, timestamp, ...escData } = message;
+    const { messageType, escId, timestamp, ...escData } = message;
     Object.entries(escData).forEach(([measurementKey, measurementValue]) => {
-      newRobot.escs[escName].measurements[measurementKey].values = [
+      esc.data.measurements[measurementKey as MeasurementName].values = [
         measurementValue,
       ];
     });
-    newRobot.escs[escName].timestamps = [timestamp];
+    esc.data.timestamps = [timestamp];
   } else if (messageType === "inputMessage") {
     const { input } = message;
-    newRobot.escs[escName].inputs.timestamps = [timestamp];
-    newRobot.escs[escName].inputs.values = [input];
+    esc.inputs.timestamps = [timestamp];
+    esc.inputs.values = [input];
   }
 
   return newRobot;

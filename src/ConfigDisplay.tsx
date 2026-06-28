@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { type EscName, type MeasurementName } from "./robot";
+import { type MeasurementName } from "./robot";
 import styled from "styled-components";
 import {
   deleteRobotConfig,
@@ -77,7 +77,7 @@ export const ConfigDisplay = () => {
   };
 
   const getShouldHighlight = (
-    escName: EscName,
+    escName: string,
     measurementName: MeasurementName,
     key: keyof MeasurementConfig,
   ) => {

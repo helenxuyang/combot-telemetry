@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import { CONSUMPTION, type Robot } from "./robot";
-import { useEffect, useRef, type ReactNode } from "react";
+import { CONSUMPTION, ESC } from "./robot";
+import { useRef, type ReactNode } from "react";
 import { Container } from "./styles";
 import { calculateTotal, getLatestValue } from "./dataUtils";
 
@@ -42,7 +42,7 @@ const Label = styled.span`
 `;
 
 type Props = {
-  escs: Robot["escs"];
+  escs: ESC[];
 };
 
 const svgSize = 150;
@@ -50,18 +50,21 @@ const radius = svgSize / 3;
 const colors = ["cornflowerblue", "blue", "orange"];
 
 export const ConsumptionDonut = ({ escs }: Props) => {
+  let consumptions: Record<string, number> = {};
+  escs.forEach((esc) => {
+    consumptions[esc.name] = getLatestValue(
+      esc.data.measurements[CONSUMPTION].values,
+    );
+  });
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number | null>(null);
-  const escsRef = useRef(escs);
-  const totalConsumptionRef = useRef(calculateTotal(CONSUMPTION, escs));
+  const totalConsumption = calculateTotal(Object.values(consumptions));
 
-  const totalConsumption = calculateTotal(CONSUMPTION, escs);
-
+  // create labels
+  // TODO: maybe do on canvas
   const labels: ReactNode[] = [];
   let angle = 0;
-
-  Object.values(escs).forEach((esc) => {
-    const value = getLatestValue(esc.measurements[CONSUMPTION].values);
+  Object.keys(consumptions).forEach((esc) => {
+    const value = consumptions[esc];
     const percent = totalConsumption > 0 ? (value / totalConsumption) * 100 : 0;
     const strokeWidth = 10;
     const sliceAngle = (percent / 100) * 360;
@@ -74,14 +77,14 @@ export const ConsumptionDonut = ({ escs }: Props) => {
 
       labels.push(
         <Label
-          key={esc.name}
+          key={esc}
           style={{
             left: "50%",
             bottom: "50%",
             transform: `translate(calc(${translateX < 0 ? "-100" : "0"}% + ${translateX}px), calc(50% + ${translateY}px))`,
           }}
         >
-          {esc.abbreviation}: {value}
+          {esc}: {value}
         </Label>,
       );
     }
@@ -89,67 +92,45 @@ export const ConsumptionDonut = ({ escs }: Props) => {
     angle += sliceAngle;
   });
 
-  useEffect(() => {
-    escsRef.current = escs;
-    totalConsumptionRef.current = totalConsumption;
-  }, [escs, totalConsumption]);
+  const canvas = canvasRef.current;
+  if (!canvas) return;
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = svgSize * dpr;
+  canvas.height = svgSize * dpr;
 
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = svgSize * dpr;
-    canvas.height = svgSize * dpr;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const centerX = svgSize / 2;
+  const centerY = svgSize / 2;
+  const strokeWidth = 10;
+  const startAngle = -Math.PI / 2;
 
-    const centerX = svgSize / 2;
-    const centerY = svgSize / 2;
-    const strokeWidth = 10;
-    const startAngle = -Math.PI / 2;
+  ctx.clearRect(0, 0, svgSize, svgSize);
 
-    const render = () => {
-      const currentEscs = escsRef.current;
-      const currentTotal = totalConsumptionRef.current;
+  angle = 0;
 
-      ctx.clearRect(0, 0, svgSize, svgSize);
+  Object.keys(consumptions).forEach((esc, index) => {
+    const value = consumptions[esc];
+    const percent = totalConsumption > 0 ? (value / totalConsumption) * 100 : 0;
+    const color = colors[index];
 
-      let angle = 0;
+    if (value > 0) {
+      const sliceAngle = (percent / 100) * 2 * Math.PI;
+      const endAngle = startAngle + angle + sliceAngle;
 
-      Object.values(currentEscs).forEach((esc, index) => {
-        const value = getLatestValue(esc.measurements[CONSUMPTION].values);
-        const percent = currentTotal > 0 ? (value / currentTotal) * 100 : 0;
-        const color = colors[index];
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, startAngle + angle, endAngle);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = strokeWidth;
+      ctx.stroke();
 
-        if (value > 0) {
-          const sliceAngle = (percent / 100) * 2 * Math.PI;
-          const endAngle = startAngle + angle + sliceAngle;
-
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, startAngle + angle, endAngle);
-          ctx.strokeStyle = color;
-          ctx.lineWidth = strokeWidth;
-          ctx.stroke();
-
-          angle += sliceAngle;
-        }
-      });
-
-      animationRef.current = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, []);
+      angle += sliceAngle;
+    }
+  });
 
   return (
     <Container>

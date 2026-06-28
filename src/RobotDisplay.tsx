@@ -1,22 +1,13 @@
 import { ConsumptionDonut } from "./ConsumptionDonut";
-import { calculateTotal } from "./dataUtils";
+import { calculateTotal, getLatestValue } from "./dataUtils";
 import { BarDisplay } from "./BarDisplay";
-import type { Measurement } from "./robot";
-import {
-  TOTAL_CURRENT,
-  TOTAL_CONSUMPTION,
-  DRIVE_LEFT_ESC,
-  WEAPON_ESC,
-  DRIVE_RIGHT_ESC,
-  ARM_ESC,
-  CONSUMPTION,
-  CURRENT,
-} from "./robot";
+import { CONSUMPTION, CURRENT } from "./robot";
 import { BACKGROUND, SMALL_VIEWPORT } from "./styles";
 import { VoltageDisplay } from "./VoltageDisplay";
 import styled from "styled-components";
 import { ESCDisplay } from "./ESCDisplay";
 import { useRobot } from "./store";
+import { METADATA } from "./displayUtils";
 
 const ESCSection = styled.div`
   flex: 4;
@@ -83,68 +74,56 @@ const FlexBar = styled(BarDisplay)`
   flex: 1;
 `;
 
+const TOTAL_CURRENT = "Total Current";
+const TOTAL_CONSUMPTION = "Total Consumption";
+
 export const RobotDisplay = () => {
   const robot = useRobot();
-  const referenceEsc = Object.values(robot.escs)[0];
 
-  const { min: minCurrent, max: maxCurrent } =
-    referenceEsc.measurements[CURRENT];
-  const { min: minConsumption, max: maxConsumption } =
-    referenceEsc.measurements[CONSUMPTION];
-
-  const totalCurrent = calculateTotal(CURRENT, robot.escs);
-  const totalConsumption = calculateTotal(CONSUMPTION, robot.escs);
-
-  const currentMeasurement: Measurement = {
-    name: TOTAL_CURRENT,
-    values: [totalCurrent],
-    min: minCurrent,
-    max: maxCurrent,
-    unit: "A",
-    shouldShow: true,
-  };
-
-  const consumptionMeasurement: Measurement = {
-    name: TOTAL_CONSUMPTION,
-    values: [totalConsumption],
-    min: minConsumption,
-    max: maxConsumption,
-    unit: "mAh",
-    shouldShow: true,
-  };
+  const escs = Object.values(robot.escs);
+  const referenceEsc = escs[0];
+  const totalCurrent = calculateTotal(
+    escs.map((esc) => getLatestValue(esc.data.measurements[CURRENT].values)),
+  );
+  const totalConsumption = calculateTotal(
+    escs.map((esc) =>
+      getLatestValue(esc.data.measurements[CONSUMPTION].values),
+    ),
+  );
 
   return (
     <Layout>
       <RobotSection>
-        Latest timestamp:
-        {Math.max(
-          ...Object.values(robot.escs).map((esc) => esc.timestamps.at(-1) ?? 0),
-        )}
         <RobotLayout>
           <BarsHolder>
-            <VoltageDisplay escs={robot.escs} />
+            <VoltageDisplay escs={Object.values(robot.escs)} />
             <HorizontalBarsHolder>
               <FlexBar
-                measurement={currentMeasurement}
+                name={TOTAL_CURRENT}
+                value={totalCurrent}
+                unit={METADATA[CURRENT].unit}
+                config={referenceEsc.data.measurements[CURRENT].config}
                 orientation="horizontal"
               />
               <FlexBar
-                measurement={consumptionMeasurement}
+                name={TOTAL_CONSUMPTION}
+                value={totalConsumption}
+                unit={METADATA[CONSUMPTION].unit}
+                config={referenceEsc.data.measurements[CONSUMPTION].config}
                 orientation="horizontal"
               />
             </HorizontalBarsHolder>
           </BarsHolder>
           <LayoutColumn>
-            <ConsumptionDonut escs={robot.escs} />
+            <ConsumptionDonut escs={Object.values(robot.escs)} />
           </LayoutColumn>
         </RobotLayout>
       </RobotSection>
       <ESCSection>
         <ESCGrid>
-          <ESCDisplay esc={robot.escs[DRIVE_LEFT_ESC]} />
-          <ESCDisplay esc={robot.escs[WEAPON_ESC]} shouldPlayRPMAlert />
-          <ESCDisplay esc={robot.escs[DRIVE_RIGHT_ESC]} />
-          <ESCDisplay esc={robot.escs[ARM_ESC]} />
+          {Object.values(robot.escs).map((esc) => (
+            <ESCDisplay esc={esc} />
+          ))}
         </ESCGrid>
       </ESCSection>
     </Layout>

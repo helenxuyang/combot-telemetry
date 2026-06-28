@@ -1,0 +1,46 @@
+Robot
+- name
+- escs: Record<EscId, Esc> {
+    a: Esc 
+    b: Esc
+    c: Esc
+    d: Esc
+}
+- unknownMessages: UnknownMessage[]
+
+
+Esc
+- name
+- measurements: {
+    TEMP: TemperatureMeasurement,
+    etc.
+}
+- timestamps
+- errors: EscError[]
+- inputs: Input
+
+BaseMeasurement
+- name
+- unit
+- values 
+
+Measurement = TemperatureMeasurement | VoltageMeasurement | etc
+
+EscConfig 
+- name
+- measurements: {
+    TEMP: TemperatureConfig,
+    etc.
+}
+
+BaseMeasurementConfig
+- name
+- min
+- max
+
+MeasurementConfig = TemperatureConfig | VoltageConfig | etc 
+
+
+additional config for RPM 
+- gear ratio (for gear reduction to know actual wheel/weapon RPM instead of motor)
+- # motor pole pairs (for parse scale)

@@ -5,7 +5,7 @@ use std::{fmt::Display, num::ParseIntError};
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryData {
-    esc_name: String,
+    esc_id: String,
     timestamp: u64,
     temperature: u8,
     voltage: f32,
@@ -42,7 +42,7 @@ impl From<ParseIntError> for TelemetryDataParseError {
 #[derive(Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryInput {
-    esc_name: String,
+    esc_id: String,
     timestamp: u64,
     input: i32,
 }
@@ -50,7 +50,7 @@ pub struct TelemetryInput {
 #[derive(Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryError {
-    esc_name: String,
+    esc_id: String,
     timestamp: u64,
     error_code: u8,
 }
@@ -59,6 +59,7 @@ pub struct TelemetryError {
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryUnknown {
     raw_message: String,
+    // TODO: maybe add reason, e.g. incorrect format vs incorrect checksum
 }
 
 #[derive(Serialize)]
@@ -73,13 +74,12 @@ pub enum TelemetryMessage {
 
 const ERROR_MARKER: &str = "!";
 
-// TODO: figure out ESC name type
-fn convert_esc_id_to_name(esc_id: &str) -> &str {
+fn convert_input_id_to_esc_id(esc_id: &str) -> &str {
     match esc_id {
-        "a" | "w" => "DriveLeft",
-        "b" | "x" => "DriveRight",
-        "c" | "y" => "Weapon",
-        "d" | "z" => "Arm",
+        "w" => "a",
+        "x" => "b",
+        "y" => "c",
+        "z" => "d",
         _ => "Unknown",
     }
 }
@@ -162,12 +162,19 @@ fn validate_checksum(data: &[&str], received_checksum: u8) -> Result<bool, Parse
 9.  RPM low byte
 10. Checksum
 11. Timestamp
+
+Data conversions:
+temp: as-is, in C
+voltage: / 100, in V
+current: / 100, in A
+consumption: as-is, in mAh
+rpm: * 100, divide by # motor pole pairs
+time since start: as-is, in ms
  */
 fn parse_data_message(
     message_components: Vec<&str>,
 ) -> Result<TelemetryData, TelemetryDataParseError> {
-    let esc_id = message_components[0];
-    let esc_name = convert_esc_id_to_name(esc_id).to_string();
+    let esc_id = message_components[0].to_string();
     let temperature = parse_hex(message_components[1])?;
     let voltage = round_to_two_decimals(parse_two_bytes(
         message_components[2],
@@ -181,6 +188,7 @@ fn parse_data_message(
     )?);
     let consumption =
         parse_two_bytes(message_components[6], message_components[7], 1.0)?.round() as u32;
+    // TODO: remove hard-code for motor pole pairs
     let rpm =
         parse_two_bytes(message_components[8], message_components[9], 100.0 / 7.0)?.round() as u32;
     let timestamp = parse_timestamp(message_components[11])?;
@@ -193,7 +201,7 @@ fn parse_data_message(
         Ok(is_correct_checksum) => {
             if is_correct_checksum {
                 return Ok(TelemetryData {
-                    esc_name,
+                    esc_id,
                     temperature,
                     voltage,
                     current,
@@ -225,14 +233,14 @@ fn validate_data_message_format(raw_message: &str) -> bool {
 2. Timestamp
  */
 fn parse_input_message(message_components: Vec<&str>) -> Result<TelemetryInput, ParseIntError> {
-    let esc_id = message_components[0];
-    let esc_name = convert_esc_id_to_name(esc_id).to_string();
+    let input_id = message_components[0];
+    let esc_id = convert_input_id_to_esc_id(input_id).to_string();
     let raw_input = parse_input(message_components[1])? as f32;
     let input = (0.2 * raw_input - 300.0) as i32; // scale from [1000, 2000] -> [-100, 100]
     let timestamp = parse_timestamp(message_components[2])?;
 
     return Ok(TelemetryInput {
-        esc_name,
+        esc_id,
         input,
         timestamp,
     });
@@ -251,13 +259,12 @@ fn validate_input_message_format(raw_message: &str) -> bool {
 3. Timestamp
  */
 fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, ParseIntError> {
-    let esc_id = message_components[0];
-    let esc_name = convert_esc_id_to_name(esc_id).to_string();
+    let esc_id = message_components[0].to_string();
     let error_code = parse_hex(message_components[2])?;
     let timestamp = parse_timestamp(message_components[3])?;
 
     return Ok(TelemetryError {
-        esc_name,
+        esc_id,
         timestamp,
         error_code,
     });
@@ -442,7 +449,7 @@ mod tests {
         )
         .unwrap();
         let expected = TelemetryData {
-            esc_name: "Weapon".to_string(),
+            esc_id: "c".to_string(),
             temperature: 31,
             voltage: 9.28,
             current: 0.22,
@@ -457,7 +464,7 @@ mod tests {
     fn parse_input_message_weapon() {
         let result = parse_input_message(["y", "6D6", "4C5"].to_vec());
         let expected = TelemetryInput {
-            esc_name: "Weapon".to_string(),
+            esc_id: "c".to_string(),
             input: 50,
             timestamp: 1221,
         };
@@ -468,7 +475,7 @@ mod tests {
     fn parse_input_message_drive() {
         let result = parse_error_message(["a", "!", "2", "529"].to_vec());
         let expected = TelemetryError {
-            esc_name: "DriveLeft".to_string(),
+            esc_id: "a".to_string(),
             error_code: 2,
             timestamp: 1321,
         };

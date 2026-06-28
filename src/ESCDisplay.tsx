@@ -1,11 +1,12 @@
 import styled from "styled-components";
-import { CURRENT, RPM, TEMPERATURE, type ESC } from "./robot";
+import { CURRENT, INPUT, RPM, TEMPERATURE, type ESC } from "./robot";
 import { BarDisplay } from "./BarDisplay";
 import { ArcDisplay } from "./ArcDisplay";
 import { Container, MEDIUM_VIEWPORT, SMALL_VIEWPORT } from "./styles";
 import { ErrorDisplay } from "./ErrorDisplay";
-import { useEffect, useRef, useState } from "react";
-import beepAudio from "./assets/beep.wav";
+import { useEffect, useState } from "react";
+import { METADATA } from "./displayUtils";
+import { getLatestValue } from "./dataUtils";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(() =>
@@ -49,7 +50,7 @@ const DisplayLayout = styled.div`
   }
 `;
 
-const TempDisplay = styled(BarDisplay)`
+const TemperatureDisplay = styled(BarDisplay)`
   grid-area: temp;
   ${Container} {
     background-color: unset;
@@ -65,55 +66,49 @@ const InputDisplay = styled(BarDisplay)`
     background-color: unset;
   }
 `;
-type Props = { esc?: ESC; className?: string; shouldPlayRPMAlert?: boolean };
+type Props = { esc: ESC; className?: string };
 
-export const ESCDisplay = ({ esc, className, shouldPlayRPMAlert }: Props) => {
+export const ESCDisplay = ({ esc, className }: Props) => {
   const isMobileViewport = useMediaQuery(`(max-width: ${MEDIUM_VIEWPORT}px)`);
   const barOrientation = isMobileViewport ? "horizontal" : "vertical";
-  const rpmAlertAudioRef = useRef<HTMLAudioElement>(null);
 
-  useEffect(() => {
-    if (!esc) {
-      return;
-    }
-    const rpm = esc.measurements[RPM];
-    if (!rpm || !rpm.highlightThreshold) {
-      return;
-    }
-    const rpmValue = rpm.values.at(-1) ?? 0;
-    if (rpmValue >= rpm.highlightThreshold) {
-      rpmAlertAudioRef.current?.play();
-    } else {
-      rpmAlertAudioRef.current?.pause();
-    }
-  }, [esc]);
-
-  if (!esc) {
-    return null;
-  }
+  const temperature = esc.data.measurements[TEMPERATURE];
+  const rpm = esc.data.measurements[RPM];
+  const current = esc.data.measurements[CURRENT];
+  const inputs = esc.inputs;
 
   return (
     <DisplayHolder className={className}>
       <h3>{esc.name}</h3>
       <DisplayLayout>
-        {esc.measurements[TEMPERATURE].shouldShow && (
-          <TempDisplay
-            measurement={esc.measurements[TEMPERATURE]}
+        {temperature.config.shouldShow && (
+          <TemperatureDisplay
+            name={METADATA[TEMPERATURE].displayName}
+            unit={METADATA[TEMPERATURE].unit}
+            value={getLatestValue(temperature.values)}
+            config={temperature.config}
             orientation={barOrientation}
           />
         )}
-        {esc.measurements[RPM].shouldShow &&
-          esc.measurements[CURRENT].shouldShow && (
-            <RPMCurrentDisplay
-              outerMeasurement={esc.measurements[RPM]}
-              innerMeasurement={esc.measurements[CURRENT]}
-            />
-          )}
-        {esc.measurements[RPM].shouldShow && shouldPlayRPMAlert && (
-          <audio ref={rpmAlertAudioRef} src={beepAudio} autoPlay loop></audio>
+        {rpm.config.shouldShow && current.config.shouldShow && (
+          <RPMCurrentDisplay
+            innerName={CURRENT}
+            innerValue={getLatestValue(current.values)}
+            innerConfig={current.config}
+            outerName={RPM}
+            outerValue={getLatestValue(rpm.values)}
+            outerConfig={rpm.config}
+          />
         )}
-        {esc.inputs.shouldShow && (
-          <InputDisplay measurement={esc.inputs} orientation={barOrientation} />
+
+        {inputs.config.shouldShow && (
+          <InputDisplay
+            name={INPUT}
+            value={getLatestValue(inputs.values)}
+            unit={METADATA[INPUT].unit}
+            config={inputs.config}
+            orientation={barOrientation}
+          />
         )}
       </DisplayLayout>
       {<ErrorDisplay errors={esc.errors} />}

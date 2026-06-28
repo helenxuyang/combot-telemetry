@@ -1,14 +1,10 @@
-import {
-  DRIVE_LEFT_ESC,
-  RPM,
-  VOLTAGE,
-  CURRENT,
-  CONSUMPTION,
-  TEMPERATURE,
-  DRIVE_RIGHT_ESC,
-  WEAPON_ESC,
-} from "../robot";
+import { RPM, VOLTAGE, CURRENT, CONSUMPTION, TEMPERATURE } from "../robot";
 import { getInitColossalAvian } from "../storageUtils";
+
+export const DRIVE_LEFT_ESC = "DRIVE_LEFT";
+export const DRIVE_RIGHT_ESC = "DRIVE_RIGHT";
+export const WEAPON_ESC = "WEAPON";
+export const ARM_ESC = "ARM";
 
 export const getMockRobotWithData = () => {
   const robot = structuredClone(getInitColossalAvian());

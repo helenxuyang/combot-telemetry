@@ -26,7 +26,7 @@ const mockMeasurement: Measurement = {
   unit: "",
   min: 20,
   max: 100,
-  colorThresholds: {
+  warningThresholds: {
     yellow: 40,
     red: 60,
   },

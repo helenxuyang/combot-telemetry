@@ -1,8 +1,8 @@
 import styled from "styled-components";
-import { VOLTAGE, type Robot } from "./robot";
+import { ESC, VOLTAGE } from "./robot";
 import { Container, Value } from "./styles";
 import { getClampedPercent, getLatestValue } from "./dataUtils";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 const BarDisplay = styled.div`
   display: flex;
@@ -43,99 +43,72 @@ const RangeText = styled.p`
 `;
 
 type Props = {
-  escs: Robot["escs"];
+  escs: ESC[];
 };
 
 export const VoltageDisplay = ({ escs }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number | null>(null);
-  const latestValuesRef = useRef<number[]>([]);
-  const minPercentRef = useRef(0);
-  const maxPercentRef = useRef(0);
-  const minValueRef = useRef(0);
-  const maxValueRef = useRef(0);
 
-  const latestValues = Object.values(escs)
-    .filter((esc) => esc.measurements[VOLTAGE].shouldShow)
-    .map((esc) => getLatestValue(esc.measurements[VOLTAGE].values));
-
+  let voltages: Record<string, number> = {};
+  escs.forEach((esc) => {
+    voltages[esc.name] = getLatestValue(esc.data.measurements[VOLTAGE].values);
+  });
+  const values = Object.values(voltages);
   const min = Math.min(
-    ...Object.values(escs).map((esc) => esc.measurements[VOLTAGE].min),
+    ...Object.values(escs).map(
+      (esc) => esc.data.measurements[VOLTAGE].config.min,
+    ),
   );
-
   const max = Math.min(
-    ...Object.values(escs).map((esc) => esc.measurements[VOLTAGE].max),
+    ...Object.values(escs).map(
+      (esc) => esc.data.measurements[VOLTAGE].config.max,
+    ),
   );
-
-  const minValue = Math.min(...latestValues);
-  const maxValue = Math.max(...latestValues);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
   const minPercent = getClampedPercent(minValue, min, max);
   const maxPercent = getClampedPercent(maxValue, min, max);
 
-  useEffect(() => {
-    latestValuesRef.current = latestValues;
-    minPercentRef.current = minPercent;
-    maxPercentRef.current = maxPercent;
-    minValueRef.current = minValue;
-    maxValueRef.current = maxValue;
-  }, [latestValues, minPercent, maxPercent, minValue, maxValue]);
+  const canvas = canvasRef.current;
+  if (!canvas) return;
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  const resizeCanvas = () => {
+    const width = Math.max(canvas.clientWidth, 1);
+    const height = Math.max(canvas.clientHeight, 1);
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { width, height };
+  };
 
-    const resizeCanvas = () => {
-      const width = Math.max(canvas.clientWidth, 1);
-      const height = Math.max(canvas.clientHeight, 1);
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      return { width, height };
-    };
+  const { width, height } = resizeCanvas();
 
-    const { width, height } = resizeCanvas();
+  const currentMarkers = values.map((value) =>
+    getClampedPercent(value, min, max),
+  );
 
-    const render = () => {
-      const currentMinPercent = minPercentRef.current;
-      const currentMaxPercent = maxPercentRef.current;
-      const currentMarkers = latestValuesRef.current.map((value) =>
-        getClampedPercent(value, min, max),
-      );
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, width, height);
 
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, width, height);
+  const minWidth = (width * minPercent) / 100;
+  const maxWidth = (width * (maxPercent - minPercent)) / 100;
 
-      const minWidth = (width * currentMinPercent) / 100;
-      const maxWidth = (width * (currentMaxPercent - currentMinPercent)) / 100;
+  ctx.fillStyle = "skyblue";
+  ctx.fillRect(0, 0, minWidth, height);
 
-      ctx.fillStyle = "skyblue";
-      ctx.fillRect(0, 0, minWidth, height);
+  ctx.fillStyle = "cornflowerblue";
+  ctx.fillRect(minWidth, 0, maxWidth, height);
 
-      ctx.fillStyle = "cornflowerblue";
-      ctx.fillRect(minWidth, 0, maxWidth, height);
-
-      ctx.fillStyle = "black";
-      currentMarkers.forEach((percent) => {
-        const x = Math.round((width * percent) / 100);
-        ctx.fillRect(x - 1, 0, 2, height);
-      });
-
-      animationRef.current = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [min, max]);
+  ctx.fillStyle = "black";
+  currentMarkers.forEach((percent) => {
+    const x = Math.round((width * percent) / 100);
+    ctx.fillRect(x - 1, 0, 2, height);
+  });
 
   return (
     <Container>

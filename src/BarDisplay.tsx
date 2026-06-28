@@ -1,12 +1,14 @@
 import styled from "styled-components";
-import { type Measurement } from "./robot";
+import { MeasurementConfig } from "./robot";
 import { Container, Value } from "./styles";
 import { getColor, getLatestPercent, getLatestValueDisplay } from "./dataUtils";
 import { CanvasBar } from "./CanvasBar";
 
 type Props = {
-  measurement: Measurement;
-  barColor?: string;
+  name: string;
+  value: number;
+  unit: string;
+  config: MeasurementConfig;
   className?: string;
   orientation?: "vertical" | "horizontal";
 };
@@ -47,13 +49,16 @@ const RangeText = styled.p`
 `;
 
 export const BarDisplay = ({
-  measurement,
+  name,
+  value,
+  unit,
+  config,
   className = "",
   orientation = "vertical",
 }: Props) => {
-  const { name, min, max } = measurement;
-  const percent = getLatestPercent(measurement);
-  const barColor = getColor(measurement);
+  const { min, max, thresholds } = config;
+  const percent = getLatestPercent(value, min, max);
+  const barColor = getColor(value, thresholds);
 
   return (
     <div className={className}>
@@ -86,7 +91,7 @@ export const BarDisplay = ({
             </>
           )}
         </BarDisplayWrapper>
-        <Value>{getLatestValueDisplay(measurement)}</Value>
+        <Value>{getLatestValueDisplay(value, unit, min, max)}</Value>
       </Container>
     </div>
   );

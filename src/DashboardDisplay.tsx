@@ -3,7 +3,6 @@ import { NavigationTabs, type Tab } from "./Tabs";
 import { GraphGrid } from "./GraphGrid";
 import { RobotImporter } from "./RobotImporter";
 import { MatchControls } from "./MatchControls";
-import { CSVDownloader } from "./CSVDownloader";
 import { ConfigDisplay } from "./ConfigDisplay";
 import { useMemo } from "react";
 import { useRobot } from "./store";
@@ -80,7 +79,6 @@ export const DashboardDisplay = () => {
         </ControlsSection>
         <ControlsSection>
           <RobotImporter />
-          <CSVDownloader />
         </ControlsSection>
         <ControlsSection>
           <UnknownMessagesDisplay />
