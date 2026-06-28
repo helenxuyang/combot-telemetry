@@ -2,13 +2,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   CONSUMPTION,
   CURRENT,
-  DRIVE_LEFT_ESC,
-  DRIVE_RIGHT_ESC,
   INPUT,
   RPM,
   TEMPERATURE,
   VOLTAGE,
-  WEAPON_ESC,
   type Robot,
 } from "../robot";
 import { getCsvData, importRobot } from "../csvUtils";

@@ -16,10 +16,13 @@ const MATCH_LENGTH = 180;
 export const MatchControls = () => {
   const robot = useRobot();
   const addMatchMarker = useAddMatchMarker();
-
   const [fightStatus, setFightStatus] = useState<FightStatus>("INACTIVE");
   const [matchTimeSec, setMatchTimeSec] = useState<number>(MATCH_LENGTH);
   const timerRef = useRef<NodeJS.Timeout>(null);
+
+  if (!robot) {
+    return <div>No robot</div>;
+  }
 
   const min = Math.floor(matchTimeSec / 60);
   const sec = matchTimeSec % 60;

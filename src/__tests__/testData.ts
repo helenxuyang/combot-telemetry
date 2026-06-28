@@ -9,7 +9,7 @@ export const ARM_ESC = "ARM";
 export const getMockRobotWithData = () => {
   const robot = structuredClone(getInitColossalAvian());
 
-  robot.escs[DRIVE_LEFT_ESC].timestamps = [1, 5, 10];
+  robot.escs.a[DRIVE_LEFT_ESC].timestamps = [1, 5, 10];
   robot.escs[DRIVE_LEFT_ESC].measurements[RPM].values = [1000, 2000, 3000];
   robot.escs[DRIVE_LEFT_ESC].measurements[VOLTAGE].values = [30, 20, 10];
   robot.escs[DRIVE_LEFT_ESC].measurements[CURRENT].values = [100, 100, 100];

@@ -2,6 +2,11 @@ import { useRobot } from "./store";
 
 export const UnknownMessagesDisplay = () => {
   const robot = useRobot();
+
+  if (!robot) {
+    return <div>No robot</div>;
+  }
+
   return (
     <div>
       <h2>Unknown Messages</h2>

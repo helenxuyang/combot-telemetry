@@ -75,6 +75,10 @@ export const GraphGrid = () => {
   const robot = useRobot();
   const [plotConfigs, setPlotConfigs] = useState<PlotConfig[]>([]);
 
+  if (!robot) {
+    return <div>No robot</div>;
+  }
+
   const deletePlot = (index: number) =>
     setPlotConfigs(plotConfigs.filter((_, i) => i !== index));
 

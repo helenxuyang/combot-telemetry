@@ -80,7 +80,14 @@ const TOTAL_CONSUMPTION = "Total Consumption";
 export const RobotDisplay = () => {
   const robot = useRobot();
 
+  if (!robot) {
+    return <div>No robot</div>;
+  }
+
   const escs = Object.values(robot.escs);
+  if (escs.length === 0) {
+    return <div>No ESCs</div>;
+  }
   const referenceEsc = escs[0];
   const totalCurrent = calculateTotal(
     escs.map((esc) => getLatestValue(esc.data.measurements[CURRENT].values)),

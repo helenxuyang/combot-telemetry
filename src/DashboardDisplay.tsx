@@ -4,13 +4,14 @@ import { GraphGrid } from "./GraphGrid";
 import { RobotImporter } from "./RobotImporter";
 import { MatchControls } from "./MatchControls";
 import { ConfigDisplay } from "./ConfigDisplay";
-import { useMemo } from "react";
-import { useRobot } from "./store";
+import { useEffect, useMemo } from "react";
+import { useRobot, useSetRobot, useSetRobotConfig } from "./store";
 import { FullscreenButton } from "./FullscreenButton";
 import { RobotDisplay } from "./RobotDisplay";
 import { TauriWebSocketConnector } from "./TauriWebSocketConnector";
 import { FakeDataToggle } from "./FakeDataToggle";
 import { UnknownMessagesDisplay } from "./UnknownMessagesDisplay";
+import { getInitRobot, initializeConfigStorage } from "./configUtils";
 
 const Layout = styled.div`
   display: flex;
@@ -43,6 +44,17 @@ const ControlsSection = styled.div`
 
 export const DashboardDisplay = () => {
   const robot = useRobot();
+  const setRobot = useSetRobot();
+  const setRobotConfig = useSetRobotConfig();
+
+  useEffect(() => {
+    const getRobot = async () => {
+      const { robot, config } = await getInitRobot();
+      setRobotConfig(config);
+      setRobot(robot);
+    };
+    getRobot();
+  }, []);
 
   const tabs: Tab[] = useMemo(
     () => [
@@ -50,10 +62,10 @@ export const DashboardDisplay = () => {
         name: "Live",
         panelContent: <RobotDisplay />,
       },
-      {
-        name: "Graph",
-        panelContent: <GraphGrid />,
-      },
+      // {
+      //   name: "Graph",
+      //   panelContent: <GraphGrid />,
+      // },
       {
         name: "Config",
         panelContent: <ConfigDisplay />,
@@ -61,6 +73,10 @@ export const DashboardDisplay = () => {
     ],
     [],
   );
+
+  if (!robot) {
+    return <div>No robot</div>;
+  }
 
   return (
     <Layout>
@@ -70,16 +86,14 @@ export const DashboardDisplay = () => {
       </HeaderHolder>
       <NavigationTabs tabs={tabs} />
       <ControlsGrid>
-        <ControlsSection>
+        {/* <ControlsSection>
           <FakeDataToggle />
           <FullscreenButton />
-        </ControlsSection>
+        </ControlsSection> */}
         <ControlsSection>
           <TauriWebSocketConnector />
         </ControlsSection>
-        <ControlsSection>
-          <RobotImporter />
-        </ControlsSection>
+        <ControlsSection>{/* <RobotImporter /> */}</ControlsSection>
         <ControlsSection>
           <UnknownMessagesDisplay />
         </ControlsSection>
