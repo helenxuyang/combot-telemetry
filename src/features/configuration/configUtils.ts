@@ -1,16 +1,15 @@
 import {
   ALL_MEASUREMENTS,
+  ColorIndicator,
   CONSUMPTION,
   CURRENT,
   ESC,
   EscId,
-  MeasurementConfig,
   Robot,
   RPM,
-  RpmMeasurementConfig,
   TEMPERATURE,
   VOLTAGE,
-} from "./robot";
+} from "../../robot";
 import {
   writeTextFile,
   readTextFile,
@@ -34,9 +33,22 @@ export type EscConfig = {
     [VOLTAGE]: MeasurementConfig;
     [CURRENT]: MeasurementConfig;
     [CONSUMPTION]: MeasurementConfig;
-    [RPM]: RpmMeasurementConfig;
+    [RPM]: MeasurementConfig;
   };
-  inputConfig: MeasurementConfig;
+  inputsConfig: MeasurementConfig;
+  motorConfig: MotorConfig;
+};
+
+export type MeasurementConfig = {
+  min: number;
+  max: number;
+  colorIndicators: ColorIndicator[];
+  shouldShow: boolean;
+};
+
+export type MotorConfig = {
+  gearRatio: number;
+  motorPolePairs: number;
 };
 
 export const getNewRobotConfig = (): RobotConfig => {
@@ -55,42 +67,53 @@ export const getNewEscConfig = (): EscConfig => {
       [TEMPERATURE]: {
         min: 0,
         max: 0,
-        thresholds: [],
+        colorIndicators: [],
         shouldShow: true,
       },
       [VOLTAGE]: {
         min: 0,
         max: 0,
-        thresholds: [],
+        colorIndicators: [],
         shouldShow: true,
       },
       [CURRENT]: {
         min: 0,
         max: 0,
-        thresholds: [],
+        colorIndicators: [],
         shouldShow: true,
       },
       [CONSUMPTION]: {
         min: 0,
         max: 0,
-        thresholds: [],
+        colorIndicators: [],
         shouldShow: true,
       },
       [RPM]: {
         min: 0,
         max: 0,
-        thresholds: [],
+        colorIndicators: [],
         shouldShow: true,
-        gearRatio: 1,
-        motorPolePairs: 7,
       },
     },
-    inputConfig: {
+    inputsConfig: {
       min: -100,
       max: 100,
-      thresholds: [],
+      colorIndicators: [],
       shouldShow: true,
     },
+    motorConfig: {
+      gearRatio: 1,
+      motorPolePairs: 7,
+    },
+  };
+};
+
+export const getNewColorIndicator = (): ColorIndicator => {
+  return {
+    threshold: 0,
+    condition: "above",
+    color: "#ffffff",
+    playSound: false,
   };
 };
 
@@ -111,7 +134,6 @@ export const initRobotFromConfig = (robotConfig: RobotConfig): Robot => {
         measurements: ALL_MEASUREMENTS.reduce(
           (acc, measurement) => {
             acc[measurement] = {
-              config: escConfig.measurementConfigs[measurement],
               values: [],
             };
             return acc;
@@ -122,12 +144,6 @@ export const initRobotFromConfig = (robotConfig: RobotConfig): Robot => {
       inputs: {
         timestamps: [],
         values: [],
-        config: {
-          min: -100,
-          max: 100,
-          thresholds: [],
-          shouldShow: escConfig.inputConfig.shouldShow,
-        },
       },
       errors: [],
     };
@@ -176,13 +192,22 @@ export const slugify = (robotName: string) => {
   return robotName.toLocaleLowerCase().replaceAll(" ", "-");
 };
 
+export const selectConfig = async (name: string) => {
+  await copyFile(getConfigPath(name), getCurrentConfigPath(), {
+    fromPathBaseDir: BaseDirectory.AppLocalData,
+    toPathBaseDir: BaseDirectory.AppLocalData,
+  });
+};
+
 export const saveRobotConfig = async (robotConfig: RobotConfig) => {
   const contents = JSON.stringify(robotConfig);
-  const fileName = `${CONFIGS_DIRECTORY}/${slugify(robotConfig.name)}.json`;
+  const slugifiedName = slugify(robotConfig.name);
+  const fileName = `${CONFIGS_DIRECTORY}/${slugifiedName}.json`;
   await writeTextFile(fileName, contents, {
     baseDir: BaseDirectory.AppLocalData,
     create: true,
   });
+  await selectConfig(slugifiedName);
 };
 
 export const getCurrentConfigPath = () => {
@@ -191,13 +216,6 @@ export const getCurrentConfigPath = () => {
 
 export const getConfigPath = (name: string) => {
   return `${CONFIGS_DIRECTORY}/${name}.json`;
-};
-
-export const selectConfig = async (name: string) => {
-  await copyFile(getConfigPath(name), getCurrentConfigPath(), {
-    fromPathBaseDir: BaseDirectory.AppLocalData,
-    toPathBaseDir: BaseDirectory.AppLocalData,
-  });
 };
 
 export const getCurrentRobotConfig = async (): Promise<RobotConfig> => {

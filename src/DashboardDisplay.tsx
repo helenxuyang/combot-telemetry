@@ -1,17 +1,14 @@
 import styled from "styled-components";
 import { NavigationTabs, type Tab } from "./Tabs";
-import { GraphGrid } from "./GraphGrid";
-import { RobotImporter } from "./RobotImporter";
-import { MatchControls } from "./MatchControls";
-import { ConfigDisplay } from "./ConfigDisplay";
+import { GraphGrid } from "./features/graph/components/GraphGrid";
+import { MatchControls } from "./features/live/components/MatchControls";
+import { ConfigDisplay } from "./features/configuration/components/ConfigDisplay";
 import { useEffect, useMemo } from "react";
 import { useRobot, useSetRobot, useSetRobotConfig } from "./store";
-import { FullscreenButton } from "./FullscreenButton";
 import { RobotDisplay } from "./RobotDisplay";
-import { TauriWebSocketConnector } from "./TauriWebSocketConnector";
-import { FakeDataToggle } from "./FakeDataToggle";
-import { UnknownMessagesDisplay } from "./UnknownMessagesDisplay";
-import { getInitRobot, initializeConfigStorage } from "./configUtils";
+import { TauriWebSocketConnector } from "./features/live/components/TauriWebSocketConnector";
+import { UnknownMessagesDisplay } from "./features/live/components/UnknownMessagesDisplay";
+import { getInitRobot } from "./features/configuration/configUtils";
 
 const Layout = styled.div`
   display: flex;
@@ -62,10 +59,10 @@ export const DashboardDisplay = () => {
         name: "Live",
         panelContent: <RobotDisplay />,
       },
-      // {
-      //   name: "Graph",
-      //   panelContent: <GraphGrid />,
-      // },
+      {
+        name: "Graph",
+        panelContent: <GraphGrid />,
+      },
       {
         name: "Config",
         panelContent: <ConfigDisplay />,
@@ -86,14 +83,9 @@ export const DashboardDisplay = () => {
       </HeaderHolder>
       <NavigationTabs tabs={tabs} />
       <ControlsGrid>
-        {/* <ControlsSection>
-          <FakeDataToggle />
-          <FullscreenButton />
-        </ControlsSection> */}
         <ControlsSection>
           <TauriWebSocketConnector />
         </ControlsSection>
-        <ControlsSection>{/* <RobotImporter /> */}</ControlsSection>
         <ControlsSection>
           <UnknownMessagesDisplay />
         </ControlsSection>

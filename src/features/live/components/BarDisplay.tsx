@@ -1,14 +1,20 @@
 import styled from "styled-components";
-import { MeasurementConfig } from "./robot";
-import { Container, Value } from "./styles";
-import { getColor, getLatestPercent, getLatestValueDisplay } from "./dataUtils";
+import { ColorIndicator } from "../../../robot";
+import { Container, Value } from "../../../styles";
+import {
+  getColor,
+  getLatestPercent,
+  getLatestValueDisplay,
+} from "../../../dataUtils";
 import { CanvasBar } from "./CanvasBar";
 
 type Props = {
   name: string;
   value: number;
   unit: string;
-  config: MeasurementConfig;
+  min: number;
+  max: number;
+  colorIndicators: ColorIndicator[];
   className?: string;
   orientation?: "vertical" | "horizontal";
 };
@@ -52,13 +58,14 @@ export const BarDisplay = ({
   name,
   value,
   unit,
-  config,
+  min,
+  max,
+  colorIndicators,
   className = "",
   orientation = "vertical",
 }: Props) => {
-  const { min, max, thresholds } = config;
   const percent = getLatestPercent(value, min, max);
-  const barColor = getColor(value, thresholds);
+  const barColor = getColor(value, colorIndicators);
 
   return (
     <div className={className}>

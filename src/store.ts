@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import { type MatchMarker, type Robot } from "./robot";
 import { immer } from "zustand/middleware/immer";
-import { initRobotFromConfig, RobotConfig } from "./configUtils";
+import {
+  initRobotFromConfig,
+  RobotConfig,
+} from "./features/configuration/configUtils";
 
 type RobotState = {
   robot: Robot | null;

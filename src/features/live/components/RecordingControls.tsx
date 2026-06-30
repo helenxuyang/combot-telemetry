@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { StatusDot } from "./StatusDot";
-import { ButtonsHolder } from "./styles";
+import { ButtonsHolder } from "../../../styles";
 
 type Props = {
   isRecording: boolean;

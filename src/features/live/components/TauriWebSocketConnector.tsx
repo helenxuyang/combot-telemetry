@@ -1,9 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useRef } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { getUpdatedRobot, TauriTelemetryMessage } from "./messageUtils";
-import { Robot } from "./robot";
-import { useRobot, useSetRobot } from "./store";
+import { getUpdatedRobot, TauriTelemetryMessage } from "../../../messageUtils";
+import { Robot } from "../../../robot";
+import { useRobot, useSetRobot } from "../../../store";
 
 const WEBSOCKET_CONNECT_COMMAND = "websocket_connect";
 const TELEMETRY_MESSAGE_EVENT = "telemetry-message";
@@ -11,12 +11,19 @@ const TELEMETRY_MESSAGE_EVENT = "telemetry-message";
 export const TauriWebSocketConnector = () => {
   const robot = useRobot();
   const setRobot = useSetRobot();
-  const pendingRobotRef = useRef<Robot>(robot);
+  const pendingRobotRef = useRef<Robot | null>(robot);
   const frameRef = useRef<number | null>(null);
 
   const handleMessage = useCallback((message: TauriTelemetryMessage) => {
     // on each message, save the new robot (ref so it doesn't re-render)
-    pendingRobotRef.current = getUpdatedRobot(message, pendingRobotRef.current);
+    if (pendingRobotRef.current) {
+      pendingRobotRef.current = getUpdatedRobot(
+        message,
+        pendingRobotRef.current,
+      );
+    } else {
+      pendingRobotRef.current = robot;
+    }
     // don't request another frame if we've requested already
     if (frameRef.current !== null) {
       return;

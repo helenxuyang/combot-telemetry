@@ -3,7 +3,7 @@ import {
   useWebSocket,
   type HandleConnectCallbackRef,
   type HandleReceiveDataCallbackRef,
-} from "./useWebSocket";
+} from "../useWebSocket";
 import styled from "styled-components";
 
 const Status = styled.p`

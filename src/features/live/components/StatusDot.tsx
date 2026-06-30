@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { pulseAnimation } from "./styles";
+import { pulseAnimation } from "../../../styles";
 
 const StyledDot = styled.span`
   ${pulseAnimation()}

@@ -1,5 +1,8 @@
 import styled from "styled-components";
-import { getSeriesColor, type PlotMeasurementName } from "./graphUtils";
+import {
+  getSeriesColor,
+  type PlotMeasurementName,
+} from "./features/graph/graphUtils";
 
 type Props = {
   name: PlotMeasurementName;

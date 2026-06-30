@@ -47,3 +47,22 @@ export const pulseAnimation = (speedSec: number = 2) => css`
 export const WarningText = styled.div`
   color: red;
 `;
+
+export const SpacedRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  @media (max-width: ${SMALL_VIEWPORT}px) {
+    flex-direction: column;
+    align-items: start;
+    gap: 16px;
+  }
+`;
+
+export const CondensedButton = styled.button`
+  padding: 4px;
+  font-size: 12px;
+  background-color: #ddd;
+  border: none;
+`;

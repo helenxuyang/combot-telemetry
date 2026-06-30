@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { useIsFakeData } from "./store";
+import { useIsFakeData } from "../../store";
 
 export type HandleReceiveDataCallback = (data: string) => void;
 export type HandleReceiveDataCallbackRef =

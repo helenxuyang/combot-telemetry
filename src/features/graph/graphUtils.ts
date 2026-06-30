@@ -9,7 +9,7 @@ import {
   POWER,
   VOLTAGE,
   CURRENT,
-} from "./robot";
+} from "../../robot";
 
 type DataPlot = {
   escName: EscName;

@@ -15,30 +15,20 @@ export type ESC = {
   inputs: {
     timestamps: number[];
     values: number[];
-    config: MeasurementConfig;
   };
   errors: EscError[];
 };
 
 export type Measurement = {
-  config: MeasurementConfig;
   values: number[];
 };
 
-export type MeasurementConfig = {
-  min: number;
-  max: number;
-  thresholds: Threshold[];
-  shouldShow: boolean;
-  // TODO: display: null | "verticalBar" | "horizontalBar" | "outerArc" | "innerArc";
-};
+export const ALL_ESC_IDs = ["a", "b", "c", "d"] as const;
+export type EscId = (typeof ALL_ESC_IDs)[number];
 
-export type RpmMeasurementConfig = MeasurementConfig & {
-  gearRatio: number;
-  motorPolePairs: number;
+export const convertStrToEscId = (str: string): str is EscId => {
+  return ALL_ESC_IDs.includes(str as EscId);
 };
-
-export type EscId = "a" | "b" | "c" | "d";
 
 type EscError = {
   timestamp: number;
@@ -67,12 +57,14 @@ export const ALL_MEASUREMENTS = [
   CONSUMPTION,
 ] as const;
 
+export type MeasurementOrInput = MeasurementName | typeof INPUT;
+
 type UnknownMessage = {
   rawMessage: string;
 };
 
-export type Threshold = {
-  value: number;
+export type ColorIndicator = {
+  threshold: number;
   condition: "above" | "below";
   color: string;
   playSound: boolean;

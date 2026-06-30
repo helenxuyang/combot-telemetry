@@ -1,23 +1,23 @@
-import { Threshold, type Measurement } from "./robot";
+import { ColorIndicator, type Measurement } from "./robot";
 
 export const DEFAULT_COLOR = "skyblue";
 export const HIGHLIGHT_COLOR = "green";
 
-export const getColor = (value: number, thresholds: Threshold[]) => {
+export const getColor = (value: number, colorIndicators: ColorIndicator[]) => {
   let barColor = DEFAULT_COLOR;
 
-  if (!thresholds) {
+  if (!colorIndicators) {
     return barColor;
   }
 
   // TODO: this assumes they're sorted properly already
-  thresholds.forEach((threshold) => {
+  colorIndicators.forEach((indicator) => {
     const isConditionMet =
-      threshold.condition === "below"
-        ? value < threshold.value
-        : value > threshold.value;
+      indicator.condition === "below"
+        ? value < indicator.threshold
+        : value > indicator.threshold;
     if (isConditionMet) {
-      barColor = threshold.color;
+      barColor = indicator.color;
     }
   });
 

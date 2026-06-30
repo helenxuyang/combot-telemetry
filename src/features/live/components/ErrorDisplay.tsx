@@ -1,5 +1,5 @@
-import type { ESC } from "./robot";
-import { WarningText } from "./styles";
+import type { ESC } from "../../../robot";
+import { WarningText } from "../../../styles";
 
 type Props = { errors: ESC["errors"] };
 

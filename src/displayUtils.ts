@@ -2,15 +2,21 @@ import {
   CONSUMPTION,
   CURRENT,
   INPUT,
+  MeasurementOrInput,
   RPM,
   TEMPERATURE,
   VOLTAGE,
 } from "./robot";
 
-export const METADATA = {
+type Metadata = {
+  unit: string;
+  displayName: string;
+};
+
+export const METADATA: Record<MeasurementOrInput, Metadata> = {
   [TEMPERATURE]: {
     unit: "°C",
-    displayName: "Temperature",
+    displayName: "Temp",
   },
   [VOLTAGE]: {
     unit: "V",

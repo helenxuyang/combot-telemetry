@@ -1,12 +1,12 @@
-import { ConsumptionDonut } from "./ConsumptionDonut";
+import { ConsumptionDonut } from "./features/live/components/ConsumptionDonut";
 import { calculateTotal, getLatestValue } from "./dataUtils";
-import { BarDisplay } from "./BarDisplay";
-import { CONSUMPTION, CURRENT } from "./robot";
+import { BarDisplay } from "./features/live/components/BarDisplay";
+import { CONSUMPTION, CURRENT, ESC, EscId, VOLTAGE } from "./robot";
 import { BACKGROUND, SMALL_VIEWPORT } from "./styles";
-import { VoltageDisplay } from "./VoltageDisplay";
+import { VoltageDisplay } from "./features/live/components/VoltageDisplay";
 import styled from "styled-components";
-import { ESCDisplay } from "./ESCDisplay";
-import { useRobot } from "./store";
+import { ESCDisplay } from "./features/live/components/ESCDisplay";
+import { useRobot, useRobotConfig } from "./store";
 import { METADATA } from "./displayUtils";
 
 const ESCSection = styled.div`
@@ -79,6 +79,7 @@ const TOTAL_CONSUMPTION = "Total Consumption";
 
 export const RobotDisplay = () => {
   const robot = useRobot();
+  const config = useRobotConfig();
 
   if (!robot) {
     return <div>No robot</div>;
@@ -88,7 +89,18 @@ export const RobotDisplay = () => {
   if (escs.length === 0) {
     return <div>No ESCs</div>;
   }
-  const referenceEsc = escs[0];
+  if (config === null) {
+    return <div>No config</div>;
+  }
+
+  const referenceEscKey = Object.keys(robot.escs)[0] as EscId;
+  const referenceEsc = robot.escs[referenceEscKey];
+  const referenceConfig = config.escConfigs[referenceEscKey];
+
+  if (!referenceEsc || !referenceConfig) {
+    return null;
+  }
+
   const totalCurrent = calculateTotal(
     escs.map((esc) => getLatestValue(esc.data.measurements[CURRENT].values)),
   );
@@ -103,33 +115,40 @@ export const RobotDisplay = () => {
       <RobotSection>
         <RobotLayout>
           <BarsHolder>
-            <VoltageDisplay escs={Object.values(robot.escs)} />
+            <VoltageDisplay
+              escs={escs}
+              {...referenceConfig.measurementConfigs[VOLTAGE]}
+            />
             <HorizontalBarsHolder>
               <FlexBar
                 name={TOTAL_CURRENT}
                 value={totalCurrent}
                 unit={METADATA[CURRENT].unit}
-                config={referenceEsc.data.measurements[CURRENT].config}
+                {...referenceConfig.measurementConfigs[CURRENT]}
                 orientation="horizontal"
               />
               <FlexBar
                 name={TOTAL_CONSUMPTION}
                 value={totalConsumption}
                 unit={METADATA[CONSUMPTION].unit}
-                config={referenceEsc.data.measurements[CONSUMPTION].config}
+                {...referenceConfig.measurementConfigs[CONSUMPTION]}
                 orientation="horizontal"
               />
             </HorizontalBarsHolder>
           </BarsHolder>
           <LayoutColumn>
-            <ConsumptionDonut escs={Object.values(robot.escs)} />
+            <ConsumptionDonut escs={escs} />
           </LayoutColumn>
         </RobotLayout>
       </RobotSection>
       <ESCSection>
         <ESCGrid>
-          {Object.values(robot.escs).map((esc) => (
-            <ESCDisplay esc={esc} />
+          {(Object.entries(robot.escs) as [EscId, ESC][]).map(([id, esc]) => (
+            <ESCDisplay
+              key={esc.name}
+              esc={esc}
+              config={config.escConfigs[id]!}
+            />
           ))}
         </ESCGrid>
       </ESCSection>

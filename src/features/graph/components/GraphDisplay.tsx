@@ -1,16 +1,16 @@
 import ReactECharts from "echarts-for-react";
-import { ERROR, INPUT, POWER, type Robot } from "./robot";
+import { ERROR, INPUT, POWER, type Robot } from "../../../robot";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import styled from "styled-components";
-import { StatusDot } from "./StatusDot";
+import { StatusDot } from "../../live/components/StatusDot";
 import {
   getXAxis,
   parsePlotData,
   stringifyPlot,
   type Plot,
-} from "./graphUtils";
-import { PlotPill } from "./PlotPill";
+} from "../graphUtils";
+import { PlotPill } from "../../../PlotPill";
 
 const AutoscrollHolder = styled.div`
   display: flex;

@@ -1,8 +1,8 @@
 import styled from "styled-components";
-import { CONSUMPTION, ESC } from "./robot";
+import { CONSUMPTION, ESC } from "../../../robot";
 import { useRef, type ReactNode } from "react";
-import { Container } from "./styles";
-import { calculateTotal, getLatestValue } from "./dataUtils";
+import { Container } from "../../../styles";
+import { calculateTotal, getLatestValue } from "../../../dataUtils";
 
 const StyledContainer = styled.div`
   position: relative;

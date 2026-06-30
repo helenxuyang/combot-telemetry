@@ -1,12 +1,21 @@
 import styled from "styled-components";
-import { CURRENT, INPUT, RPM, TEMPERATURE, type ESC } from "./robot";
+import {
+  CURRENT,
+  INPUT,
+  MeasurementName,
+  RPM,
+  TEMPERATURE,
+  type ESC,
+} from "../../../robot";
 import { BarDisplay } from "./BarDisplay";
-import { ArcDisplay } from "./ArcDisplay";
-import { Container, MEDIUM_VIEWPORT, SMALL_VIEWPORT } from "./styles";
+import { Container, MEDIUM_VIEWPORT, SMALL_VIEWPORT } from "../../../styles";
 import { ErrorDisplay } from "./ErrorDisplay";
 import { useEffect, useState } from "react";
-import { METADATA } from "./displayUtils";
-import { getLatestValue } from "./dataUtils";
+import { METADATA } from "../../../displayUtils";
+import { getLatestValue } from "../../../dataUtils";
+import { MeasurementBarDisplay } from "./MeasurementBarDisplay";
+import { EscConfig } from "../../configuration/configUtils";
+import { MeasurementArcDisplay } from "./MeasurementArcDisplay";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(() =>
@@ -50,13 +59,13 @@ const DisplayLayout = styled.div`
   }
 `;
 
-const TemperatureDisplay = styled(BarDisplay)`
+const TemperatureDisplay = styled(MeasurementBarDisplay)`
   grid-area: temp;
   ${Container} {
     background-color: unset;
   }
 `;
-const RPMCurrentDisplay = styled(ArcDisplay)`
+const RPMCurrentDisplay = styled(MeasurementArcDisplay)`
   grid-area: arc;
 `;
 
@@ -66,47 +75,56 @@ const InputDisplay = styled(BarDisplay)`
     background-color: unset;
   }
 `;
-type Props = { esc: ESC; className?: string };
+type Props = { esc: ESC; config: EscConfig; className?: string };
 
-export const ESCDisplay = ({ esc, className }: Props) => {
+export const ESCDisplay = ({ esc, config, className }: Props) => {
   const isMobileViewport = useMediaQuery(`(max-width: ${MEDIUM_VIEWPORT}px)`);
   const barOrientation = isMobileViewport ? "horizontal" : "vertical";
 
-  const temperature = esc.data.measurements[TEMPERATURE];
-  const rpm = esc.data.measurements[RPM];
-  const current = esc.data.measurements[CURRENT];
+  const getMeasurementData = (key: MeasurementName) => ({
+    measurement: esc.data.measurements[key],
+    config: config.measurementConfigs[key],
+  });
+
+  const { measurement: temperature, config: temperatureConfig } =
+    getMeasurementData(TEMPERATURE);
+  const { measurement: rpm, config: rpmConfig } = getMeasurementData(RPM);
+  const { measurement: current, config: currentConfig } =
+    getMeasurementData(CURRENT);
   const inputs = esc.inputs;
+  const inputsConfig = config.inputsConfig;
 
   return (
     <DisplayHolder className={className}>
       <h3>{esc.name}</h3>
       <DisplayLayout>
-        {temperature.config.shouldShow && (
+        {temperatureConfig.shouldShow && (
           <TemperatureDisplay
-            name={METADATA[TEMPERATURE].displayName}
-            unit={METADATA[TEMPERATURE].unit}
-            value={getLatestValue(temperature.values)}
-            config={temperature.config}
+            name={TEMPERATURE}
+            measurement={temperature}
+            config={temperatureConfig}
             orientation={barOrientation}
           />
         )}
-        {rpm.config.shouldShow && current.config.shouldShow && (
+        {rpmConfig.shouldShow && currentConfig.shouldShow && (
           <RPMCurrentDisplay
             innerName={CURRENT}
-            innerValue={getLatestValue(current.values)}
-            innerConfig={current.config}
+            innerMeasurement={current}
+            innerConfig={currentConfig}
             outerName={RPM}
-            outerValue={getLatestValue(rpm.values)}
-            outerConfig={rpm.config}
+            outerMeasurement={rpm}
+            outerConfig={rpmConfig}
           />
         )}
 
-        {inputs.config.shouldShow && (
+        {inputsConfig.shouldShow && (
           <InputDisplay
-            name={INPUT}
+            name={METADATA[INPUT].displayName}
             value={getLatestValue(inputs.values)}
             unit={METADATA[INPUT].unit}
-            config={inputs.config}
+            min={inputsConfig.min}
+            max={inputsConfig.max}
+            colorIndicators={inputsConfig.colorIndicators}
             orientation={barOrientation}
           />
         )}

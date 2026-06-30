@@ -1,7 +1,7 @@
 import styled from "styled-components";
-import { ESC, VOLTAGE } from "./robot";
-import { Container, Value } from "./styles";
-import { getClampedPercent, getLatestValue } from "./dataUtils";
+import { ESC, VOLTAGE } from "../../../robot";
+import { Container, Value } from "../../../styles";
+import { getClampedPercent, getLatestValue } from "../../../dataUtils";
 import { useRef } from "react";
 
 const BarDisplay = styled.div`
@@ -44,9 +44,11 @@ const RangeText = styled.p`
 
 type Props = {
   escs: ESC[];
+  min: number;
+  max: number;
 };
 
-export const VoltageDisplay = ({ escs }: Props) => {
+export const VoltageDisplay = ({ escs, min, max }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   let voltages: Record<string, number> = {};
@@ -54,16 +56,7 @@ export const VoltageDisplay = ({ escs }: Props) => {
     voltages[esc.name] = getLatestValue(esc.data.measurements[VOLTAGE].values);
   });
   const values = Object.values(voltages);
-  const min = Math.min(
-    ...Object.values(escs).map(
-      (esc) => esc.data.measurements[VOLTAGE].config.min,
-    ),
-  );
-  const max = Math.min(
-    ...Object.values(escs).map(
-      (esc) => esc.data.measurements[VOLTAGE].config.max,
-    ),
-  );
+
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
   const minPercent = getClampedPercent(minValue, min, max);

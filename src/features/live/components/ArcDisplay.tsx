@@ -1,16 +1,20 @@
 import styled from "styled-components";
-import { getColor, getLatestValueDisplay } from "./dataUtils";
-import { useCallback, useEffect, useRef } from "react";
-import { MeasurementConfig, MeasurementName, Threshold } from "./robot";
-import { METADATA } from "./displayUtils";
+import { getColor, getLatestValueDisplay } from "../../../dataUtils";
+import { useLayoutEffect, useRef } from "react";
+import { MeasurementName, ColorIndicator } from "../../../robot";
+import { METADATA } from "../../../displayUtils";
 
 type Props = {
   innerName: MeasurementName;
   innerValue: number;
-  innerConfig: MeasurementConfig;
+  innerMin: number;
+  innerMax: number;
+  innerColorIndicators: ColorIndicator[];
   outerName: MeasurementName;
   outerValue: number;
-  outerConfig: MeasurementConfig;
+  outerMin: number;
+  outerMax: number;
+  outerColorIndicators: ColorIndicator[];
   className?: string;
 };
 
@@ -40,81 +44,87 @@ const innerRadius = outerRadius * innerScale;
 const centerX = width / 2;
 const centerY = outerRadius + outerStrokeWidth / 2 + 50;
 
+const drawArc = (
+  ctx: CanvasRenderingContext2D,
+  radius: number,
+  startAngle: number,
+  endAngle: number,
+  color: string,
+  strokeWidth: number,
+  anticlockwise = false,
+) => {
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, startAngle, endAngle, anticlockwise);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = strokeWidth;
+  ctx.stroke();
+};
+
+const drawMarks = (
+  ctx: CanvasRenderingContext2D,
+  min: number,
+  max: number,
+  colorIndicators: ColorIndicator[],
+) => {
+  for (let colorIndicator of colorIndicators) {
+    const { threshold: value } = colorIndicator;
+    const onePercent = (max - min) / 100;
+    const targetStart = value - onePercent / 2;
+    const targetEnd = value + onePercent / 2;
+    const targetStartAngle =
+      Math.PI +
+      Math.max(Math.min((targetStart - min) / (max - min), 1), 0) * Math.PI;
+    const targetEndAngle =
+      Math.PI +
+      Math.max(Math.min((targetEnd - min) / (max - min), 1), 0) * Math.PI;
+    drawArc(
+      ctx,
+      outerRadius,
+      targetStartAngle,
+      targetEndAngle,
+      "darkgreen",
+      outerStrokeWidth,
+      false,
+    );
+  }
+};
+
 export const ArcDisplay = ({
   innerName,
   innerValue,
-  innerConfig,
+  innerMin,
+  innerMax,
+  innerColorIndicators,
   outerName,
   outerValue,
-  outerConfig,
+  outerMin,
+  outerMax,
+  outerColorIndicators,
   className,
 }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const drawArc = useCallback(
-    (
-      radius: number,
-      startAngle: number,
-      endAngle: number,
-      color: string,
-      strokeWidth: number,
-      anticlockwise = false,
-    ) => {
-      const ctx = canvasRef.current?.getContext("2d");
-      if (!ctx) {
-        return;
-      }
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, startAngle, endAngle, anticlockwise);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = strokeWidth;
-      ctx.stroke();
-    },
-    [],
-  );
-
-  const drawMarks = useCallback(
-    (min: number, max: number, thresholds: Threshold[]) => {
-      for (let threshold of thresholds) {
-        const { value } = threshold;
-        const onePercent = (max - min) / 100;
-        const targetStart = value - onePercent / 2;
-        const targetEnd = value + onePercent / 2;
-        const targetStartAngle =
-          Math.PI +
-          Math.max(Math.min((targetStart - min) / (max - min), 1), 0) * Math.PI;
-        const targetEndAngle =
-          Math.PI +
-          Math.max(Math.min((targetEnd - min) / (max - min), 1), 0) * Math.PI;
-        drawArc(
-          outerRadius,
-          targetStartAngle,
-          targetEndAngle,
-          "darkgreen",
-          outerStrokeWidth,
-          false,
-        );
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
 
     const dpr = window.devicePixelRatio || 1;
     canvas.width = width * dpr;
     canvas.height = height * dpr;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, canvasHeight);
 
     // outer base
     drawArc(
+      ctx,
       outerRadius,
       Math.PI,
       2 * Math.PI,
@@ -124,16 +134,14 @@ export const ArcDisplay = ({
     );
 
     const outerPercent = Math.max(
-      Math.min(
-        (outerValue - outerConfig.min) / (outerConfig.max - outerConfig.min),
-        1,
-      ),
+      Math.min((outerValue - outerMin) / (outerMax - outerMin), 1),
       0,
     );
-    const outerColor = getColor(outerValue, outerConfig.thresholds);
+    const outerColor = getColor(outerValue, outerColorIndicators);
 
     // outer fill
     drawArc(
+      ctx,
       outerRadius,
       Math.PI,
       Math.PI + outerPercent * Math.PI,
@@ -142,17 +150,14 @@ export const ArcDisplay = ({
       false,
     );
 
-    // outer thresholds
-    drawMarks(outerConfig.min, outerConfig.max, outerConfig.thresholds);
+    // outer indicators
+    drawMarks(ctx, outerMin, outerMax, outerColorIndicators);
 
     const innerPercent = Math.max(
-      Math.min(
-        (innerValue - innerConfig.min) / (innerConfig.max - innerConfig.min),
-        1,
-      ),
+      Math.min((innerValue - innerMin) / (innerMax - innerMin), 1),
       0,
     );
-    const innerColor = getColor(innerValue, innerConfig.thresholds);
+    const innerColor = getColor(innerValue, innerColorIndicators);
 
     // outer label
     ctx.fillStyle = "black";
@@ -162,8 +167,8 @@ export const ArcDisplay = ({
       getLatestValueDisplay(
         outerValue,
         METADATA[outerName].unit,
-        outerConfig.min,
-        outerConfig.max,
+        outerMin,
+        outerMax,
       ),
       centerX,
       35,
@@ -171,6 +176,7 @@ export const ArcDisplay = ({
 
     // inner base
     drawArc(
+      ctx,
       innerRadius,
       Math.PI,
       2 * Math.PI,
@@ -181,6 +187,7 @@ export const ArcDisplay = ({
 
     // inner fill
     drawArc(
+      ctx,
       innerRadius,
       Math.PI,
       Math.PI + innerPercent * Math.PI,
@@ -189,8 +196,8 @@ export const ArcDisplay = ({
       false,
     );
 
-    // inner thresholds
-    drawMarks(innerConfig.min, innerConfig.max, innerConfig.thresholds);
+    // inner indicators
+    drawMarks(ctx, innerMin, innerMax, innerColorIndicators);
 
     // inner label
     ctx.font = "bold 24px system-ui";
@@ -198,13 +205,24 @@ export const ArcDisplay = ({
       getLatestValueDisplay(
         innerValue,
         METADATA[innerName].unit,
-        innerConfig.min,
-        innerConfig.max,
+        innerMin,
+        innerMax,
       ),
       centerX,
       canvasHeight - 10,
     );
-  }, []);
+  }, [
+    innerName,
+    innerValue,
+    innerMin,
+    innerMax,
+    innerColorIndicators,
+    outerName,
+    outerValue,
+    outerMin,
+    outerMax,
+    outerColorIndicators,
+  ]);
 
   return (
     <div className={className}>

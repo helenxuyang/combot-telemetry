@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GraphDisplay } from "./GraphDisplay";
 import styled from "styled-components";
-import { useRobot } from "./store";
+import { useRobot } from "../../../store";
 
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
 

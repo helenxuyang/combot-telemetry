@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
-import { ButtonsHolder } from "./styles";
+import { ButtonsHolder } from "../../../styles";
 import styled from "styled-components";
-import { useAddMatchMarker, useRobot } from "./store";
+import { useAddMatchMarker, useRobot } from "../../../store";
 
 type FightStatus = "INACTIVE" | "FIGHTING" | "PAUSED";
 
