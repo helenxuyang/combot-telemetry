@@ -35,7 +35,7 @@ export const METADATA: Record<MeasurementOrInput, Metadata> = {
     displayName: "RPM",
   },
   [INPUT]: {
-    unit: "%",
+    unit: "",
     displayName: "Input",
   },
 } as const;

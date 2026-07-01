@@ -1,4 +1,5 @@
 mod config_manager;
+mod csv_importer;
 mod csv_writer;
 mod message_parser;
 mod telemetry_session;
@@ -10,6 +11,7 @@ use tauri::Manager;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
@@ -18,7 +20,10 @@ pub fn run() {
             }));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![websocket::websocket_connect])
+        .invoke_handler(tauri::generate_handler![
+            websocket::websocket_connect,
+            csv_importer::parse_raw_file
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -11,7 +11,12 @@
     "fs:default",
     {
       "identifier": "fs:allow-app-write-recursive",
-      "allow": [{ "path": "$APPDATA/*" }]
-    }
+      "allow": [
+        {
+          "path": "$APPDATA/*"
+        }
+      ]
+    },
+    "dialog:default"
   ]
 }

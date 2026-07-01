@@ -1,4 +1,4 @@
-import { EscId, MeasurementName, Robot } from "./robot";
+import { EscId, Measurement, MeasurementName, Robot } from "./robot";
 
 export type EscDataMessage = {
   messageType: "dataMessage";
@@ -39,8 +39,13 @@ export type TauriTelemetryMessage =
 export const getUpdatedRobot = (
   message: TauriTelemetryMessage,
   robot: Robot,
+  config: {
+    shouldReplace?: boolean;
+    shouldCopy?: boolean;
+  } = {},
 ) => {
-  const newRobot = structuredClone(robot);
+  const { shouldReplace = true, shouldCopy = true } = config;
+  const newRobot = shouldCopy ? structuredClone(robot) : robot;
 
   const { messageType } = message;
 
@@ -73,16 +78,28 @@ export const getUpdatedRobot = (
 
   if (messageType === "dataMessage") {
     const { messageType, escId, timestamp, ...escData } = message;
-    Object.entries(escData).forEach(([measurementKey, measurementValue]) => {
-      esc.data.measurements[measurementKey as MeasurementName].values = [
-        measurementValue,
-      ];
-    });
+    (Object.entries(escData) as [MeasurementName, number][]).forEach(
+      ([measurementKey, measurementValue]) => {
+        if (shouldReplace) {
+          esc.data.measurements[measurementKey].values.push(measurementValue);
+        } else {
+          esc.data.measurements[measurementKey].values = [measurementValue];
+        }
+      },
+    );
     esc.data.timestamps = [timestamp];
   } else if (messageType === "inputMessage") {
     const { input } = message;
-    esc.inputs.timestamps = [timestamp];
-    esc.inputs.values = [input];
+    if (shouldReplace) {
+      esc.inputs.timestamps.push(timestamp);
+    } else {
+      esc.inputs.timestamps = [timestamp];
+    }
+    if (shouldReplace) {
+      esc.inputs.values.push(input);
+    } else {
+      esc.inputs.values = [input];
+    }
   }
 
   return newRobot;

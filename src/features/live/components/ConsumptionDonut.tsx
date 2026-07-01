@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { CONSUMPTION, ESC } from "../../../robot";
-import { useRef, type ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { Container } from "../../../styles";
 import { calculateTotal, getLatestValue } from "../../../dataUtils";
 
@@ -92,45 +92,48 @@ export const ConsumptionDonut = ({ escs }: Props) => {
     angle += sliceAngle;
   });
 
-  const canvas = canvasRef.current;
-  if (!canvas) return;
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = svgSize * dpr;
-  canvas.height = svgSize * dpr;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = svgSize * dpr;
+    canvas.height = svgSize * dpr;
 
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  const centerX = svgSize / 2;
-  const centerY = svgSize / 2;
-  const strokeWidth = 10;
-  const startAngle = -Math.PI / 2;
+    const centerX = svgSize / 2;
+    const centerY = svgSize / 2;
+    const strokeWidth = 10;
+    const startAngle = -Math.PI / 2;
 
-  ctx.clearRect(0, 0, svgSize, svgSize);
+    ctx.clearRect(0, 0, svgSize, svgSize);
 
-  angle = 0;
+    angle = 0;
 
-  Object.keys(consumptions).forEach((esc, index) => {
-    const value = consumptions[esc];
-    const percent = totalConsumption > 0 ? (value / totalConsumption) * 100 : 0;
-    const color = colors[index];
+    Object.keys(consumptions).forEach((esc, index) => {
+      const value = consumptions[esc];
+      const percent =
+        totalConsumption > 0 ? (value / totalConsumption) * 100 : 0;
+      const color = colors[index];
 
-    if (value > 0) {
-      const sliceAngle = (percent / 100) * 2 * Math.PI;
-      const endAngle = startAngle + angle + sliceAngle;
+      if (value > 0) {
+        const sliceAngle = (percent / 100) * 2 * Math.PI;
+        const endAngle = startAngle + angle + sliceAngle;
 
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, startAngle + angle, endAngle);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = strokeWidth;
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, startAngle + angle, endAngle);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = strokeWidth;
+        ctx.stroke();
 
-      angle += sliceAngle;
-    }
-  });
+        angle += sliceAngle;
+      }
+    });
+  }, [escs]);
 
   return (
     <Container>

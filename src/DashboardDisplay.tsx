@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import { NavigationTabs, type Tab } from "./Tabs";
-import { GraphGrid } from "./features/graph/components/GraphGrid";
 import { MatchControls } from "./features/live/components/MatchControls";
 import { ConfigDisplay } from "./features/configuration/components/ConfigDisplay";
 import { useEffect, useMemo } from "react";
@@ -9,6 +8,7 @@ import { RobotDisplay } from "./RobotDisplay";
 import { TauriWebSocketConnector } from "./features/live/components/TauriWebSocketConnector";
 import { UnknownMessagesDisplay } from "./features/live/components/UnknownMessagesDisplay";
 import { getInitRobot } from "./features/configuration/configUtils";
+import { RobotImporter } from "./RobotImporter";
 
 const Layout = styled.div`
   display: flex;
@@ -59,10 +59,10 @@ export const DashboardDisplay = () => {
         name: "Live",
         panelContent: <RobotDisplay />,
       },
-      {
-        name: "Graph",
-        panelContent: <GraphGrid />,
-      },
+      // {
+      //   name: "Graph",
+      //   panelContent: <GraphGrid />,
+      // },
       {
         name: "Config",
         panelContent: <ConfigDisplay />,
@@ -88,6 +88,9 @@ export const DashboardDisplay = () => {
         </ControlsSection>
         <ControlsSection>
           <UnknownMessagesDisplay />
+        </ControlsSection>
+        <ControlsSection>
+          <RobotImporter />
         </ControlsSection>
       </ControlsGrid>
     </Layout>

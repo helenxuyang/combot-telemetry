@@ -30,4 +30,5 @@ regex = "1.12.4"
 csv = "1.4.0"
 chrono = "0.4.45"
 tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
 
