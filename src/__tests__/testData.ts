@@ -1,55 +1,99 @@
-import { RPM, VOLTAGE, CURRENT, CONSUMPTION, TEMPERATURE } from "../robot";
-import { getInitColossalAvian } from "../storageUtils";
+import { Robot } from "../robot";
 
 export const DRIVE_LEFT_ESC = "DRIVE_LEFT";
 export const DRIVE_RIGHT_ESC = "DRIVE_RIGHT";
 export const WEAPON_ESC = "WEAPON";
 export const ARM_ESC = "ARM";
 
-export const getMockRobotWithData = () => {
-  const robot = structuredClone(getInitColossalAvian());
-
-  robot.escs.a[DRIVE_LEFT_ESC].timestamps = [1, 5, 10];
-  robot.escs[DRIVE_LEFT_ESC].measurements[RPM].values = [1000, 2000, 3000];
-  robot.escs[DRIVE_LEFT_ESC].measurements[VOLTAGE].values = [30, 20, 10];
-  robot.escs[DRIVE_LEFT_ESC].measurements[CURRENT].values = [100, 100, 100];
-  robot.escs[DRIVE_LEFT_ESC].measurements[CONSUMPTION].values = [500, 600, 700];
-  robot.escs[DRIVE_LEFT_ESC].measurements[TEMPERATURE].values = [25, 50, 75];
-  robot.escs[DRIVE_LEFT_ESC].inputs.timestamps = [3, 6];
-  robot.escs[DRIVE_LEFT_ESC].inputs.values = [0, 100];
-
-  robot.escs[DRIVE_RIGHT_ESC].timestamps = [2, 4];
-  robot.escs[DRIVE_RIGHT_ESC].measurements[RPM].values = [5000, 6000];
-  robot.escs[DRIVE_RIGHT_ESC].measurements[VOLTAGE].values = [20, 30];
-  robot.escs[DRIVE_RIGHT_ESC].measurements[CURRENT].values = [80, 90];
-  robot.escs[DRIVE_RIGHT_ESC].measurements[CONSUMPTION].values = [700, 800];
-  robot.escs[DRIVE_RIGHT_ESC].measurements[TEMPERATURE].values = [50, 50];
-  robot.escs[DRIVE_RIGHT_ESC].inputs.timestamps = [5, 8];
-  robot.escs[DRIVE_RIGHT_ESC].inputs.values = [-100, -100];
-
-  robot.escs[WEAPON_ESC].errors = [
-    { errorCode: 1, timestamp: 11 },
-    { errorCode: 2, timestamp: 12 },
-  ];
-
-  robot.matchMarkers = [
-    {
-      type: "START",
-      timestamp: 0,
+export const getMockRobot = () => {
+  const robot: Robot = {
+    name: "TestBot",
+    escs: {
+      a: {
+        name: "Drive",
+        data: {
+          timestamps: [2, 4, 6, 8, 10],
+          measurements: {
+            temperature: {
+              values: [30, 30, 35, 35, 40],
+            },
+            rpm: {
+              values: [1000, 2000, 3000, 4000, 5000],
+            },
+            voltage: {
+              values: [20, 20, 19, 19, 18],
+            },
+            current: {
+              values: [20, 20, 20, 20, 20],
+            },
+            consumption: {
+              values: [200, 200, 200, 200, 200],
+            },
+          },
+        },
+        inputs: {
+          timestamps: [1, 2, 4, 7, 9],
+          values: [0, 0, 50, 50, -50],
+        },
+        errors: [],
+      },
+      b: {
+        name: "Weapon",
+        data: {
+          timestamps: [1, 3],
+          measurements: {
+            temperature: {
+              values: [90, 90],
+            },
+            rpm: {
+              values: [3000, 3000],
+            },
+            voltage: {
+              values: [20, 20],
+            },
+            current: {
+              values: [30, 30],
+            },
+            consumption: {
+              values: [300, 300],
+            },
+          },
+        },
+        inputs: {
+          timestamps: [2, 4, 5, 6],
+          values: [0, 0, 0, 0],
+        },
+        errors: [
+          { errorCode: 1, timestamp: 11 },
+          { errorCode: 2, timestamp: 12 },
+        ],
+      },
     },
-    {
-      type: "PAUSE",
-      timestamp: 15,
-    },
-    {
-      type: "RESUME",
-      timestamp: 20,
-    },
-    {
-      type: "END",
-      timestamp: 25,
-    },
-  ];
+    unknownMessages: [
+      {
+        rawMessage: "<>",
+      },
+    ],
+    initialTimestamp: null,
+    matchMarkers: [
+      {
+        type: "START",
+        timestamp: 0,
+      },
+      {
+        type: "PAUSE",
+        timestamp: 15,
+      },
+      {
+        type: "RESUME",
+        timestamp: 20,
+      },
+      {
+        type: "END",
+        timestamp: 25,
+      },
+    ],
+  };
 
   return robot;
 };

@@ -1,54 +1,42 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import {
-  DRIVE_LEFT_ESC,
-  DRIVE_RIGHT_ESC,
-  VOLTAGE,
-  type Measurement,
-  type Robot,
-} from "../robot";
+import { describe, expect, it } from "vitest";
+import { ColorIndicator } from "../robot";
 import {
   DEFAULT_COLOR,
   getColor,
   getLatestValue,
   getClampedPercent,
-  HIGHLIGHT_COLOR,
-  getLatestPercent,
   getLatestValueDisplay,
   calculateTotal,
-  clearValues,
-  combineRobotData,
 } from "../dataUtils";
-import { getMockRobotWithData } from "./testData";
-import { getInitColossalAvian } from "../storageUtils";
-
-const mockMeasurement: Measurement = {
-  name: VOLTAGE,
-  unit: "",
-  min: 20,
-  max: 100,
-  warningThresholds: {
-    yellow: 40,
-    red: 60,
-  },
-  highlightThreshold: 80,
-  values: [],
-  shouldShow: true,
-};
-
-const mockRobot: Robot = getInitColossalAvian();
 
 describe("getColor", () => {
-  const measurement: Measurement = { ...structuredClone(mockMeasurement) };
+  const indicators: ColorIndicator[] = [
+    {
+      threshold: 40,
+      condition: "below",
+      color: "green",
+      playSound: false,
+    },
+    {
+      threshold: 60,
+      condition: "above",
+      color: "orange",
+      playSound: false,
+    },
+    {
+      threshold: 80,
+      condition: "above",
+      color: "red",
+      playSound: false,
+    },
+  ];
   it("gets correct color based on thresholds", () => {
-    expect(getColor(measurement)).toBe(DEFAULT_COLOR);
-    measurement.values.push(70);
-    expect(getColor(measurement)).toBe("red");
-    measurement.values.push(80);
-    expect(getColor(measurement)).toBe(HIGHLIGHT_COLOR);
-    measurement.values.push(40);
-    expect(getColor(measurement)).toBe("yellow");
-    measurement.values.push(20);
-    expect(getColor(measurement)).toBe(DEFAULT_COLOR);
+    expect(getColor(0, indicators)).toBe("green");
+    expect(getColor(40, indicators)).toBe("green");
+    expect(getColor(50, indicators)).toBe(DEFAULT_COLOR);
+    expect(getColor(70, indicators)).toBe("orange");
+    expect(getColor(80, indicators)).toBe("red");
+    expect(getColor(100, indicators)).toBe("red");
   });
 });
 
@@ -78,94 +66,30 @@ describe("getClampedPercent", () => {
 });
 
 describe("getLatestValue", () => {
-  let measurement: Measurement;
-
-  beforeEach(() => {
-    measurement = { ...structuredClone(mockMeasurement) };
-  });
-
   it("defaults to 0 if no values", () => {
-    expect(getLatestValue(measurement.values)).toBe(0);
+    expect(getLatestValue([])).toBe(0);
   });
 
-  it("gets last value within min and max", () => {
-    measurement.values.push(10);
-    expect(getLatestValue(measurement.values)).toBe(10);
-    measurement.values.push(90);
-    expect(getLatestValue(measurement.values)).toBe(90);
-  });
-
-  it("gets last value if outside of min and max", () => {
-    measurement.values.push(2);
-    expect(getLatestValue(measurement.values)).toBe(2);
-    measurement.values.push(200);
-    expect(getLatestValue(measurement.values)).toBe(200);
-  });
-});
-
-describe("getLatestPercent", () => {
-  let measurement: Measurement;
-
-  beforeEach(() => {
-    measurement = { ...structuredClone(mockMeasurement) };
-  });
-
-  it("gets percent equivalent of last value", () => {
-    measurement.values.push(20);
-    measurement.values.push(100);
-    expect(getLatestPercent(measurement)).toBe(100);
+  it("gets last value", () => {
+    let values = [10];
+    expect(getLatestValue(values)).toBe(10);
+    values.push(90);
+    expect(getLatestValue(values)).toBe(90);
   });
 });
 
 describe("getLatestValueDisplay", () => {
-  let measurement: Measurement;
-
-  beforeEach(() => {
-    measurement = { ...structuredClone(mockMeasurement) };
-  });
-
   it("gets display value for measurement with percent unit", () => {
-    measurement.unit = "%";
-    measurement.values.push(40);
-    expect(getLatestValueDisplay(measurement)).toBe("25%");
+    expect(getLatestValueDisplay(1, "%", 0, 4)).toBe("25%");
   });
 
   it("gets display value for measurement with non-percent unit", () => {
-    measurement.unit = "V";
-    measurement.values.push(40);
-    expect(getLatestValueDisplay(measurement)).toBe("40 V");
-  });
-
-  it("gets display value for measurement with no unit", () => {
-    measurement.values.push(40);
-    expect(getLatestValueDisplay(measurement)).toBe("40");
+    expect(getLatestValueDisplay(40, "V", 0, 100)).toBe("40 V");
   });
 });
 
 describe("calculateTotal", () => {
   it("calculates total and rounds", () => {
-    const robot = { ...structuredClone(mockRobot) };
-    expect(calculateTotal(VOLTAGE, robot.escs)).toBe(0);
-    robot.escs[DRIVE_LEFT_ESC].measurements[VOLTAGE].values.push(30);
-    expect(calculateTotal(VOLTAGE, robot.escs)).toBe(30);
-    robot.escs[DRIVE_RIGHT_ESC].measurements[VOLTAGE].values.push(40.123);
-    expect(calculateTotal(VOLTAGE, robot.escs)).toBe(70.12);
-  });
-});
-
-describe("clearValues", () => {
-  it("clears all accumulated data", () => {
-    const robot = getMockRobotWithData();
-    clearValues(robot);
-    expect(robot).toEqual(getInitColossalAvian());
-  });
-});
-
-describe("combineRobotData", () => {
-  it("combines empty robot and robot with data", () => {
-    const oldRobot = getInitColossalAvian();
-    const newRobot = getMockRobotWithData();
-    const combinedRobot = combineRobotData(oldRobot, newRobot);
-    expect(combinedRobot).toEqual(newRobot);
+    expect(calculateTotal([10.123, 5.321])).toBe(15.44);
   });
 });

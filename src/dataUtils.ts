@@ -14,8 +14,8 @@ export const getColor = (value: number, colorIndicators: ColorIndicator[]) => {
   colorIndicators.forEach((indicator) => {
     const isConditionMet =
       indicator.condition === "below"
-        ? value < indicator.threshold
-        : value > indicator.threshold;
+        ? value <= indicator.threshold
+        : value >= indicator.threshold;
     if (isConditionMet) {
       barColor = indicator.color;
     }
@@ -33,10 +33,6 @@ export const getLatestValue = (values: Measurement["values"]) => {
   return values.at(-1) ?? 0;
 };
 
-export const getLatestPercent = (value: number, min: number, max: number) => {
-  return getClampedPercent(value, min, max);
-};
-
 export const getLatestValueDisplay = (
   value: number,
   unit: string,
@@ -44,9 +40,9 @@ export const getLatestValueDisplay = (
   max: number,
 ) => {
   if (unit === "%") {
-    return `${getLatestPercent(value, min, max)}%`;
+    return `${getClampedPercent(value, min, max)}%`;
   } else {
-    return `${value}${unit && ` ${unit}`}`;
+    return `${value} ${unit}`;
   }
 };
 

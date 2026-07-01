@@ -3,7 +3,7 @@ import { ColorIndicator } from "../../../robot";
 import { Container, Value } from "../../../styles";
 import {
   getColor,
-  getLatestPercent,
+  getClampedPercent,
   getLatestValueDisplay,
 } from "../../../dataUtils";
 import { CanvasBar } from "./CanvasBar";
@@ -64,7 +64,7 @@ export const BarDisplay = ({
   className = "",
   orientation = "vertical",
 }: Props) => {
-  const percent = getLatestPercent(value, min, max);
+  const percent = getClampedPercent(value, min, max);
   const barColor = getColor(value, colorIndicators);
 
   return (
