@@ -2,6 +2,7 @@ mod config_manager;
 mod csv_importer;
 mod csv_writer;
 mod message_parser;
+mod serial_communication;
 mod telemetry_session;
 mod websocket;
 
@@ -22,7 +23,9 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             websocket::websocket_connect,
-            csv_importer::parse_raw_file
+            csv_importer::parse_raw_file,
+            serial_communication::get_serial_ports,
+            serial_communication::read_serial
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

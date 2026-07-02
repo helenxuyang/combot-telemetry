@@ -59,7 +59,7 @@ pub struct TelemetryError {
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryUnknown {
     raw_message: String,
-    // TODO: maybe add reason, e.g. incorrect format vs incorrect checksum
+    reason: String,
 }
 
 #[derive(Serialize)]
@@ -283,7 +283,10 @@ pub fn parse_message(raw_message: String) -> TelemetryMessage {
         || validate_input_message_format(&raw_message)
         || validate_error_message_format(&raw_message);
     if !is_valid_message {
-        return TelemetryMessage::UnknownMessage(TelemetryUnknown { raw_message });
+        return TelemetryMessage::UnknownMessage(TelemetryUnknown {
+            raw_message,
+            reason: "invalid format".to_string(),
+        });
     }
 
     // remove < and >
@@ -296,7 +299,10 @@ pub fn parse_message(raw_message: String) -> TelemetryMessage {
         let telemetry_error = parse_error_message(message_components);
         return match telemetry_error {
             Ok(telem_error) => TelemetryMessage::ErrorMessage(telem_error),
-            Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown { raw_message }),
+            Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
+                raw_message,
+                reason: "failed to parse error message".to_string(),
+            }),
         };
     }
 
@@ -306,17 +312,26 @@ pub fn parse_message(raw_message: String) -> TelemetryMessage {
             let telemetry_data = parse_data_message(message_components);
             return match telemetry_data {
                 Ok(telem_data) => TelemetryMessage::DataMessage(telem_data),
-                Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown { raw_message }),
+                Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
+                    raw_message,
+                    reason: "failed to parse data message".to_string(),
+                }),
             };
         }
         "w" | "x" | "y" | "z" => {
             let telemetry_input = parse_input_message(message_components);
             return match telemetry_input {
                 Ok(telem_input) => TelemetryMessage::InputMessage(telem_input),
-                Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown { raw_message }),
+                Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
+                    raw_message,
+                    reason: "failed to parse input message".to_string(),
+                }),
             };
         }
-        _ => TelemetryMessage::UnknownMessage(TelemetryUnknown { raw_message }),
+        _ => TelemetryMessage::UnknownMessage(TelemetryUnknown {
+            raw_message,
+            reason: "idk".to_string(),
+        }),
     }
 }
 

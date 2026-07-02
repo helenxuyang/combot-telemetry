@@ -32,7 +32,7 @@ pub fn handle_message(app: &AppHandle, raw_message: String) {
     }
 
     // save parsed to CSV
-    if let Err(error) = csv_writer::write_parsed_messages_csv(&app, parsed_message) {
-        println!("CSV ERROR: Failed to write parsed data: {}", error);
-    };
+    // if let Err(error) = csv_writer::write_parsed_messages_csv(&app, parsed_message) {
+    //     println!("CSV ERROR: Failed to write parsed data: {}", error);
+    // };
 }

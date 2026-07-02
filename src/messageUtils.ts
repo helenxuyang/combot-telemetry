@@ -28,6 +28,7 @@ export type EscErrorMessage = {
 export type UnknownMessage = {
   messageType: "unknownMessage";
   rawMessage: string;
+  reason: string;
 };
 
 export type TauriTelemetryMessage =

@@ -5,10 +5,10 @@ import { ConfigDisplay } from "./features/configuration/components/ConfigDisplay
 import { useEffect, useMemo } from "react";
 import { useRobot, useSetRobot, useSetRobotConfig } from "./store";
 import { RobotDisplay } from "./RobotDisplay";
-import { TauriWebSocketConnector } from "./features/live/components/TauriWebSocketConnector";
 import { UnknownMessagesDisplay } from "./features/live/components/UnknownMessagesDisplay";
 import { getInitRobot } from "./features/configuration/configUtils";
 import { RobotImporter } from "./RobotImporter";
+import { SerialConnector } from "./features/live/components/SerialConnector";
 
 const Layout = styled.div`
   display: flex;
@@ -84,7 +84,7 @@ export const DashboardDisplay = () => {
       <NavigationTabs tabs={tabs} />
       <ControlsGrid>
         <ControlsSection>
-          <TauriWebSocketConnector />
+          <SerialConnector />
         </ControlsSection>
         <ControlsSection>
           <UnknownMessagesDisplay />

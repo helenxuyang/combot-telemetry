@@ -31,4 +31,6 @@ csv = "1.4.0"
 chrono = "0.4.45"
 tauri-plugin-fs = "2"
 tauri-plugin-dialog = "2"
+serialport = "4.9.0"
+tokio-serial = "5.5.0"
 
