@@ -2,12 +2,20 @@ import { ConsumptionDonut } from "./features/live/components/ConsumptionDonut";
 import { calculateTotal, getLatestValue } from "./dataUtils";
 import { BarDisplay } from "./features/live/components/BarDisplay";
 import { CONSUMPTION, CURRENT, ESC, EscId, VOLTAGE } from "./robot";
-import { BACKGROUND, SMALL_VIEWPORT } from "./styles";
+import {
+  BACKGROUND,
+  ControlsGrid,
+  ControlsSection,
+  SMALL_VIEWPORT,
+} from "./styles";
 import { VoltageDisplay } from "./features/live/components/VoltageDisplay";
 import styled from "styled-components";
 import { ESCDisplay } from "./features/live/components/ESCDisplay";
 import { useRobot, useRobotConfig } from "./store";
 import { METADATA } from "./displayUtils";
+import { SerialConnector } from "./features/live/components/SerialConnector";
+import { UnknownMessagesDisplay } from "./features/live/components/UnknownMessagesDisplay";
+import { RobotImporter } from "./RobotImporter";
 
 const ESCSection = styled.div`
   flex: 4;
@@ -152,6 +160,14 @@ export const RobotDisplay = () => {
           ))}
         </ESCGrid>
       </ESCSection>
+      <ControlsGrid>
+        <ControlsSection>
+          <SerialConnector />
+        </ControlsSection>
+        <ControlsSection>
+          <UnknownMessagesDisplay />
+        </ControlsSection>
+      </ControlsGrid>
     </Layout>
   );
 };

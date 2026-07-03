@@ -5,10 +5,8 @@ import { ConfigDisplay } from "./features/configuration/components/ConfigDisplay
 import { useEffect, useMemo } from "react";
 import { useRobot, useSetRobot, useSetRobotConfig } from "./store";
 import { RobotDisplay } from "./RobotDisplay";
-import { UnknownMessagesDisplay } from "./features/live/components/UnknownMessagesDisplay";
 import { getInitRobot } from "./features/configuration/configUtils";
-import { RobotImporter } from "./RobotImporter";
-import { SerialConnector } from "./features/live/components/SerialConnector";
+import { GraphGrid } from "./features/graph/components/GraphGrid";
 
 const Layout = styled.div`
   display: flex;
@@ -21,22 +19,6 @@ const HeaderHolder = styled.div`
   display: flex;
 
   justify-content: space-between;
-`;
-
-const ControlsGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-`;
-
-const ControlsSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  border: 3px solid black;
-  padding: 16px;
-  flex: 1;
 `;
 
 export const DashboardDisplay = () => {
@@ -59,10 +41,10 @@ export const DashboardDisplay = () => {
         name: "Live",
         panelContent: <RobotDisplay />,
       },
-      // {
-      //   name: "Graph",
-      //   panelContent: <GraphGrid />,
-      // },
+      {
+        name: "Graph",
+        panelContent: <GraphGrid />,
+      },
       {
         name: "Config",
         panelContent: <ConfigDisplay />,
@@ -82,17 +64,6 @@ export const DashboardDisplay = () => {
         <MatchControls />
       </HeaderHolder>
       <NavigationTabs tabs={tabs} />
-      <ControlsGrid>
-        <ControlsSection>
-          <SerialConnector />
-        </ControlsSection>
-        <ControlsSection>
-          <UnknownMessagesDisplay />
-        </ControlsSection>
-        <ControlsSection>
-          <RobotImporter />
-        </ControlsSection>
-      </ControlsGrid>
     </Layout>
   );
 };

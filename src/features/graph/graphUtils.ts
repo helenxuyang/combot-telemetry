@@ -1,81 +1,61 @@
+import { METADATA } from "../../displayUtils";
 import {
   type Robot,
-  type EscName,
   type MeasurementName,
   INPUT,
-  type Input,
-  type Measurement,
   ERROR,
-  POWER,
-  VOLTAGE,
-  CURRENT,
+  EscId,
+  MeasurementOrInput,
+  ESC,
+  Measurement,
 } from "../../robot";
+import { MeasurementConfig, RobotConfig } from "../configuration/configUtils";
 
 type DataPlot = {
-  escName: EscName;
+  escId: EscId;
   type: "data";
   measurementName: MeasurementName;
 };
 
 type InputPlot = {
-  escName: EscName;
+  escId: EscId;
   type: typeof INPUT;
 };
 
-type PowerPlot = {
-  escName: EscName;
-  type: typeof POWER;
-};
-
 type ErrorPlot = {
-  escName: EscName;
+  escId: EscId;
   type: typeof ERROR;
 };
 
-export type Plot = DataPlot | InputPlot | PowerPlot | ErrorPlot;
-export type PlotMeasurementName =
-  | MeasurementName
-  | typeof POWER
-  | typeof INPUT
-  | typeof ERROR;
+export type Plot = DataPlot | InputPlot | ErrorPlot;
 
 export const stringifyPlot = (plot: Plot) => {
   if (plot.type === "data") {
-    return `${plot.escName}-${plot.measurementName}`;
+    return `${plot.escId}-${plot.measurementName}`;
   } else {
-    return `${plot.escName}-${plot.type}`;
+    return `${plot.escId}-${plot.type}`;
   }
 };
 
 export const parsePlot = (id: string): Plot => {
   const idComponents = id.split("-");
-  const escName = idComponents[0] as EscName;
+  const escId = idComponents[0] as EscId;
   const part = idComponents[1];
   if (part === INPUT || part === ERROR) {
     return {
-      escName,
+      escId,
       type: part,
     };
   } else {
     return {
-      escName,
+      escId: escId,
       type: "data",
       measurementName: part as MeasurementName,
     };
   }
 };
 
-export const getMeasurementOrInput = (
-  robot: Robot,
-  esc: EscName,
-  key: PlotMeasurementName,
-): Input | Measurement => {
-  return key === INPUT
-    ? robot.escs[esc].inputs
-    : robot.escs[esc].measurements[key];
-};
-
-export const getSeriesColor = (measurementName: PlotMeasurementName) => {
+export const getSeriesColor = (measurementName: MeasurementOrInput) => {
   switch (measurementName) {
     case "temperature":
       return "darkred";
@@ -87,8 +67,6 @@ export const getSeriesColor = (measurementName: PlotMeasurementName) => {
       return "darkgreen";
     case "consumption":
       return "blue";
-    case "power":
-      return "purple";
     case "input":
       return "gray";
     default:
@@ -96,119 +74,99 @@ export const getSeriesColor = (measurementName: PlotMeasurementName) => {
   }
 };
 
-export const getSeries = (
-  robot: Robot,
-  escName: EscName,
-  measurementName: MeasurementName | typeof INPUT,
+export const getSeriesData = (timestamps: number[], values: number[]) => {
+  return timestamps.map((time, index) => [time, values[index]]);
+};
+
+export const getSeriesConfig = (
+  escId: EscId,
+  escName: string,
+  plotName: MeasurementOrInput,
 ) => {
-  const measurement =
-    measurementName === INPUT
-      ? robot.escs[escName].inputs
-      : robot.escs[escName].measurements[measurementName];
-
-  const timestamps = robot.escs[escName].timestamps.filter(
-    (_, index) => !isNaN(measurement.values[index]),
-  );
-  const values = measurement.values.filter((val) => !isNaN(val));
-
-  if (!timestamps) {
-    return {};
-  }
-  const seriesData = [
-    ...timestamps.map((time, index) => {
-      return [time, values[index]];
-    }),
-  ];
-  const series = {
-    id: `${escName} ${measurementName}`,
+  return {
+    id: `${escId}-${plotName}`,
+    name: `${escName} ${plotName}`,
     type: "line",
-    name: `${escName} ${measurementName}`,
-    data: seriesData,
-    // showSymbol: false,
+    showSymbol: true,
     symbolSize: 2,
     itemStyle: {
-      color: getSeriesColor(measurementName),
+      color: getSeriesColor(plotName),
     },
+    sampling: "lttb",
   };
-  return series;
 };
 
-export const getInputSeries = (robot: Robot, escName: EscName) => {
-  let { timestamps, values } = robot.escs[escName].inputs;
-  const { min, max } = robot.escs[escName].inputs;
+export const getDataSeries = (robot: Robot, plot: DataPlot) => {
+  const { escId, measurementName } = plot;
+  const esc = robot.escs[escId];
+  if (!esc) {
+    return {};
+  }
+  const timestamps = esc.data.timestamps;
+  const values = esc.data.measurements[measurementName].values;
+  const seriesData = getSeriesData(timestamps, values);
 
-  if (!timestamps) {
+  return {
+    data: seriesData,
+    ...getSeriesConfig(escId, esc.name, measurementName),
+  };
+};
+
+export const getInputSeries = (robot: Robot, plot: InputPlot) => {
+  const { escId, type } = plot;
+  const esc = robot.escs[escId];
+  if (!esc) {
+    return {};
+  }
+  const timestamps = esc.inputs.timestamps;
+  const values = esc.inputs.values;
+  const seriesData = getSeriesData(timestamps, values);
+
+  return {
+    data: seriesData,
+    ...getSeriesConfig(escId, esc.name, type),
+  };
+};
+
+export const getErrorSeries = (robot: Robot, plot: ErrorPlot) => {
+  const { escId } = plot;
+  const esc = robot.escs[escId];
+  if (!esc) {
     return {};
   }
 
-  timestamps = timestamps.filter((_, index) => !isNaN(values[index]));
-  values = values.filter((val) => !isNaN(val));
-
-  const spikeFilterThreshold = 1.5;
-  timestamps = timestamps.filter((_, index) => {
-    const val = values[index];
-    return (
-      val >= min * spikeFilterThreshold && val <= max * spikeFilterThreshold
-    );
-  });
-  values = values.filter(
-    (val) =>
-      val >= min * spikeFilterThreshold && val <= max * spikeFilterThreshold,
-  );
-
-  const seriesData = [
-    ...timestamps.map((time, index) => {
-      return [time, values[index]];
-    }),
-  ];
-  const series = {
-    id: `${escName} ${INPUT}`,
+  return {
     type: "line",
-    name: `${escName} ${INPUT}`,
-    data: seriesData,
-    symbolSize: 2,
-    itemStyle: {
-      color: getSeriesColor(INPUT),
+    name: `${esc.name} ${ERROR}`,
+    data: esc.errors.map((error) => error.timestamp),
+    markLine: {
+      silent: true,
+      symbolSize: 5,
+      data: esc.errors.map((error) => {
+        return {
+          xAxis: error.timestamp,
+          label: {
+            formatter: `ERR ${String(error.errorCode)}`,
+          },
+        };
+      }),
     },
   };
-  return series;
 };
 
-// TODO: power isn't showing up, not sure why
-export const getPowerSeries = (robot: Robot, escName: EscName) => {
-  const timestamps = robot.escs[escName].timestamps;
-  const esc = robot.escs[escName];
-  const voltage = esc.measurements[VOLTAGE];
-  const current = esc.measurements[CURRENT];
-  const values = voltage.values
-    .map((val, index) => val * current.values[index])
-    .filter((val) => !isNaN(val));
-  const seriesData = [
-    ...timestamps.map((time, index) => {
-      return [time, values[index]];
-    }),
-  ];
-  const series = {
-    id: `${escName} ${POWER}`,
-    type: "line",
-    name: `${escName} ${POWER}`,
-    data: seriesData,
-    symbolSize: 2,
-  };
-  return series;
-};
-
-export const getXAxis = (timestamps: number[]) => {
+export const getXAxis = () => {
   const axis = {
     name: "seconds",
+    type: "value", // TODO: maybe this should be time?
     nameLocation: "middle",
-    max: timestamps.at(-1) ?? 0,
     axisLabel: {
       formatter: (value: string) => {
         const sec = Number(value) / 1000;
         return sec.toFixed(sec % 1 === 0 ? 0 : 2);
       },
     },
+    alignTicks: true,
+    max: "dataMax",
   };
   return axis;
 };
@@ -219,125 +177,140 @@ const yAxisSettings = {
   nameTextStyle: {
     fontSize: 10,
   },
-  splitNumber: 10,
+  alignTicks: true,
 };
-export const getYAxis = (
-  robot: Robot,
-  escName: EscName,
-  measurementName: PlotMeasurementName,
+
+export const getYAxisConfig = (
+  name: MeasurementOrInput,
+  config: MeasurementConfig,
 ) => {
-  const measurement = getMeasurementOrInput(robot, escName, measurementName);
-  const axis = {
-    type: "value",
-    name: `${measurement.unit.length > 0 ? measurement.unit : measurementName}`,
-    min:
-      measurementName === INPUT
-        ? measurement.min
-        : Math.min(...measurement.values.filter((val) => !isNaN(val))),
-    max:
-      measurementName === INPUT
-        ? measurement.max
-        : Math.max(...measurement.values.filter((val) => !isNaN(val))),
+  const unit = METADATA[name].unit;
+  return {
+    name: `${unit.length > 0 ? unit : name}`,
     ...yAxisSettings,
+    min: config.min,
+    max: config.max,
   };
-  return axis;
 };
 
-export const getPowerYAxis = (robot: Robot, escName: EscName) => {
-  const esc = robot.escs[escName];
-  const voltage = esc.measurements[VOLTAGE];
-  const current = esc.measurements[CURRENT];
-  const values = voltage.values
-    .map((val, index) => val * current.values[index])
-    .map((val) => Number(val.toFixed(2)));
-  const axis = {
-    type: "value",
-    name: "W",
-    min: Math.min(...values.filter((val) => !isNaN(val))),
-    max: Math.max(...values.filter((val) => !isNaN(val))),
-    ...yAxisSettings,
-  };
-  return axis;
+export const getDataYAxis = (
+  robot: Robot,
+  robotConfig: RobotConfig,
+  plot: DataPlot,
+) => {
+  const { escId, measurementName } = plot;
+  const esc = robot.escs[escId];
+  const measurementConfig =
+    robotConfig.escConfigs[escId]?.measurementConfigs[measurementName];
+
+  if (!esc || !measurementConfig) {
+    return {};
+  }
+  return getYAxisConfig(measurementName, measurementConfig);
 };
 
-export const parsePlotData = (robot: Robot, plots: Plot[]) => {
-  const dataPlots = plots.filter((plot) => plot.type === "data");
-  const dataXAxes = dataPlots.map(({ escName }, index) => {
-    return {
-      ...getXAxis(robot.escs[escName].timestamps),
-      show: index === 0,
-    };
-  });
-  const dataYAxes = dataPlots.map(({ escName, measurementName }) => {
-    return getYAxis(robot, escName, measurementName);
-  });
-  const dataSeries = dataPlots.map((plot) => {
-    return getSeries(robot, plot.escName, plot.measurementName);
-  });
+export const getInputYAxis = (
+  robot: Robot,
+  robotConfig: RobotConfig,
+  plot: InputPlot,
+) => {
+  const { escId, type } = plot;
+  const esc = robot.escs[escId];
+  const measurementConfig = robotConfig.escConfigs[escId]?.inputsConfig;
 
-  const inputPlots = plots.filter((plot) => plot.type === INPUT);
-  const inputXAxes = inputPlots.map((plot) => {
-    return {
-      ...getXAxis(robot.escs[plot.escName].inputs.timestamps),
-      show: false,
-    };
-  });
-  const inputYAxes = inputPlots.map(({ escName }) => {
-    return getYAxis(robot, escName, INPUT);
-  });
-  const inputSeries = inputPlots.map(({ escName }) =>
-    getInputSeries(robot, escName),
-  );
+  if (!esc || !measurementConfig) {
+    return {};
+  }
+  return getYAxisConfig(type, measurementConfig);
+};
 
-  const powerPlots = plots.filter((plot) => plot.type === POWER);
-  const powerXAxis = powerPlots.map(({ escName }) => {
-    return {
-      ...getXAxis(robot.escs[escName].timestamps),
-    };
-  });
-  const powerYAxis = powerPlots.map(({ escName }) => {
-    return getPowerYAxis(robot, escName);
-  });
-  const powerSeries = powerPlots.map(({ escName }) => {
-    return {
-      ...getPowerSeries(robot, escName),
-    };
-  });
+export const getErrorYAxis = () => {
+  return { ...yAxisSettings, min: 0, max: 1, show: false };
+};
 
-  const errorPlots = plots.filter((plot) => plot.type === ERROR);
-  const errorSeries = errorPlots
-    .map((plot) => {
-      const escErrors = robot.escs[plot.escName].errors;
-      return {
-        type: "line",
-        name: `${plot.escName} ${ERROR}`,
-        markLine: {
-          silent: true,
-          symbolSize: 5,
-          data: escErrors.map((error) => {
-            return {
-              name: `error ${error.errorCode} `,
-              xAxis: error.timestamp,
-            };
-          }),
-          label: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            formatter: (params: any) => {
-              return params.seriesName;
-            },
-          },
-        },
-      };
-    })
-    .flat();
+export const getPlotData = (
+  robot: Robot,
+  config: RobotConfig,
+  plots: Plot[],
+) => {
+  const series = plots.map((plot) => {
+    switch (plot.type) {
+      case "data":
+        return getDataSeries(robot, plot);
+      case "input":
+        return getInputSeries(robot, plot);
+      case "error":
+        return getErrorSeries(robot, plot);
+      default:
+        throw Error("unhandled plot data");
+    }
+  });
+  const xAxis = getXAxis();
+  const yAxis = plots.map((plot) => {
+    switch (plot.type) {
+      case "data":
+        return getDataYAxis(robot, config, plot);
+      case "input":
+        return getInputYAxis(robot, config, plot);
+      case "error":
+        return getErrorYAxis();
+    }
+  });
 
   return {
-    series: [...dataSeries, ...inputSeries],
-    errorSeries,
-    powerSeries,
-    xAxis: [...dataXAxes, ...inputXAxes],
-    powerXAxis: powerXAxis,
-    yAxis: [...dataYAxes, ...inputYAxes],
-    powerYAxis: powerYAxis,
+    series,
+    xAxis,
+    yAxis,
   };
+};
+
+export const getLabel = (plot: Plot, timestamp: number, value: number) => {
+  const formattedTimestamp = `(${timestamp / 1000} sec)`;
+  let labelEntries: string[] = [String(value)];
+  switch (plot.type) {
+    case "data": {
+      const unit = METADATA[plot.measurementName].unit;
+      labelEntries.push(unit);
+      break;
+    }
+    case "input": {
+      const unit = METADATA[INPUT].unit;
+      labelEntries.push(unit);
+      break;
+    }
+    default:
+      return null;
+  }
+  labelEntries.push(formattedTimestamp);
+  return labelEntries.join(" ");
+};
+
+export const getAvailablePlots = (escId: EscId, esc: ESC): Plot[] => {
+  let plots: Plot[] = [];
+
+  (Object.entries(esc.data.measurements) as [MeasurementName, Measurement][])
+    .filter(([_, measurement]) => measurement.values.length > 0)
+    .map<Plot>(([measurementName]) => {
+      return {
+        escId,
+        type: "data",
+        measurementName,
+      };
+    })
+    .forEach((plot) => plots.push(plot));
+
+  if (esc.inputs.timestamps.length > 0) {
+    plots.push({
+      escId,
+      type: "input",
+    });
+  }
+
+  if (esc.errors.length > 0) {
+    plots.push({
+      escId,
+      type: "error",
+    });
+  }
+  return plots;
 };

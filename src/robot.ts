@@ -40,7 +40,9 @@ export const RPM = "rpm" as const;
 export const VOLTAGE = "voltage" as const;
 export const CURRENT = "current" as const;
 export const CONSUMPTION = "consumption" as const;
+
 export const INPUT = "input" as const;
+export const ERROR = "error" as const;
 
 export type MeasurementName =
   | typeof TEMPERATURE

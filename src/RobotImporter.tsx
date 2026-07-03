@@ -2,8 +2,10 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { useRobot, useSetRobot } from "./store";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getUpdatedRobot, TauriTelemetryMessage } from "./messageUtils";
+import { ButtonsHolder } from "./styles";
+import { getInitRobot } from "./features/configuration/configUtils";
 
 // tell rust which file to parse
 const PARSE_RAW_FILE_COMMAND = "parse_raw_file";
@@ -13,6 +15,7 @@ const IMPORT_SESSION_EVENT = "import-session";
 export const RobotImporter = () => {
   const robot = useRobot();
   const setRobot = useSetRobot();
+  const [file, setFile] = useState<string | null>(null);
 
   useEffect(() => {
     const unlisten = listen<TauriTelemetryMessage[]>(
@@ -28,6 +31,7 @@ export const RobotImporter = () => {
             });
           }
           setRobot(newRobot);
+          console.log("Imported robot", newRobot);
         }
       },
     );
@@ -38,19 +42,43 @@ export const RobotImporter = () => {
   }, []);
 
   const handleSelectFile = async () => {
-    const file = await open({
+    const selectedFile = await open({
       multiple: false,
       directory: false,
+      filters: [
+        {
+          name: "Robot CSV",
+          extensions: ["txt"],
+        },
+      ],
     });
-    if (file) {
-      await invoke(PARSE_RAW_FILE_COMMAND, { rawFileName: file });
+    if (selectedFile) {
+      await invoke(PARSE_RAW_FILE_COMMAND, { rawFileName: selectedFile });
+      setFile(selectedFile);
     }
+  };
+
+  const handleClearSelection = async () => {
+    const emptyRobot = await getInitRobot();
+    setRobot(emptyRobot.robot);
+    setFile(null);
   };
 
   return (
     <>
-      <h2>Import CSV</h2>
-      <button onClick={handleSelectFile}>Select CSV</button>
+      <h2>Import</h2>
+      {file && (
+        <p>
+          <strong>Current: </strong>
+          {file}
+        </p>
+      )}
+      <ButtonsHolder>
+        <button onClick={handleSelectFile}>Select CSV</button>
+        {file && (
+          <button onClick={handleClearSelection}>Clear selection</button>
+        )}
+      </ButtonsHolder>
     </>
   );
 };

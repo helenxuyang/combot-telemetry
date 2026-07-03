@@ -126,28 +126,30 @@ export const getInitRobot = async () => {
 export const initRobotFromConfig = (robotConfig: RobotConfig): Robot => {
   let escMap: Robot["escs"] = {};
 
-  Object.entries(robotConfig.escConfigs).forEach(([escId, escConfig]) => {
-    escMap[escId as EscId] = {
-      name: escConfig.name,
-      data: {
-        timestamps: [],
-        measurements: ALL_MEASUREMENTS.reduce(
-          (acc, measurement) => {
-            acc[measurement] = {
-              values: [],
-            };
-            return acc;
-          },
-          {} as ESC["data"]["measurements"],
-        ),
-      },
-      inputs: {
-        timestamps: [],
-        values: [],
-      },
-      errors: [],
-    };
-  });
+  (Object.entries(robotConfig.escConfigs) as [EscId, EscConfig][]).forEach(
+    ([escId, escConfig]) => {
+      escMap[escId] = {
+        name: escConfig.name,
+        data: {
+          timestamps: [],
+          measurements: ALL_MEASUREMENTS.reduce(
+            (acc, measurement) => {
+              acc[measurement] = {
+                values: [],
+              };
+              return acc;
+            },
+            {} as ESC["data"]["measurements"],
+          ),
+        },
+        inputs: {
+          timestamps: [],
+          values: [],
+        },
+        errors: [],
+      };
+    },
+  );
 
   return {
     name: robotConfig.name,

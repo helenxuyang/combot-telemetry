@@ -308,7 +308,7 @@ pub fn parse_message(raw_message: String) -> TelemetryMessage {
 
     let esc_id = message_components[0];
     match esc_id {
-        "a" | "b" | "c" => {
+        "a" | "b" | "c" | "d" => {
             let telemetry_data = parse_data_message(message_components);
             return match telemetry_data {
                 Ok(telem_data) => TelemetryMessage::DataMessage(telem_data),

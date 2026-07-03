@@ -66,3 +66,19 @@ export const CondensedButton = styled.button`
   background-color: #ddd;
   border: none;
 `;
+
+export const ControlsGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+export const ControlsSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: 3px solid black;
+  padding: 16px;
+  flex: 1;
+`;
