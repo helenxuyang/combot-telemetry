@@ -61,7 +61,7 @@ export const DashboardDisplay = () => {
     <Layout>
       <HeaderHolder>
         <h1>{robot.name}</h1>
-        <MatchControls />
+        {/* <MatchControls /> */}
       </HeaderHolder>
       <NavigationTabs tabs={tabs} />
     </Layout>

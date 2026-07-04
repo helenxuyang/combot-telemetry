@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import styled from "styled-components";
+import { SMALL_VIEWPORT } from "./styles";
 
 export type Tab = {
   name: string;
@@ -11,7 +12,11 @@ const getTabId = (tabName: string) =>
 
 const StyledTabButtonHolder = styled.div`
   display: flex;
-  gap: 16px;
+  gap: 8px;
+
+  @media (max-width: ${SMALL_VIEWPORT}px) {
+    gap: 4px;
+  }
 `;
 
 const StyledTabButton = styled.button<{ $isCurrent: boolean }>`
@@ -22,13 +27,16 @@ const StyledTabButton = styled.button<{ $isCurrent: boolean }>`
   color: ${(props) => (props.$isCurrent ? "white" : "black")};
   border: 3px solid black;
   border-bottom: none;
-  padding: 4px;
+  padding: 4px 16px;
   text-decoration: ${(props) => (props.$isCurrent ? "underline" : "none")};
   cursor: pointer;
-  min-width: 100px;
 
   &:hover {
     text-decoration: underline wavy;
+  }
+
+  @media (max-width: ${SMALL_VIEWPORT}px) {
+    padding: 2px;
   }
 `;
 
