@@ -19,6 +19,7 @@ import {
   create,
   mkdir,
   readDir,
+  remove,
 } from "@tauri-apps/plugin-fs";
 
 export type RobotConfig = {
@@ -204,12 +205,19 @@ export const selectConfig = async (name: string) => {
 export const saveRobotConfig = async (robotConfig: RobotConfig) => {
   const contents = JSON.stringify(robotConfig);
   const slugifiedName = slugify(robotConfig.name);
-  const fileName = `${CONFIGS_DIRECTORY}/${slugifiedName}.json`;
+  const fileName = getConfigPath(slugifiedName);
   await writeTextFile(fileName, contents, {
     baseDir: BaseDirectory.AppLocalData,
     create: true,
   });
   await selectConfig(slugifiedName);
+};
+
+export const deleteConfig = async (robotConfig: RobotConfig) => {
+  const slugifiedName = slugify(robotConfig.name);
+  const fileName = getConfigPath(slugifiedName);
+  await remove(getConfigPath(fileName));
+  // TODO: figure out what to do with current config
 };
 
 export const getCurrentConfigPath = () => {

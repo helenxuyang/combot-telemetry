@@ -16,7 +16,7 @@ type Props = {
   updateConfigId: (newId: EscId, config: EscConfig) => void;
   usedEscIds: EscId[];
   isEditing: boolean;
-  duplicateEsc: () => void;
+  duplicateEsc?: () => void;
 };
 
 const Container = styled.div`
@@ -145,10 +145,10 @@ export const EscConfigEditor = ({
         <thead>
           <tr>
             <th>Value</th>
-            <th>Show</th>
+            {isEditing ? <th>Show</th> : null}
             <th>Min</th>
             <th>Max</th>
-            <th>Color Indicators</th>
+            <th>Colors</th>
           </tr>
         </thead>
 
@@ -174,7 +174,7 @@ export const EscConfigEditor = ({
                 });
             };
 
-            return (
+            return isEditing || measurementConfig.shouldShow ? (
               <MeasurementConfigEditor
                 key={measurementName}
                 name={measurementName}
@@ -183,7 +183,7 @@ export const EscConfigEditor = ({
                 escId={escId}
                 isEditing={isEditing}
               />
-            );
+            ) : null;
           })}
           <MeasurementConfigEditor
             key={INPUT}
@@ -195,7 +195,7 @@ export const EscConfigEditor = ({
           />
         </tbody>
       </MeasurementTable>
-      <button onClick={duplicateEsc}>Duplicate</button>
+      {duplicateEsc && <button onClick={duplicateEsc}>Duplicate</button>}
     </Container>
   );
 };

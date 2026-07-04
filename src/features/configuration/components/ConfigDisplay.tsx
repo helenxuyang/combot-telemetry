@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  deleteConfig,
   getAllConfigNames,
   getCurrentRobotConfig,
   selectConfig,
@@ -8,6 +9,7 @@ import { useRobotConfig, useSetRobotConfig } from "../../../store";
 import { ConfigEditor } from "./ConfigEditor";
 import styled from "styled-components";
 import { ButtonsHolder } from "../../../styles";
+import { confirm } from "@tauri-apps/plugin-dialog";
 
 const Container = styled.div`
   text-align: left;
@@ -48,15 +50,20 @@ export const ConfigDisplay = () => {
         <pre>{JSON.stringify(config, null, 2)}</pre>
       </details>
 
-      <ButtonsHolder>
+      {/* <ButtonsHolder>
         <button
-          onClick={() => {
-            // TODO, include "are you sure" prompt
+          onClick={async () => {
+            const isSure = await confirm(
+              `Are you sure you want to delete ${config.name}?`,
+            );
+            if (isSure) {
+              await deleteConfig(config);
+            }
           }}
         >
-          Delete config
+          Delete {config.name}
         </button>
-      </ButtonsHolder>
+      </ButtonsHolder> */}
 
       <div>
         <h2>Switch to:</h2>

@@ -1,19 +1,29 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { SMALL_VIEWPORT } from "../../../styles";
 
 type Editable = { $isEditable: boolean };
 
+const noPointerStyle = css`
+  pointer-events: none;
+`;
+
+const uneditableStyle = css`
+  ${noPointerStyle}
+  border: none;
+  field-sizing: content;
+`;
+
 export const TextInput = styled.input<Editable>`
-  ${(props) => !props.$isEditable && "pointer-events: none;"};
+  ${(props) => !props.$isEditable && uneditableStyle};
 `;
 
 export const CheckboxInput = styled.input<Editable>`
-  ${(props) => !props.$isEditable && "pointer-events: none;"};
+  ${(props) => !props.$isEditable && noPointerStyle};
 `;
 
 export const NumberInput = styled.input<Editable>`
   max-width: 80px;
-  ${(props) => !props.$isEditable && "pointer-events: none;"};
+  ${(props) => !props.$isEditable && uneditableStyle};
 
   @media (max-width: ${SMALL_VIEWPORT}px) {
     max-width: 40px;
@@ -31,7 +41,7 @@ export const RadioHolder = styled.div`
 `;
 
 export const RadioInput = styled.input<Editable>`
-  ${(props) => !props.$isEditable && "pointer-events: none;"};
+  ${(props) => !props.$isEditable && noPointerStyle};
   :disabled {
     color: #ccc;
   }

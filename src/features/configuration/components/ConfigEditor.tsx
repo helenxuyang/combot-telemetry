@@ -7,13 +7,14 @@ import {
 } from "../configUtils";
 import { ALL_ESC_IDs, EscId } from "../../../robot";
 import { useImmer } from "use-immer";
-import { useSetRobotConfig } from "../../../store";
+import { useRobotConfig, useSetRobotConfig } from "../../../store";
 import styled from "styled-components";
 import { EscConfigEditor } from "./EscConfigEditor";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ButtonsHolder, SMALL_VIEWPORT, SpacedRow } from "../../../styles";
 import type { Draft } from "immer";
 import { TextInput } from "./inputStyles";
+import { confirm } from "@tauri-apps/plugin-dialog";
 
 type Props = {
   initConfig: RobotConfig | null;
@@ -37,15 +38,25 @@ const EscContainer = styled.div`
 `;
 
 export const ConfigEditor = ({ initConfig }: Props) => {
-  const [config, setConfig] = useImmer<RobotConfig>(
+  const [configInput, setConfigInput] = useImmer<RobotConfig>(
     initConfig ?? getNewRobotConfig(),
   );
-  const [preEditsConfig, setPreEditsConfig] = useState<RobotConfig>(config);
+  const [preEditsConfig, setPreEditsConfig] =
+    useState<RobotConfig>(configInput);
   const [isEditing, setIsEditing] = useState(false);
 
+  const config = useRobotConfig();
   const setRobotConfig = useSetRobotConfig();
-  const usedEscIds = Object.keys(config.escConfigs) as EscId[];
+  const usedEscIds = Object.keys(configInput.escConfigs) as EscId[];
   const canAddEsc = ALL_ESC_IDs.length !== usedEscIds.length;
+
+  // TODO: handle switching configs while editing - maybe show are you sure dialog
+  // might be better to pull configInput and isEditing state up to Display or to store
+  useEffect(() => {
+    if (!isEditing && config) {
+      setConfigInput(config);
+    }
+  }, [config]);
 
   const getFirstUnusedId = (): EscId | null => {
     const availableEscIds = ALL_ESC_IDs.filter(
@@ -61,7 +72,7 @@ export const ConfigEditor = ({ initConfig }: Props) => {
   const addNewEsc = () => {
     const firstUnusedId = getFirstUnusedId();
     if (firstUnusedId) {
-      setConfig((config) => {
+      setConfigInput((config) => {
         config.escConfigs[firstUnusedId] = getNewEscConfig();
       });
     }
@@ -70,26 +81,31 @@ export const ConfigEditor = ({ initConfig }: Props) => {
   const duplicateEsc = async (esc: EscConfig) => {
     const firstUnusedId = getFirstUnusedId();
     if (firstUnusedId) {
-      setConfig((config) => {
+      setConfigInput((config) => {
         config.escConfigs[firstUnusedId] = structuredClone(esc);
       });
     }
   };
 
   const startEditing = async () => {
-    setPreEditsConfig(structuredClone(config));
+    setPreEditsConfig(structuredClone(configInput));
     setIsEditing(true);
   };
 
   const discardEdits = async () => {
-    setIsEditing(false);
-    setConfig(preEditsConfig);
+    const isSure = await confirm(
+      "Are you sure you want to discard unsaved edits?",
+    );
+    if (isSure) {
+      setIsEditing(false);
+      setConfigInput(preEditsConfig);
+    }
   };
 
   const saveEdits = async () => {
     // TODO: error validation for unique name, at least 1 esc, no duplicates, etc.
-    await saveRobotConfig(config);
-    setRobotConfig(config);
+    await saveRobotConfig(configInput);
+    setRobotConfig(configInput);
     setIsEditing(false);
   };
 
@@ -99,7 +115,7 @@ export const ConfigEditor = ({ initConfig }: Props) => {
         <div>
           <h2>Robot Name</h2>
           <TextInput
-            value={config.name}
+            value={configInput.name}
             type="text"
             id="name"
             name="name"
@@ -109,7 +125,7 @@ export const ConfigEditor = ({ initConfig }: Props) => {
             readOnly={!isEditing}
             $isEditable={isEditing}
             onChange={(e) => {
-              setConfig((config) => {
+              setConfigInput((config) => {
                 config.name = e.target.value;
               });
             }}
@@ -120,12 +136,12 @@ export const ConfigEditor = ({ initConfig }: Props) => {
       </SpacedRow>
       <h2>ESCs</h2>
       <EscContainer>
-        {(Object.entries(config.escConfigs) as [EscId, EscConfig][]).map(
+        {(Object.entries(configInput.escConfigs) as [EscId, EscConfig][]).map(
           ([escId, escConfig]) => {
             const updateEscConfig = (
               updater: (escConfig: Draft<EscConfig> | undefined) => void,
             ) => {
-              setConfig((config) => {
+              setConfigInput((config) => {
                 updater(config.escConfigs[escId]);
               });
             };
@@ -134,7 +150,7 @@ export const ConfigEditor = ({ initConfig }: Props) => {
               newId: EscId,
               escConfig: EscConfig,
             ) => {
-              setConfig((config) => {
+              setConfigInput((config) => {
                 delete config.escConfigs[escId];
                 config.escConfigs[newId] = escConfig;
                 // keep IDs sorted alphabetically
@@ -153,9 +169,11 @@ export const ConfigEditor = ({ initConfig }: Props) => {
                 config={escConfig}
                 updateConfig={updateEscConfig}
                 updateConfigId={updateConfigId}
-                usedEscIds={Object.keys(config.escConfigs) as EscId[]}
+                usedEscIds={Object.keys(configInput.escConfigs) as EscId[]}
                 isEditing={isEditing}
-                duplicateEsc={() => duplicateEsc(escConfig)}
+                duplicateEsc={
+                  canAddEsc ? () => duplicateEsc(escConfig) : undefined
+                }
               />
             );
           },

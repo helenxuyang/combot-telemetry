@@ -41,27 +41,32 @@ export const MeasurementConfigEditor = ({
       (config) => config && config.colorIndicators.push(getNewColorIndicator()),
     );
   };
+  const unit = METADATA[name].unit;
 
   return (
     <tr key={name}>
-      <td>{METADATA[name].displayName}</td>
       <td>
-        <CheckboxInput
-          checked={config.shouldShow}
-          type="checkbox"
-          id={showInputId}
-          $isEditable={isEditing}
-          onChange={(e) => {
-            if (isEditing) {
-              updateConfig((config) => {
-                if (config) {
-                  config.shouldShow = e.target.checked;
-                }
-              });
-            }
-          }}
-        />
+        {METADATA[name].displayName} {unit && `(${METADATA[name].unit})`}
       </td>
+      {isEditing ? (
+        <td>
+          <CheckboxInput
+            checked={config.shouldShow}
+            type="checkbox"
+            id={showInputId}
+            $isEditable={isEditing}
+            onChange={(e) => {
+              if (isEditing) {
+                updateConfig((config) => {
+                  if (config) {
+                    config.shouldShow = e.target.checked;
+                  }
+                });
+              }
+            }}
+          />
+        </td>
+      ) : null}
       <td>
         <NumberInput
           value={config.min}
@@ -133,10 +138,7 @@ export const MeasurementConfigEditor = ({
               );
             })}
         {isEditing && (
-          <AddButton
-            onClick={addColorIndicator}
-            aria-label="Add new color indicator"
-          >
+          <AddButton onClick={addColorIndicator} aria-label="Add new color">
             + Add
           </AddButton>
         )}
