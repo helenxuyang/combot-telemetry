@@ -11,7 +11,7 @@ export const Container = styled.div`
   color: black;
 `;
 
-export const Value = styled.p`
+export const Value = styled.p<{ $valueMinCharacters?: number }>`
   font-weight: bold;
   font-size: 24px;
   line-height: normal;
@@ -19,7 +19,8 @@ export const Value = styled.p`
     font-size: 18px;
   }
   white-space: nowrap;
-  min-width: 65px;
+  min-width: ${(props) =>
+    props.$valueMinCharacters ? `${props.$valueMinCharacters}ch` : "65px"};
 `;
 
 export const ButtonsHolder = styled.div`

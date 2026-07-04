@@ -7,6 +7,7 @@ import {
   getClampedPercent,
   getLatestValueDisplay,
   calculateTotal,
+  getDisplayMinCharacters,
 } from "../dataUtils";
 
 describe("getColor", () => {
@@ -91,5 +92,32 @@ describe("getLatestValueDisplay", () => {
 describe("calculateTotal", () => {
   it("calculates total and rounds", () => {
     expect(calculateTotal([10.123, 5.321])).toBe(15.44);
+  });
+});
+
+describe("getDisplayMinCharacters", () => {
+  it("handles negative min", () => {
+    // e.g. "-100"
+    expect(getDisplayMinCharacters(-100, 1, 0, "")).toBe(4);
+  });
+
+  it("handles max", () => {
+    // e.g. "30000"
+    expect(getDisplayMinCharacters(0, 30000, 0, "")).toBe(5);
+  });
+
+  it("handles decimals", () => {
+    // e.g. "200.00"
+    expect(getDisplayMinCharacters(0, 300, 2, "")).toBe(6);
+  });
+
+  it("handles unit", () => {
+    // e.g. "1 mAh"
+    expect(getDisplayMinCharacters(0, 1, 0, "mAh")).toBe(5);
+  });
+
+  it("handles combination", () => {
+    // e.g. "100.00 mAh"
+    expect(getDisplayMinCharacters(0, 100, 2, "mAh")).toBe(10);
   });
 });

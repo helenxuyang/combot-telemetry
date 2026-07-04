@@ -12,7 +12,7 @@ import { Container, MEDIUM_VIEWPORT, SMALL_VIEWPORT } from "../../../styles";
 import { ErrorDisplay } from "./ErrorDisplay";
 import { useEffect, useState } from "react";
 import { METADATA } from "../../../displayUtils";
-import { getLatestValue } from "../../../dataUtils";
+import { getDisplayMinCharacters, getLatestValue } from "../../../dataUtils";
 import { MeasurementBarDisplay } from "./MeasurementBarDisplay";
 import { EscConfig } from "../../configuration/configUtils";
 import { MeasurementArcDisplay } from "./MeasurementArcDisplay";
@@ -126,6 +126,12 @@ export const ESCDisplay = ({ esc, config, className }: Props) => {
             max={inputsConfig.max}
             colorIndicators={inputsConfig.colorIndicators}
             orientation={barOrientation}
+            valueMinCharacters={getDisplayMinCharacters(
+              inputsConfig.min,
+              inputsConfig.max,
+              METADATA[INPUT].decimals,
+              METADATA[INPUT].unit,
+            )}
           />
         )}
       </DisplayLayout>

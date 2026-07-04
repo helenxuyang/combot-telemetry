@@ -1,4 +1,4 @@
-import { getLatestValue } from "../../../dataUtils";
+import { getDisplayMinCharacters, getLatestValue } from "../../../dataUtils";
 import { METADATA } from "../../../displayUtils";
 import { Measurement, MeasurementName } from "../../../robot";
 import { MeasurementConfig } from "../../configuration/configUtils";
@@ -18,14 +18,24 @@ export const MeasurementBarDisplay = ({
   config,
   ...rest
 }: Props) => {
+  const { displayName, unit, decimals } = METADATA[name];
+  // prevent flickering when length changes
+  const minCharacters = getDisplayMinCharacters(
+    config.min,
+    config.max,
+    decimals,
+    unit,
+  );
+
   return (
     <BarDisplay
-      name={METADATA[name].displayName}
+      name={displayName}
       value={getLatestValue(measurement.values)}
-      unit={METADATA[name].unit}
+      unit={unit}
       min={config.min}
       max={config.max}
       colorIndicators={config.colorIndicators}
+      valueMinCharacters={minCharacters}
       {...rest}
     />
   );

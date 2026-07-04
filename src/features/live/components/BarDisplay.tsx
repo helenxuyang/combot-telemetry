@@ -17,6 +17,7 @@ type Props = {
   colorIndicators: ColorIndicator[];
   className?: string;
   orientation?: "vertical" | "horizontal";
+  valueMinCharacters?: number;
 };
 
 const Label = styled.h4`
@@ -63,6 +64,7 @@ export const BarDisplay = ({
   colorIndicators,
   className = "",
   orientation = "vertical",
+  valueMinCharacters,
 }: Props) => {
   const percent = getClampedPercent(value, min, max);
   const barColor = getColor(value, colorIndicators);
@@ -98,7 +100,9 @@ export const BarDisplay = ({
             </>
           )}
         </BarDisplayWrapper>
-        <Value>{getLatestValueDisplay(value, unit, min, max)}</Value>
+        <Value $valueMinCharacters={valueMinCharacters}>
+          {getLatestValueDisplay(value, unit, min, max)}
+        </Value>
       </Container>
     </div>
   );

@@ -50,3 +50,17 @@ export const calculateTotal = (values: number[]) => {
   const total = values.reduce((sum, curr) => sum + curr, 0);
   return Number(total.toFixed(2));
 };
+
+// set minimum width to prevent flickering when value changes length
+export const getDisplayMinCharacters = (
+  min: number,
+  max: number,
+  decimals: number,
+  unit: string,
+) => {
+  return (
+    Math.max(String(min).length, String(max).length) + // value
+    (decimals ? 1 + decimals : 0) + // decimal point and decimals
+    (unit.length ? 1 + unit.length : 0) // space and unit
+  );
+};
