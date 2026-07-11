@@ -7,6 +7,7 @@ import { CheckboxInput, NumberInput } from "./inputStyles";
 import { CondensedButton } from "../../../styles";
 import { Draft } from "immer";
 import styled from "styled-components";
+import { useIsEditing } from "../../../store";
 
 const AddButton = styled(CondensedButton)`
   display: block;
@@ -20,7 +21,6 @@ type Props = {
     updater: (config: Draft<MeasurementConfig> | undefined) => void,
   ) => void;
   escId: EscId;
-  isEditing: boolean;
 };
 
 export const MeasurementConfigEditor = ({
@@ -28,8 +28,8 @@ export const MeasurementConfigEditor = ({
   config,
   updateConfig,
   escId,
-  isEditing,
 }: Props) => {
+  const isEditing = useIsEditing();
   const measurementId = `esc-${escId}-${name}`;
   const minInputId = `${measurementId}-min`;
   const maxInputId = `${measurementId}-max`;

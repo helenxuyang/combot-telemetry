@@ -83,3 +83,29 @@ export const ControlsSection = styled.div`
   padding: 16px;
   flex: 1;
 `;
+
+export const Table = styled.table`
+  border: 1px solid black;
+  border-collapse: collapse;
+  th,
+  td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 4px;
+  }
+
+  @media (max-width: ${SMALL_VIEWPORT}px) {
+    width: 100%;
+    tr {
+      display: block;
+      border-bottom: 1px solid black;
+    }
+    th,
+    td {
+      display: block;
+      border: none;
+      position: relative;
+      text-align: left;
+    }
+  }
+`;

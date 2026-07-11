@@ -7,7 +7,12 @@ import {
 } from "../configUtils";
 import { ALL_ESC_IDs, EscId } from "../../../robot";
 import { useImmer } from "use-immer";
-import { useRobotConfig, useSetRobotConfig } from "../../../store";
+import {
+  useIsEditing,
+  useRobotConfig,
+  useSetIsEditing,
+  useSetRobotConfig,
+} from "../../../store";
 import styled from "styled-components";
 import { EscConfigEditor } from "./EscConfigEditor";
 import { useEffect, useState } from "react";
@@ -37,13 +42,19 @@ const EscContainer = styled.div`
   }
 `;
 
+const EscConfigHolder = styled.div`
+  border: 1px solid black;
+  padding: 4px;
+`;
+
 export const ConfigEditor = ({ initConfig }: Props) => {
   const [configInput, setConfigInput] = useImmer<RobotConfig>(
     initConfig ?? getNewRobotConfig(),
   );
   const [preEditsConfig, setPreEditsConfig] =
     useState<RobotConfig>(configInput);
-  const [isEditing, setIsEditing] = useState(false);
+  const isEditing = useIsEditing();
+  const setIsEditing = useSetIsEditing();
 
   const config = useRobotConfig();
   const setRobotConfig = useSetRobotConfig();
@@ -85,6 +96,12 @@ export const ConfigEditor = ({ initConfig }: Props) => {
         config.escConfigs[firstUnusedId] = structuredClone(esc);
       });
     }
+  };
+
+  const deleteEsc = async (escId: EscId) => {
+    setConfigInput((config) => {
+      delete config.escConfigs[escId];
+    });
   };
 
   const startEditing = async () => {
@@ -163,18 +180,26 @@ export const ConfigEditor = ({ initConfig }: Props) => {
             };
 
             return (
-              <EscConfigEditor
-                key={escId}
-                escId={escId}
-                config={escConfig}
-                updateConfig={updateEscConfig}
-                updateConfigId={updateConfigId}
-                usedEscIds={Object.keys(configInput.escConfigs) as EscId[]}
-                isEditing={isEditing}
-                duplicateEsc={
-                  canAddEsc ? () => duplicateEsc(escConfig) : undefined
-                }
-              />
+              <EscConfigHolder>
+                <EscConfigEditor
+                  key={escId}
+                  escId={escId}
+                  config={escConfig}
+                  updateConfig={updateEscConfig}
+                  updateConfigId={updateConfigId}
+                  usedEscIds={Object.keys(configInput.escConfigs) as EscId[]}
+                />
+                {isEditing && (
+                  <ButtonsHolder>
+                    {canAddEsc && (
+                      <button onClick={() => duplicateEsc(escConfig)}>
+                        Duplicate
+                      </button>
+                    )}
+                    <button onClick={() => deleteEsc(escId)}>Delete</button>
+                  </ButtonsHolder>
+                )}
+              </EscConfigHolder>
             );
           },
         )}

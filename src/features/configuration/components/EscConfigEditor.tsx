@@ -1,11 +1,13 @@
 import styled from "styled-components";
 import { ALL_ESC_IDs, EscId, INPUT, MeasurementName } from "../../../robot";
-import { MeasurementConfig } from "../configUtils";
+import { MeasurementConfig, MotorConfig } from "../configUtils";
 import { EscConfig } from "../configUtils";
 import { MeasurementConfigEditor } from "./MeasurementConfigEditor";
 import { RadioHolder, RadioInput, RadioLabel, TextInput } from "./inputStyles";
-import { SMALL_VIEWPORT, SpacedRow } from "../../../styles";
+import { SMALL_VIEWPORT, SpacedRow, Table } from "../../../styles";
 import { Draft } from "immer";
+import { MotorConfigEditor } from "./MotorConfigEditor";
+import { useIsEditing } from "../../../store";
 
 type Props = {
   escId: EscId;
@@ -15,8 +17,6 @@ type Props = {
   ) => void;
   updateConfigId: (newId: EscId, config: EscConfig) => void;
   usedEscIds: EscId[];
-  isEditing: boolean;
-  duplicateEsc?: () => void;
 };
 
 const Container = styled.div`
@@ -24,7 +24,6 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  border: 1px solid black;
   padding: 8px;
 
   @media (max-width: ${SMALL_VIEWPORT}px) {
@@ -41,47 +40,28 @@ const IdSection = styled.div`
   }
 `;
 
-const MeasurementTable = styled.table`
-  border: 1px solid black;
-  border-collapse: collapse;
-  th,
-  td {
-    border: 1px solid black;
-    border-collapse: collapse;
-    padding: 4px;
-  }
-
-  @media (max-width: ${SMALL_VIEWPORT}px) {
-    width: 100%;
-    tr {
-      display: block;
-      border-bottom: 1px solid black;
-    }
-    th,
-    td {
-      display: block;
-      border: none;
-      position: relative;
-      text-align: left;
-    }
-  }
-`;
-
 export const EscConfigEditor = ({
   escId,
   config,
   updateConfig,
   updateConfigId,
   usedEscIds,
-  isEditing,
-  duplicateEsc,
 }: Props) => {
+  const isEditing = useIsEditing();
   const updateInputsConfig = (
     updater: (measurementConfig: Draft<MeasurementConfig> | undefined) => void,
   ) =>
     updateConfig((config) => {
       if (config) {
         updater(config.inputsConfig);
+      }
+    });
+  const updateMotorConfig = (
+    updater: (motorConfig: Draft<MotorConfig> | undefined) => void,
+  ) =>
+    updateConfig((config) => {
+      if (config) {
+        updater(config.motorConfig);
       }
     });
 
@@ -141,10 +121,10 @@ export const EscConfigEditor = ({
           </RadioHolder>
         </IdSection>
       </SpacedRow>
-      <MeasurementTable>
+      <Table>
         <thead>
           <tr>
-            <th>Value</th>
+            <th>Measurement</th>
             {isEditing ? <th>Show</th> : null}
             <th>Min</th>
             <th>Max</th>
@@ -181,7 +161,6 @@ export const EscConfigEditor = ({
                 config={measurementConfig}
                 updateConfig={getMeasurementConfigUpdater(measurementName)}
                 escId={escId}
-                isEditing={isEditing}
               />
             ) : null;
           })}
@@ -191,11 +170,14 @@ export const EscConfigEditor = ({
             config={config.inputsConfig}
             updateConfig={updateInputsConfig}
             escId={escId}
-            isEditing={isEditing}
           />
         </tbody>
-      </MeasurementTable>
-      {duplicateEsc && <button onClick={duplicateEsc}>Duplicate</button>}
+      </Table>
+      <MotorConfigEditor
+        config={config.motorConfig}
+        updateConfig={updateMotorConfig}
+        escId={escId}
+      />
     </Container>
   );
 };

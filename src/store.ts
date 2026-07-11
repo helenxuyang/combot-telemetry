@@ -48,14 +48,17 @@ export const useSetRobotConfig = () =>
 export const useAddMatchMarker = () =>
   useRobotStore((state) => state.addMatchMarker);
 
-type AppState = {
+type LiveState = {
   isFakeData: boolean;
 };
-type AppActions = {
+type LiveActions = {
   toggleFakeData: () => void;
 };
 
-const useAppStore = create<AppState & AppActions, [["zustand/immer", never]]>(
+const useLiveStore = create<
+  LiveState & LiveActions,
+  [["zustand/immer", never]]
+>(
   immer((set) => ({
     isFakeData: false,
     toggleFakeData: () =>
@@ -65,6 +68,30 @@ const useAppStore = create<AppState & AppActions, [["zustand/immer", never]]>(
   })),
 );
 
-export const useIsFakeData = () => useAppStore((state) => state.isFakeData);
+export const useIsFakeData = () => useLiveStore((state) => state.isFakeData);
 export const useToggleFakeData = () =>
-  useAppStore((state) => state.toggleFakeData);
+  useLiveStore((state) => state.toggleFakeData);
+
+type ConfigState = {
+  isEditing: boolean;
+};
+type ConfigActions = {
+  setIsEditing: (isEditing: boolean) => void;
+};
+
+const useConfigStore = create<
+  ConfigState & ConfigActions,
+  [["zustand/immer", never]]
+>(
+  immer((set) => ({
+    isEditing: false,
+    setIsEditing: (isEditing: boolean) =>
+      set((state) => {
+        state.isEditing = isEditing;
+      }),
+  })),
+);
+
+export const useIsEditing = () => useConfigStore((state) => state.isEditing);
+export const useSetIsEditing = () =>
+  useConfigStore((state) => state.setIsEditing);
