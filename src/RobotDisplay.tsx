@@ -155,7 +155,7 @@ export const RobotDisplay = () => {
             <ESCDisplay
               key={esc.name}
               esc={esc}
-              config={config.escConfigs[id]!}
+              config={config.escConfigs[id]}
             />
           ))}
         </ESCGrid>

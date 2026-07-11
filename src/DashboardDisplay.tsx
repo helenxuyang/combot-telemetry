@@ -2,11 +2,11 @@ import styled from "styled-components";
 import { NavigationTabs, type Tab } from "./Tabs";
 import { MatchControls } from "./features/live/components/MatchControls";
 import { ConfigDisplay } from "./features/configuration/components/ConfigDisplay";
-import { useEffect, useMemo } from "react";
-import { useRobot, useSetRobot, useSetRobotConfig } from "./store";
+import { useMemo } from "react";
+import { useRobotConfig } from "./store";
 import { RobotDisplay } from "./RobotDisplay";
-import { getInitRobot } from "./features/configuration/configUtils";
 import { GraphGrid } from "./features/graph/components/GraphGrid";
+import { useInitializer } from "./useInitializer";
 
 const Layout = styled.div`
   display: flex;
@@ -22,18 +22,9 @@ const HeaderHolder = styled.div`
 `;
 
 export const DashboardDisplay = () => {
-  const robot = useRobot();
-  const setRobot = useSetRobot();
-  const setRobotConfig = useSetRobotConfig();
+  const config = useRobotConfig();
 
-  useEffect(() => {
-    const getRobot = async () => {
-      const { robot, config } = await getInitRobot();
-      setRobotConfig(config);
-      setRobot(robot);
-    };
-    getRobot();
-  }, []);
+  useInitializer();
 
   const tabs: Tab[] = useMemo(
     () => [
@@ -53,14 +44,10 @@ export const DashboardDisplay = () => {
     [],
   );
 
-  if (!robot) {
-    return <div>No robot</div>;
-  }
-
   return (
     <Layout>
       <HeaderHolder>
-        <h1>{robot.name}</h1>
+        {config && <h1>{config.name}</h1>}
         {/* <MatchControls /> */}
       </HeaderHolder>
       <NavigationTabs tabs={tabs} />

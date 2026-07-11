@@ -10,17 +10,6 @@ import {
   TEMPERATURE,
   VOLTAGE,
 } from "../../robot";
-import {
-  writeTextFile,
-  readTextFile,
-  copyFile,
-  BaseDirectory,
-  exists,
-  create,
-  mkdir,
-  readDir,
-  remove,
-} from "@tauri-apps/plugin-fs";
 
 export type RobotConfig = {
   name: string;
@@ -118,12 +107,6 @@ export const getNewColorIndicator = (): ColorIndicator => {
   };
 };
 
-export const getInitRobot = async () => {
-  const config = await getCurrentRobotConfig();
-  const robot = initRobotFromConfig(config);
-  return { robot, config };
-};
-
 export const initRobotFromConfig = (robotConfig: RobotConfig): Robot => {
   let escMap: Robot["escs"] = {};
 
@@ -159,92 +142,4 @@ export const initRobotFromConfig = (robotConfig: RobotConfig): Robot => {
     initialTimestamp: null,
     matchMarkers: [],
   };
-};
-
-const CONFIGS_DIRECTORY = "configs";
-const CURRENT_CONFIG_FILE_NAME = "current_config.json";
-
-export const initializeConfigStorage = async () => {
-  const configDirectory = await exists(CONFIGS_DIRECTORY, {
-    baseDir: BaseDirectory.AppLocalData,
-  });
-  if (!configDirectory) {
-    await mkdir(CONFIGS_DIRECTORY, {
-      baseDir: BaseDirectory.AppLocalData,
-      recursive: true,
-    });
-    console.log("created AppLocalData dir");
-  }
-
-  const doesConfigExist = await exists(getCurrentConfigPath(), {
-    baseDir: BaseDirectory.AppLocalData,
-  });
-  if (!doesConfigExist) {
-    const file = await create(getCurrentConfigPath(), {
-      baseDir: BaseDirectory.AppLocalData,
-    });
-    await file.write(
-      new TextEncoder().encode(JSON.stringify(getNewRobotConfig())),
-    );
-    await file.close();
-    console.log("created current config");
-  }
-};
-
-export const slugify = (robotName: string) => {
-  return robotName.toLocaleLowerCase().replaceAll(" ", "-");
-};
-
-export const selectConfig = async (name: string) => {
-  await copyFile(getConfigPath(name), getCurrentConfigPath(), {
-    fromPathBaseDir: BaseDirectory.AppLocalData,
-    toPathBaseDir: BaseDirectory.AppLocalData,
-  });
-};
-
-export const saveRobotConfig = async (robotConfig: RobotConfig) => {
-  const contents = JSON.stringify(robotConfig);
-  const slugifiedName = slugify(robotConfig.name);
-  const fileName = getConfigPath(slugifiedName);
-  await writeTextFile(fileName, contents, {
-    baseDir: BaseDirectory.AppLocalData,
-    create: true,
-  });
-  await selectConfig(slugifiedName);
-};
-
-export const deleteConfig = async (robotConfig: RobotConfig) => {
-  const slugifiedName = slugify(robotConfig.name);
-  const fileName = getConfigPath(slugifiedName);
-  await remove(getConfigPath(fileName));
-  // TODO: figure out what to do with current config
-};
-
-export const getCurrentConfigPath = () => {
-  return `${CONFIGS_DIRECTORY}/${CURRENT_CONFIG_FILE_NAME}`;
-};
-
-export const getConfigPath = (name: string) => {
-  return `${CONFIGS_DIRECTORY}/${name}.json`;
-};
-
-export const getCurrentRobotConfig = async (): Promise<RobotConfig> => {
-  await initializeConfigStorage();
-
-  const contents = await readTextFile(getCurrentConfigPath(), {
-    baseDir: BaseDirectory.AppLocalData,
-  });
-  const config = JSON.parse(contents);
-  console.log("current config:", config);
-  return config;
-};
-
-export const getAllConfigNames = async () => {
-  const entries = await readDir(CONFIGS_DIRECTORY, {
-    baseDir: BaseDirectory.AppLocalData,
-  });
-  return entries
-    .map((entry) => entry.name)
-    .filter((entry) => entry !== CURRENT_CONFIG_FILE_NAME)
-    .map((entry) => entry.replace(".json", ""));
 };

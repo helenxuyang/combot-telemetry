@@ -1,11 +1,11 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { useRobot, useSetRobot } from "./store";
+import { useRobot, useRobotConfig, useSetRobot } from "./store";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
 import { getUpdatedRobot, TauriTelemetryMessage } from "./messageUtils";
 import { ButtonsHolder } from "./styles";
-import { getInitRobot } from "./features/configuration/configUtils";
+import { initRobotFromConfig } from "./features/configuration/configUtils";
 
 // tell rust which file to parse
 const PARSE_RAW_FILE_COMMAND = "parse_raw_file";
@@ -15,6 +15,8 @@ const IMPORT_SESSION_EVENT = "import-session";
 export const RobotImporter = () => {
   const robot = useRobot();
   const setRobot = useSetRobot();
+  const config = useRobotConfig();
+
   const [file, setFile] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,10 +60,12 @@ export const RobotImporter = () => {
     }
   };
 
-  const handleClearSelection = async () => {
-    const emptyRobot = await getInitRobot();
-    setRobot(emptyRobot.robot);
-    setFile(null);
+  const handleClearSelection = () => {
+    if (config) {
+      const emptyRobot = initRobotFromConfig(config);
+      setRobot(emptyRobot);
+      setFile(null);
+    }
   };
 
   return (

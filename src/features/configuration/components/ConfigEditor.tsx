@@ -3,7 +3,6 @@ import {
   getNewEscConfig,
   getNewRobotConfig,
   RobotConfig,
-  saveRobotConfig,
 } from "../configUtils";
 import { ALL_ESC_IDs, EscId } from "../../../robot";
 import { useImmer } from "use-immer";
@@ -11,6 +10,7 @@ import {
   useIsEditing,
   useRobotConfig,
   useSetIsEditing,
+  useSetRobot,
   useSetRobotConfig,
 } from "../../../store";
 import styled from "styled-components";
@@ -20,6 +20,7 @@ import { ButtonsHolder, SMALL_VIEWPORT, SpacedRow } from "../../../styles";
 import type { Draft } from "immer";
 import { TextInput } from "./inputStyles";
 import { confirm } from "@tauri-apps/plugin-dialog";
+import { deleteCurrentConfig, saveConfig } from "../../../storageUtils";
 
 type Props = {
   initConfig: RobotConfig | null;
@@ -58,6 +59,7 @@ export const ConfigEditor = ({ initConfig }: Props) => {
 
   const config = useRobotConfig();
   const setRobotConfig = useSetRobotConfig();
+  const setRobot = useSetRobot();
   const usedEscIds = Object.keys(configInput.escConfigs) as EscId[];
   const canAddEsc = ALL_ESC_IDs.length !== usedEscIds.length;
 
@@ -110,6 +112,7 @@ export const ConfigEditor = ({ initConfig }: Props) => {
   };
 
   const discardEdits = async () => {
+    // TODO: only show confirmation when there are actually unsaved edits
     const isSure = await confirm(
       "Are you sure you want to discard unsaved edits?",
     );
@@ -121,9 +124,25 @@ export const ConfigEditor = ({ initConfig }: Props) => {
 
   const saveEdits = async () => {
     // TODO: error validation for unique name, at least 1 esc, no duplicates, etc.
-    await saveRobotConfig(configInput);
+    await saveConfig(configInput);
     setRobotConfig(configInput);
     setIsEditing(false);
+  };
+
+  const deleteConfig = async () => {
+    if (!config) {
+      return;
+    }
+    const isSure = await confirm(
+      `Are you sure you want to delete ${config.name}?`,
+    );
+    if (isSure) {
+      await deleteCurrentConfig();
+      setRobotConfig(null);
+      setRobotConfig(null);
+      setPreEditsConfig(getNewRobotConfig());
+      setConfigInput(getNewRobotConfig());
+    }
   };
 
   return (
@@ -149,7 +168,12 @@ export const ConfigEditor = ({ initConfig }: Props) => {
           />
         </div>
 
-        {!isEditing && <button onClick={startEditing}>Edit</button>}
+        {!isEditing && (
+          <ButtonsHolder>
+            <button onClick={startEditing}>Edit</button>
+            <button onClick={deleteConfig}>Delete</button>
+          </ButtonsHolder>
+        )}
       </SpacedRow>
       <h2>ESCs</h2>
       <EscContainer>

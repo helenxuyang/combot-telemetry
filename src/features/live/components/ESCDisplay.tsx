@@ -75,11 +75,15 @@ const InputDisplay = styled(BarDisplay)`
     background-color: unset;
   }
 `;
-type Props = { esc: ESC; config: EscConfig; className?: string };
+type Props = { esc: ESC; config?: EscConfig; className?: string };
 
 export const ESCDisplay = ({ esc, config, className }: Props) => {
   const isMobileViewport = useMediaQuery(`(max-width: ${MEDIUM_VIEWPORT}px)`);
   const barOrientation = isMobileViewport ? "horizontal" : "vertical";
+
+  if (!config) {
+    return null;
+  }
 
   const getMeasurementData = (key: MeasurementName) => ({
     measurement: esc.data.measurements[key],

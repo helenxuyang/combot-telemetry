@@ -13,7 +13,7 @@ type RobotState = {
 
 type RobotActions = {
   setRobot: (robot: RobotState["robot"]) => void;
-  setRobotConfig: (robotConfig: RobotConfig) => void;
+  setRobotConfig: (robotConfig: RobotConfig | null) => void;
   addMatchMarker: (marker: MatchMarker) => void;
 };
 
@@ -28,10 +28,9 @@ const useRobotStore = create<
       set((state) => {
         state.robot = robot;
       }),
-    setRobotConfig: (robotConfig: RobotConfig) =>
+    setRobotConfig: (robotConfig: RobotConfig | null) =>
       set((state) => {
         state.robotConfig = robotConfig;
-        state.robot = initRobotFromConfig(robotConfig);
       }),
     addMatchMarker: (marker: MatchMarker) =>
       set((state) => {
