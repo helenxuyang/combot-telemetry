@@ -65,14 +65,6 @@ type UnknownMessage = {
   rawMessage: string;
 };
 
-export type ColorIndicator = {
-  threshold: number;
-  condition: "above" | "below";
-  color: string;
-  playSound: boolean;
-  // TODO: maybe add sound type like positive vs negative
-};
-
 export type MatchMarker = {
   type: "START" | "PAUSE" | "RESUME" | "END";
   timestamp: number;

@@ -1,6 +1,5 @@
 import {
   ALL_MEASUREMENTS,
-  ColorIndicator,
   CONSUMPTION,
   CURRENT,
   ESC,
@@ -39,6 +38,14 @@ export type MeasurementConfig = {
 export type MotorConfig = {
   gearRatio: number;
   motorPolePairs: number;
+};
+
+export type ColorIndicator = {
+  threshold: number;
+  condition: "above" | "below";
+  color: string;
+  playSound: boolean;
+  // TODO: maybe add sound type like positive vs negative
 };
 
 export const getNewRobotConfig = (): RobotConfig => {

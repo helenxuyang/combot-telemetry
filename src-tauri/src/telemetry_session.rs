@@ -1,19 +1,22 @@
 use crate::csv_writer;
 use crate::message_parser;
+use crate::robot_config::RobotConfig;
 use chrono::{DateTime, Local};
-use std::sync::Mutex;
+use std::sync::RwLock;
 use tauri::{AppHandle, Emitter, Manager};
 
 pub struct AppState {
-    pub session_start_time: Option<DateTime<Local>>,
+    pub session_start_time: RwLock<Option<DateTime<Local>>>,
+    pub robot_config: RwLock<Option<RobotConfig>>,
 }
 
 pub fn handle_start(app: &AppHandle) {
     let date_time = Local::now();
-
-    let state = app.state::<Mutex<AppState>>();
-    let mut state_mutex = state.lock().unwrap();
-    state_mutex.session_start_time = Some(date_time);
+    let state = app.state::<AppState>();
+    let session_start_time_lock = state.session_start_time.write();
+    if let Ok(mut lock) = session_start_time_lock {
+        *lock = Some(date_time);
+    }
 }
 
 // TODO: figure out async tokio stuff to do these in "parallel"?
@@ -24,7 +27,7 @@ pub fn handle_message(app: &AppHandle, raw_message: String) {
     };
 
     // parse
-    let parsed_message = message_parser::parse_message(raw_message);
+    let parsed_message = message_parser::parse_message(raw_message, &app);
 
     // send to frontend
     if let Err(error) = app.emit("telemetry-message", &parsed_message) {

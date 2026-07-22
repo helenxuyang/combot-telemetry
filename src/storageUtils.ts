@@ -9,10 +9,13 @@ import {
   readDir,
 } from "@tauri-apps/plugin-fs";
 import { RobotConfig } from "./features/configuration/configUtils";
+import { invoke } from "@tauri-apps/api/core";
 
 const baseDir = BaseDirectory.AppLocalData;
 const CONFIGS_DIRECTORY = "configs";
 const SETTINGS = "settings.json";
+
+const FETCH_CURRENT_CONFIG_COMMAND = "fetch_current_config";
 
 type Settings = {
   configName: string | null;
@@ -104,6 +107,7 @@ export const selectConfig = async (configName: string | null) => {
   const prevSettings = await getSettings();
   const newSettings = { ...prevSettings, configName };
   await saveSettings(newSettings);
+  await invoke(FETCH_CURRENT_CONFIG_COMMAND);
 };
 
 export const deleteCurrentConfig = async () => {

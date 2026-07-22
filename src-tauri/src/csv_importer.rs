@@ -14,7 +14,7 @@ pub async fn parse_raw_file(app: AppHandle, raw_file_name: String) {
         let lines = BufReader::new(f).lines();
         let mut messages: Vec<TelemetryMessage> = Vec::new();
         for line in lines.map_while(Result::ok) {
-            let parsed_message = message_parser::parse_message(line);
+            let parsed_message = message_parser::parse_message(line, &app);
             messages.push(parsed_message);
         }
         if let Err(error) = app.emit("import-session", &messages) {
