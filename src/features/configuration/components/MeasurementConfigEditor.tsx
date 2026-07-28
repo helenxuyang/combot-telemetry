@@ -16,9 +16,9 @@ const AddButton = styled(CondensedButton)`
 
 type Props = {
   name: MeasurementOrInput;
-  config: MeasurementConfig;
+  config: Partial<MeasurementConfig>;
   updateConfig: (
-    updater: (config: Draft<MeasurementConfig> | undefined) => void,
+    updater: (config: Draft<Partial<MeasurementConfig>> | undefined) => void,
   ) => void;
   escId: EscId;
 };
@@ -38,7 +38,8 @@ export const MeasurementConfigEditor = ({
 
   const addColorIndicator = () => {
     updateConfig(
-      (config) => config && config.colorIndicators.push(getNewColorIndicator()),
+      (config) =>
+        config && config.colorIndicators?.push(getNewColorIndicator()),
     );
   };
   const unit = METADATA[name].unit;
@@ -73,13 +74,13 @@ export const MeasurementConfigEditor = ({
           type="number"
           id={minInputId}
           name={minInputId}
-          required
           readOnly={!isEditing}
           $isEditable={isEditing}
           onChange={(e) => {
             updateConfig((config) => {
               if (config) {
-                config.min = Number(e.target.value);
+                config.min =
+                  e.target.value === "" ? undefined : Number(e.target.value);
               }
             });
           }}
@@ -91,22 +92,22 @@ export const MeasurementConfigEditor = ({
           type="number"
           id={maxInputId}
           name={maxInputId}
-          required
           readOnly={!isEditing}
           $isEditable={isEditing}
           onChange={(e) => {
             updateConfig((config) => {
               if (config) {
-                config.max = Number(e.target.value);
+                config.max =
+                  e.target.value === "" ? undefined : Number(e.target.value);
               }
             });
           }}
         />
       </td>
       <td>
-        {config.colorIndicators.length === 0
+        {config.colorIndicators?.length === 0
           ? "None"
-          : config.colorIndicators.map((indicator, index) => {
+          : config.colorIndicators?.map((indicator, index) => {
               const colorIndicatorId = `${colorIndicatorsId}-${index}`;
 
               const updateColorIndicator = (
@@ -115,14 +116,15 @@ export const MeasurementConfigEditor = ({
                 ) => void,
               ) => {
                 updateConfig((config) => {
-                  if (!config) return;
+                  if (!config || !config.colorIndicators) return;
                   updater(config.colorIndicators[index]);
                 });
               };
 
               const deleteColorIndicator = () => {
                 updateConfig(
-                  (config) => config && config.colorIndicators.splice(index, 1),
+                  (config) =>
+                    config && config.colorIndicators?.splice(index, 1),
                 );
               };
 

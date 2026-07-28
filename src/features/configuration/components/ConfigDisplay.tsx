@@ -72,27 +72,29 @@ export const ConfigDisplay = () => {
         </>
       )}
 
-      <button onClick={startCreating}>New</button>
+      {!isEditing && <button onClick={startCreating}>New</button>}
 
-      <div>
-        <h2>All configs</h2>
-        <ButtonsHolder>
-          {configNames.length ? (
-            <ButtonsHolder>
-              {configNames.map((name) => (
-                <button
-                  key={name}
-                  onClick={async () => await selectExistingConfig(name)}
-                >
-                  {name}
-                </button>
-              ))}
-            </ButtonsHolder>
-          ) : (
-            "None"
-          )}
-        </ButtonsHolder>
-      </div>
+      {!isEditing && (
+        <div>
+          <h2>All configs</h2>
+          <ButtonsHolder>
+            {configNames.length ? (
+              <ButtonsHolder>
+                {configNames.map((name) => (
+                  <button
+                    key={name}
+                    onClick={async () => await selectExistingConfig(name)}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </ButtonsHolder>
+            ) : (
+              "None"
+            )}
+          </ButtonsHolder>
+        </div>
+      )}
     </Container>
   );
 };

@@ -2,12 +2,14 @@ import {
   EscConfig,
   getNewEscConfig,
   getNewRobotConfig,
+  initRobotFromConfig,
   RobotConfig,
 } from "../configUtils";
 import { ALL_ESC_IDs, EscId } from "../../../robot";
 import { useImmer } from "use-immer";
 import {
   useIsEditing,
+  useRobot,
   useRobotConfig,
   useSetIsEditing,
   useSetRobot,
@@ -20,7 +22,11 @@ import { ButtonsHolder, SMALL_VIEWPORT, SpacedRow } from "../../../styles";
 import type { Draft } from "immer";
 import { TextInput } from "./inputStyles";
 import { confirm } from "@tauri-apps/plugin-dialog";
-import { deleteCurrentConfig, saveConfig } from "../../../storageUtils";
+import {
+  deleteCurrentConfig,
+  saveConfig,
+  selectConfig,
+} from "../../../storageUtils";
 
 type Props = {
   initConfig: RobotConfig | null;
@@ -57,9 +63,10 @@ export const ConfigEditor = ({ initConfig }: Props) => {
   const isEditing = useIsEditing();
   const setIsEditing = useSetIsEditing();
 
+  const robot = useRobot();
+  const setRobot = useSetRobot();
   const config = useRobotConfig();
   const setRobotConfig = useSetRobotConfig();
-  const setRobot = useSetRobot();
   const usedEscIds = Object.keys(configInput.escConfigs) as EscId[];
   const canAddEsc = ALL_ESC_IDs.length !== usedEscIds.length;
 
@@ -125,8 +132,10 @@ export const ConfigEditor = ({ initConfig }: Props) => {
   const saveEdits = async () => {
     // TODO: error validation for unique name, at least 1 esc, no duplicates, etc.
     await saveConfig(configInput);
+    await selectConfig(configInput.name);
     setRobotConfig(configInput);
     setIsEditing(false);
+    setRobot(initRobotFromConfig(configInput));
   };
 
   const deleteConfig = async () => {
