@@ -1,4 +1,4 @@
-use crate::{csv_writer, message_parser};
+use crate::{csv_writer, message_parser, telemetry_session};
 use serde::Serialize;
 use serialport::SerialPortType::UsbPort;
 use std::time::Duration;
@@ -37,6 +37,8 @@ pub async fn read_serial(app: AppHandle, port: String) {
         .open_native_async()
         .expect("Failed to open serial port");
 
+    telemetry_session::handle_start(&app);
+
     let mut serial_reader = BufReader::new(serial_port);
     let (sender, receiver) = tokio::sync::watch::channel(String::new());
 
@@ -71,7 +73,7 @@ pub async fn read_serial(app: AppHandle, port: String) {
         loop {
             interval.tick().await;
             let line = receiver.borrow().clone();
-            let parsed_message = message_parser::parse_message(line);
+            let parsed_message = message_parser::parse_message(line, &app_clone);
             if let Err(error) = app_clone.emit("telemetry-message", &parsed_message) {
                 println!("GUI ERROR: Failed to emit telemetry-message: {}", error);
             }

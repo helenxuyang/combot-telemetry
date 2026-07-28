@@ -1,6 +1,9 @@
 use regex::Regex;
 use serde::Serialize;
 use std::{fmt::Display, num::ParseIntError};
+use tauri::AppHandle;
+
+use crate::robot_config::{get_esc_config, EscConfig};
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -173,6 +176,7 @@ time since start: as-is, in ms
  */
 fn parse_data_message(
     message_components: Vec<&str>,
+    esc_config: Option<EscConfig>,
 ) -> Result<TelemetryData, TelemetryDataParseError> {
     let esc_id = message_components[0].to_string();
     let temperature = parse_hex(message_components[1])?;
@@ -188,9 +192,23 @@ fn parse_data_message(
     )?);
     let consumption =
         parse_two_bytes(message_components[6], message_components[7], 1.0)?.round() as u32;
-    // TODO: remove hard-code for motor pole pairs
-    let rpm =
-        parse_two_bytes(message_components[8], message_components[9], 100.0 / 7.0)?.round() as u32;
+
+    let (motor_pole_pairs, gear_ratio) = if let Some(config) = esc_config.as_ref() {
+        (
+            config.motor_config.motor_pole_pairs as f32,
+            config.motor_config.gear_ratio,
+        )
+    } else {
+        println!("MESSAGE PARSE ERROR: No config, using default motor values");
+        (7.0, 1.0)
+    };
+
+    let rpm = parse_two_bytes(
+        message_components[8],
+        message_components[9],
+        100.0 / motor_pole_pairs / gear_ratio,
+    )?
+    .round() as u32;
     let timestamp = parse_timestamp(message_components[11])?;
 
     let checksum = parse_hex(message_components[10])?;
@@ -276,7 +294,7 @@ fn validate_error_message_format(raw_message: &str) -> bool {
     return error_regex.is_match(raw_message);
 }
 
-pub fn parse_message(raw_message: String) -> TelemetryMessage {
+pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
     // TODO: handle pong?
 
     let is_valid_message = validate_data_message_format(&raw_message)
@@ -307,9 +325,10 @@ pub fn parse_message(raw_message: String) -> TelemetryMessage {
     }
 
     let esc_id = message_components[0];
+    let esc_config = get_esc_config(&app, esc_id);
     match esc_id {
         "a" | "b" | "c" | "d" => {
-            let telemetry_data = parse_data_message(message_components);
+            let telemetry_data = parse_data_message(message_components, esc_config);
             return match telemetry_data {
                 Ok(telem_data) => TelemetryMessage::DataMessage(telem_data),
                 Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
@@ -337,6 +356,8 @@ pub fn parse_message(raw_message: String) -> TelemetryMessage {
 
 #[cfg(test)]
 mod tests {
+    use crate::robot_config::MotorConfig;
+
     use super::*;
 
     #[test]
@@ -455,12 +476,20 @@ mod tests {
     }
 
     #[test]
-    fn parse_data_message_weapon() {
+    fn parse_data_message_with_motor_pole_pairs() {
+        let mock_config = EscConfig {
+            motor_config: MotorConfig {
+                motor_pole_pairs: 5,
+                gear_ratio: 1.0,
+            },
+            name: "foobar".to_string(),
+        };
         let result = parse_data_message(
             [
-                "c", "1F", "3", "A0", "0", "16", "0", "4", "0", "0", "E0", "5D24",
+                "c", "1F", "3", "A0", "0", "16", "0", "4", "0", "F", "CD", "5D24",
             ]
             .to_vec(),
+            Some(mock_config),
         )
         .unwrap();
         let expected = TelemetryData {
@@ -469,7 +498,65 @@ mod tests {
             voltage: 9.28,
             current: 0.22,
             consumption: 4,
-            rpm: 0,
+            rpm: 300,
+            timestamp: 23844,
+        };
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn parse_data_message_with_gear_ratio() {
+        let mock_config = EscConfig {
+            motor_config: MotorConfig {
+                motor_pole_pairs: 1,
+                gear_ratio: 3.0,
+            },
+            name: "foobar".to_string(),
+        };
+        let result = parse_data_message(
+            [
+                "c", "1F", "3", "A0", "0", "16", "0", "4", "0", "F", "CD", "5D24",
+            ]
+            .to_vec(),
+            Some(mock_config),
+        )
+        .unwrap();
+        let expected = TelemetryData {
+            esc_id: "c".to_string(),
+            temperature: 31,
+            voltage: 9.28,
+            current: 0.22,
+            consumption: 4,
+            rpm: 500,
+            timestamp: 23844,
+        };
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn parse_data_message_with_motor_pole_pairs_and_gear_ratio() {
+        let mock_config = EscConfig {
+            motor_config: MotorConfig {
+                motor_pole_pairs: 7,
+                gear_ratio: 32.0,
+            },
+            name: "foobar".to_string(),
+        };
+        let result = parse_data_message(
+            [
+                "c", "1F", "3", "A0", "0", "16", "0", "4", "0", "F", "CD", "5D24",
+            ]
+            .to_vec(),
+            Some(mock_config),
+        )
+        .unwrap();
+        let expected = TelemetryData {
+            esc_id: "c".to_string(),
+            temperature: 31,
+            voltage: 9.28,
+            current: 0.22,
+            consumption: 4,
+            rpm: 7,
             timestamp: 23844,
         };
         assert_eq!(result, expected);
