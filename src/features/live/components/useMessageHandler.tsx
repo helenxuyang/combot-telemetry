@@ -14,6 +14,7 @@ export const useMessageHandler = () => {
 
   const handleMessage = useCallback(
     (message: TauriTelemetryMessage) => {
+      console.log(message);
       // on each message, save the new robot (ref so it doesn't re-render)
       if (pendingRobotRef.current) {
         pendingRobotRef.current = getUpdatedRobot(

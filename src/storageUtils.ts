@@ -103,6 +103,10 @@ export const saveConfig = async (robotConfig: RobotConfig) => {
   });
 };
 
+export const tauriFetchConfig = async () => {
+  await invoke(FETCH_CURRENT_CONFIG_COMMAND);
+};
+
 export const selectConfig = async (robotName: string | null) => {
   const prevSettings = await getSettings();
   const newSettings = {
@@ -110,7 +114,7 @@ export const selectConfig = async (robotName: string | null) => {
     configName: robotName ? getConfigName(robotName) : null,
   };
   await saveSettings(newSettings);
-  await invoke(FETCH_CURRENT_CONFIG_COMMAND);
+  await tauriFetchConfig();
 };
 
 export const deleteCurrentConfig = async () => {

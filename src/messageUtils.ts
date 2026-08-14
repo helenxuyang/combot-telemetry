@@ -71,7 +71,7 @@ export const getUpdatedRobot = (
   }
 
   if (messageType === "dataMessage") {
-    const { messageType, escId, timestamp, ...escData } = message;
+    const { messageType, escId, timestamp, snr, ...escData } = message;
     (Object.entries(escData) as [MeasurementName, number][]).forEach(
       ([measurementKey, measurementValue]) => {
         if (shouldReplace) {
@@ -86,6 +86,10 @@ export const getUpdatedRobot = (
     } else {
       esc.timestamps.push(timestamp);
     }
+    newRobot.signalStrengths.push({
+      value: snr,
+      timestamp,
+    });
   }
 
   return newRobot;

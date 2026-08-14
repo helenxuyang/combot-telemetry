@@ -15,6 +15,7 @@ import { useRobot, useRobotConfig } from "./store";
 import { METADATA } from "./displayUtils";
 import { SerialConnector } from "./features/live/components/SerialConnector";
 import { UnknownMessagesDisplay } from "./features/live/components/UnknownMessagesDisplay";
+import { SignalStrengthDisplay } from "./features/live/components/SignalStrengthDisplay";
 
 const ESCSection = styled.div`
   flex: 4;
@@ -55,12 +56,14 @@ const Layout = styled.div`
 `;
 
 const LayoutColumn = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
   background: ${BACKGROUND};
 `;
 
 const BarsHolder = styled.div`
+  flex: 2;
   display: flex;
   flex-direction: column;
 `;
@@ -143,6 +146,13 @@ export const RobotDisplay = () => {
           </BarsHolder>
           <LayoutColumn>
             <ConsumptionDonut escs={escs} />
+          </LayoutColumn>
+          <LayoutColumn>
+            <SignalStrengthDisplay
+              signalStrength={getLatestValue(
+                robot.signalStrengths.map((strength) => strength.value),
+              )}
+            />
           </LayoutColumn>
         </RobotLayout>
       </RobotSection>

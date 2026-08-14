@@ -107,7 +107,7 @@ export const VoltageDisplay = ({ escs, min, max }: Props) => {
 
   return (
     <Container>
-      <h4>Battery Voltage</h4>
+      <h3>Battery Voltage</h3>
       <BarDisplay>
         <RangeText>{min}</RangeText>
         <BarHolder>

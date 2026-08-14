@@ -1,5 +1,9 @@
 import { useEffect } from "react";
-import { getCurrentConfig, initializeStorage } from "./storageUtils";
+import {
+  getCurrentConfig,
+  initializeStorage,
+  tauriFetchConfig,
+} from "./storageUtils";
 import { useSetRobot, useSetRobotConfig } from "./store";
 import { initRobotFromConfig } from "./features/configuration/configUtils";
 
@@ -14,6 +18,7 @@ export const useInitializer = () => {
       if (config) {
         setRobotConfig(config);
         setRobot(initRobotFromConfig(config));
+        await tauriFetchConfig();
       } else {
         setRobotConfig(null);
         setRobot(null);
