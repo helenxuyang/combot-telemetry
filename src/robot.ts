@@ -54,6 +54,7 @@ export const ALL_MEASUREMENTS = [
   VOLTAGE,
   CURRENT,
   CONSUMPTION,
+  INPUT,
 ] as const;
 
 type UnknownMessage = {

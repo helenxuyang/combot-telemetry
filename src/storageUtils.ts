@@ -103,9 +103,12 @@ export const saveConfig = async (robotConfig: RobotConfig) => {
   });
 };
 
-export const selectConfig = async (configName: string | null) => {
+export const selectConfig = async (robotName: string | null) => {
   const prevSettings = await getSettings();
-  const newSettings = { ...prevSettings, configName };
+  const newSettings = {
+    ...prevSettings,
+    configName: robotName ? getConfigName(robotName) : null,
+  };
   await saveSettings(newSettings);
   await invoke(FETCH_CURRENT_CONFIG_COMMAND);
 };

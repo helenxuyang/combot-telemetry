@@ -53,7 +53,7 @@ export const getNewRobotConfig = (): RobotConfig => {
   return {
     name: "",
     escConfigs: {
-      a: getNewEscConfig(),
+      "0": getNewEscConfig(),
     },
   };
 };

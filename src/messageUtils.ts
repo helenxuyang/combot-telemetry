@@ -1,4 +1,4 @@
-import { EscId, INPUT, MeasurementName, Robot } from "./robot";
+import { EscId, MeasurementName, Robot } from "./robot";
 
 export type EscDataMessage = {
   messageType: "dataMessage";
@@ -9,13 +9,8 @@ export type EscDataMessage = {
   consumption: number;
   rpm: number;
   timestamp: number;
-};
-
-export type EscInputMessage = {
-  messageType: "inputMessage";
-  escId: EscId;
   input: number;
-  timestamp: number;
+  snr: number;
 };
 
 export type EscErrorMessage = {
@@ -33,7 +28,6 @@ export type UnknownMessage = {
 
 export type TauriTelemetryMessage =
   | EscDataMessage
-  | EscInputMessage
   | EscErrorMessage
   | UnknownMessage;
 
@@ -91,15 +85,6 @@ export const getUpdatedRobot = (
       esc.timestamps = [timestamp];
     } else {
       esc.timestamps.push(timestamp);
-    }
-  } else if (messageType === "inputMessage") {
-    const { input } = message;
-    if (shouldReplace) {
-      esc.timestamps = [timestamp];
-      esc.data[INPUT] = [input];
-    } else {
-      esc.timestamps.push(timestamp);
-      esc.data[INPUT].push(input);
     }
   }
 

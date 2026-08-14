@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { ESC, VOLTAGE } from "../../../robot";
 import { Container, Value } from "../../../styles";
 import { getClampedPercent, getLatestValue } from "../../../dataUtils";
-import { useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 const BarDisplay = styled.div`
   display: flex;
@@ -62,46 +62,48 @@ export const VoltageDisplay = ({ escs, min, max }: Props) => {
   const minPercent = getClampedPercent(minValue, min, max);
   const maxPercent = getClampedPercent(maxValue, min, max);
 
-  const canvas = canvasRef.current;
-  if (!canvas) return;
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  const dpr = window.devicePixelRatio || 1;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+    const dpr = window.devicePixelRatio || 1;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-  const resizeCanvas = () => {
-    const width = Math.max(canvas.clientWidth, 1);
-    const height = Math.max(canvas.clientHeight, 1);
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { width, height };
-  };
+    const resizeCanvas = () => {
+      const width = Math.max(canvas.clientWidth, 1);
+      const height = Math.max(canvas.clientHeight, 1);
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { width, height };
+    };
 
-  const { width, height } = resizeCanvas();
+    const { width, height } = resizeCanvas();
 
-  const currentMarkers = values.map((value) =>
-    getClampedPercent(value, min, max),
-  );
+    const currentMarkers = values.map((value) =>
+      getClampedPercent(value, min, max),
+    );
 
-  ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, width, height);
 
-  const minWidth = (width * minPercent) / 100;
-  const maxWidth = (width * (maxPercent - minPercent)) / 100;
+    const minWidth = (width * minPercent) / 100;
+    const maxWidth = (width * (maxPercent - minPercent)) / 100;
 
-  ctx.fillStyle = "skyblue";
-  ctx.fillRect(0, 0, minWidth, height);
+    ctx.fillStyle = "skyblue";
+    ctx.fillRect(0, 0, minWidth, height);
 
-  ctx.fillStyle = "cornflowerblue";
-  ctx.fillRect(minWidth, 0, maxWidth, height);
+    ctx.fillStyle = "cornflowerblue";
+    ctx.fillRect(minWidth, 0, maxWidth, height);
 
-  ctx.fillStyle = "black";
-  currentMarkers.forEach((percent) => {
-    const x = Math.round((width * percent) / 100);
-    ctx.fillRect(x - 1, 0, 2, height);
-  });
+    ctx.fillStyle = "black";
+    currentMarkers.forEach((percent) => {
+      const x = Math.round((width * percent) / 100);
+      ctx.fillRect(x - 1, 0, 2, height);
+    });
+  }, [escs]);
 
   return (
     <Container>
