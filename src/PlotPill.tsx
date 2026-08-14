@@ -1,11 +1,9 @@
 import styled from "styled-components";
-import {
-  getSeriesColor,
-  type PlotMeasurementName,
-} from "./features/graph/graphUtils";
+import { getSeriesColor } from "./features/graph/graphUtils";
+import { ERROR, MeasurementName } from "./robot";
 
 type Props = {
-  name: PlotMeasurementName;
+  name: MeasurementName | typeof ERROR;
   isSelected: boolean;
   onClick: () => void;
 };

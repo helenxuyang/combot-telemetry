@@ -1,4 +1,4 @@
-import { EscId, MeasurementName, Robot } from "./robot";
+import { EscId, INPUT, MeasurementName, Robot } from "./robot";
 
 export type EscDataMessage = {
   messageType: "dataMessage";
@@ -81,25 +81,25 @@ export const getUpdatedRobot = (
     (Object.entries(escData) as [MeasurementName, number][]).forEach(
       ([measurementKey, measurementValue]) => {
         if (shouldReplace) {
-          esc.data.measurements[measurementKey].values = [measurementValue];
+          esc.data[measurementKey] = [measurementValue];
         } else {
-          esc.data.measurements[measurementKey].values.push(measurementValue);
+          esc.data[measurementKey].push(measurementValue);
         }
       },
     );
     if (shouldReplace) {
-      esc.data.timestamps = [timestamp];
+      esc.timestamps = [timestamp];
     } else {
-      esc.data.timestamps.push(timestamp);
+      esc.timestamps.push(timestamp);
     }
   } else if (messageType === "inputMessage") {
     const { input } = message;
     if (shouldReplace) {
-      esc.inputs.timestamps = [timestamp];
-      esc.inputs.values = [input];
+      esc.timestamps = [timestamp];
+      esc.data[INPUT] = [input];
     } else {
-      esc.inputs.timestamps.push(timestamp);
-      esc.inputs.values.push(input);
+      esc.timestamps.push(timestamp);
+      esc.data[INPUT].push(input);
     }
   }
 

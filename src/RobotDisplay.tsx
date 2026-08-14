@@ -15,7 +15,6 @@ import { useRobot, useRobotConfig } from "./store";
 import { METADATA } from "./displayUtils";
 import { SerialConnector } from "./features/live/components/SerialConnector";
 import { UnknownMessagesDisplay } from "./features/live/components/UnknownMessagesDisplay";
-import { RobotImporter } from "./RobotImporter";
 
 const ESCSection = styled.div`
   flex: 4;
@@ -110,12 +109,10 @@ export const RobotDisplay = () => {
   }
 
   const totalCurrent = calculateTotal(
-    escs.map((esc) => getLatestValue(esc.data.measurements[CURRENT].values)),
+    escs.map((esc) => getLatestValue(esc.data[CURRENT])),
   );
   const totalConsumption = calculateTotal(
-    escs.map((esc) =>
-      getLatestValue(esc.data.measurements[CONSUMPTION].values),
-    ),
+    escs.map((esc) => getLatestValue(esc.data[CONSUMPTION])),
   );
 
   return (

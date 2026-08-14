@@ -52,9 +52,7 @@ const colors = ["cornflowerblue", "blue", "orange"];
 export const ConsumptionDonut = ({ escs }: Props) => {
   let consumptions: Record<string, number> = {};
   escs.forEach((esc) => {
-    consumptions[esc.name] = getLatestValue(
-      esc.data.measurements[CONSUMPTION].values,
-    );
+    consumptions[esc.name] = getLatestValue(esc.data[CONSUMPTION]);
   });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const totalConsumption = calculateTotal(Object.values(consumptions));

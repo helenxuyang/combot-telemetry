@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { ColorIndicator } from "../robot";
 import {
   DEFAULT_COLOR,
   getColor,
@@ -9,6 +8,7 @@ import {
   calculateTotal,
   getDisplayMinCharacters,
 } from "../dataUtils";
+import { ColorIndicator } from "../features/configuration/configUtils";
 
 describe("getColor", () => {
   const indicators: ColorIndicator[] = [

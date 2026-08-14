@@ -1,36 +1,36 @@
 import { getLatestValue } from "../../../dataUtils";
-import { Measurement, MeasurementName } from "../../../robot";
+import { MeasurementName } from "../../../robot";
 import { MeasurementConfig } from "../../configuration/configUtils";
 import { ArcDisplay } from "./ArcDisplay";
 
 type Props = {
   innerName: MeasurementName;
-  innerMeasurement: Measurement;
+  innerValues: number[];
   innerConfig: MeasurementConfig;
   outerName: MeasurementName;
-  outerMeasurement: Measurement;
+  outerValues: number[];
   outerConfig: MeasurementConfig;
   className?: string;
 };
 
 export const MeasurementArcDisplay = ({
   innerName,
-  innerMeasurement,
+  innerValues,
   innerConfig,
   outerName,
-  outerMeasurement,
+  outerValues,
   outerConfig,
   className,
 }: Props) => {
   return (
     <ArcDisplay
       innerName={innerName}
-      innerValue={getLatestValue(innerMeasurement.values)}
+      innerValue={getLatestValue(innerValues)}
       innerMin={innerConfig.min}
       innerMax={innerConfig.max}
       innerColorIndicators={innerConfig.colorIndicators}
       outerName={outerName}
-      outerValue={getLatestValue(outerMeasurement.values)}
+      outerValue={getLatestValue(outerValues)}
       outerMin={outerConfig.min}
       outerMax={outerConfig.max}
       outerColorIndicators={outerConfig.colorIndicators}

@@ -45,7 +45,8 @@ export const GraphDisplay = () => {
   const [plots, setPlots] = useState<Plot[]>([
     {
       escId: defaultEscId,
-      type: INPUT,
+      type: "data",
+      measurementName: INPUT,
     },
   ]);
 

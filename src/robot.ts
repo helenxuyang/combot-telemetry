@@ -4,23 +4,19 @@ export type Robot = {
   unknownMessages: UnknownMessage[];
   initialTimestamp: number | null;
   matchMarkers: MatchMarker[];
+  signalStrengths: SignalStrength[];
 };
 
 export type ESC = {
   name: string;
-  data: {
-    timestamps: number[];
-    measurements: Record<MeasurementName, Measurement>;
-  };
-  inputs: {
-    timestamps: number[];
-    values: number[];
-  };
+  timestamps: number[];
+  data: Record<MeasurementName, number[]>;
   errors: EscError[];
 };
 
-export type Measurement = {
-  values: number[];
+export type SignalStrength = {
+  value: number;
+  timestamp: number;
 };
 
 export const ALL_ESC_IDs = ["a", "b", "c", "d"] as const;
@@ -49,7 +45,8 @@ export type MeasurementName =
   | typeof RPM
   | typeof VOLTAGE
   | typeof CURRENT
-  | typeof CONSUMPTION;
+  | typeof CONSUMPTION
+  | typeof INPUT;
 
 export const ALL_MEASUREMENTS = [
   TEMPERATURE,
@@ -58,8 +55,6 @@ export const ALL_MEASUREMENTS = [
   CURRENT,
   CONSUMPTION,
 ] as const;
-
-export type MeasurementOrInput = MeasurementName | typeof INPUT;
 
 type UnknownMessage = {
   rawMessage: string;

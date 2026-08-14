@@ -2,12 +2,9 @@ import { METADATA } from "../../displayUtils";
 import {
   type Robot,
   type MeasurementName,
-  INPUT,
   ERROR,
   EscId,
-  MeasurementOrInput,
   ESC,
-  Measurement,
 } from "../../robot";
 import { MeasurementConfig, RobotConfig } from "../configuration/configUtils";
 
@@ -17,17 +14,12 @@ type DataPlot = {
   measurementName: MeasurementName;
 };
 
-type InputPlot = {
-  escId: EscId;
-  type: typeof INPUT;
-};
-
 type ErrorPlot = {
   escId: EscId;
   type: typeof ERROR;
 };
 
-export type Plot = DataPlot | InputPlot | ErrorPlot;
+export type Plot = DataPlot | ErrorPlot;
 
 export const stringifyPlot = (plot: Plot) => {
   if (plot.type === "data") {
@@ -41,7 +33,7 @@ export const parsePlot = (id: string): Plot => {
   const idComponents = id.split("-");
   const escId = idComponents[0] as EscId;
   const part = idComponents[1];
-  if (part === INPUT || part === ERROR) {
+  if (part === ERROR) {
     return {
       escId,
       type: part,
@@ -55,7 +47,9 @@ export const parsePlot = (id: string): Plot => {
   }
 };
 
-export const getSeriesColor = (measurementName: MeasurementOrInput) => {
+export const getSeriesColor = (
+  measurementName: MeasurementName | typeof ERROR,
+) => {
   switch (measurementName) {
     case "temperature":
       return "darkred";
@@ -81,7 +75,7 @@ export const getSeriesData = (timestamps: number[], values: number[]) => {
 export const getSeriesConfig = (
   escId: EscId,
   escName: string,
-  plotName: MeasurementOrInput,
+  plotName: MeasurementName,
 ) => {
   return {
     id: `${escId}-${plotName}`,
@@ -102,29 +96,13 @@ export const getDataSeries = (robot: Robot, plot: DataPlot) => {
   if (!esc) {
     return {};
   }
-  const timestamps = esc.data.timestamps;
-  const values = esc.data.measurements[measurementName].values;
+  const timestamps = esc.timestamps;
+  const values = esc.data[measurementName];
   const seriesData = getSeriesData(timestamps, values);
 
   return {
     data: seriesData,
     ...getSeriesConfig(escId, esc.name, measurementName),
-  };
-};
-
-export const getInputSeries = (robot: Robot, plot: InputPlot) => {
-  const { escId, type } = plot;
-  const esc = robot.escs[escId];
-  if (!esc) {
-    return {};
-  }
-  const timestamps = esc.inputs.timestamps;
-  const values = esc.inputs.values;
-  const seriesData = getSeriesData(timestamps, values);
-
-  return {
-    data: seriesData,
-    ...getSeriesConfig(escId, esc.name, type),
   };
 };
 
@@ -181,7 +159,7 @@ const yAxisSettings = {
 };
 
 export const getYAxisConfig = (
-  name: MeasurementOrInput,
+  name: MeasurementName,
   config: MeasurementConfig,
 ) => {
   const unit = METADATA[name].unit;
@@ -209,21 +187,6 @@ export const getDataYAxis = (
   return getYAxisConfig(measurementName, measurementConfig);
 };
 
-export const getInputYAxis = (
-  robot: Robot,
-  robotConfig: RobotConfig,
-  plot: InputPlot,
-) => {
-  const { escId, type } = plot;
-  const esc = robot.escs[escId];
-  const measurementConfig = robotConfig.escConfigs[escId]?.inputsConfig;
-
-  if (!esc || !measurementConfig) {
-    return {};
-  }
-  return getYAxisConfig(type, measurementConfig);
-};
-
 export const getErrorYAxis = () => {
   return { ...yAxisSettings, min: 0, max: 1, show: false };
 };
@@ -237,8 +200,6 @@ export const getPlotData = (
     switch (plot.type) {
       case "data":
         return getDataSeries(robot, plot);
-      case "input":
-        return getInputSeries(robot, plot);
       case "error":
         return getErrorSeries(robot, plot);
       default:
@@ -250,8 +211,6 @@ export const getPlotData = (
     switch (plot.type) {
       case "data":
         return getDataYAxis(robot, config, plot);
-      case "input":
-        return getInputYAxis(robot, config, plot);
       case "error":
         return getErrorYAxis();
     }
@@ -273,11 +232,6 @@ export const getLabel = (plot: Plot, timestamp: number, value: number) => {
       labelEntries.push(unit);
       break;
     }
-    case "input": {
-      const unit = METADATA[INPUT].unit;
-      labelEntries.push(unit);
-      break;
-    }
     default:
       return null;
   }
@@ -288,8 +242,8 @@ export const getLabel = (plot: Plot, timestamp: number, value: number) => {
 export const getAvailablePlots = (escId: EscId, esc: ESC): Plot[] => {
   let plots: Plot[] = [];
 
-  (Object.entries(esc.data.measurements) as [MeasurementName, Measurement][])
-    .filter(([_, measurement]) => measurement.values.length > 0)
+  (Object.entries(esc.data) as [MeasurementName, number[]][])
+    .filter(([_, values]) => values.length > 0)
     .map<Plot>(([measurementName]) => {
       return {
         escId,
@@ -298,13 +252,6 @@ export const getAvailablePlots = (escId: EscId, esc: ESC): Plot[] => {
       };
     })
     .forEach((plot) => plots.push(plot));
-
-  if (esc.inputs.timestamps.length > 0) {
-    plots.push({
-      escId,
-      type: "input",
-    });
-  }
 
   if (esc.errors.length > 0) {
     plots.push({

@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import { ColorIndicator } from "../../../robot";
 import { Container, Value } from "../../../styles";
 import {
   getColor,
@@ -7,6 +6,7 @@ import {
   getLatestValueDisplay,
 } from "../../../dataUtils";
 import { CanvasBar } from "./CanvasBar";
+import { ColorIndicator } from "../../configuration/configUtils";
 
 type Props = {
   name: string;

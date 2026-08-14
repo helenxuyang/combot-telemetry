@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import { NavigationTabs, type Tab } from "./Tabs";
-import { MatchControls } from "./features/live/components/MatchControls";
 import { ConfigDisplay } from "./features/configuration/components/ConfigDisplay";
 import { useMemo } from "react";
 import { useRobotConfig } from "./store";
@@ -46,10 +45,7 @@ export const DashboardDisplay = () => {
 
   return (
     <Layout>
-      <HeaderHolder>
-        {config && <h1>{config.name}</h1>}
-        {/* <MatchControls /> */}
-      </HeaderHolder>
+      <HeaderHolder>{config && <h1>{config.name}</h1>}</HeaderHolder>
       <NavigationTabs tabs={tabs} />
     </Layout>
   );

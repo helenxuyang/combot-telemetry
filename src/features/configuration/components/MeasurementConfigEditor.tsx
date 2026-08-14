@@ -1,6 +1,6 @@
 import { ColorIndicatorEditor } from "./ColorIndicatorEditor";
-import { getNewColorIndicator } from "../configUtils";
-import { EscId, ColorIndicator, MeasurementOrInput } from "../../../robot";
+import { ColorIndicator, getNewColorIndicator } from "../configUtils";
+import { EscId, MeasurementName } from "../../../robot";
 import { MeasurementConfig } from "../configUtils";
 import { METADATA } from "../../../displayUtils";
 import { CheckboxInput, NumberInput } from "./inputStyles";
@@ -15,7 +15,7 @@ const AddButton = styled(CondensedButton)`
 `;
 
 type Props = {
-  name: MeasurementOrInput;
+  name: MeasurementName;
   config: Partial<MeasurementConfig>;
   updateConfig: (
     updater: (config: Draft<Partial<MeasurementConfig>> | undefined) => void,

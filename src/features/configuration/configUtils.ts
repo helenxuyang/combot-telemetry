@@ -4,6 +4,7 @@ import {
   CURRENT,
   ESC,
   EscId,
+  INPUT,
   Robot,
   RPM,
   TEMPERATURE,
@@ -23,8 +24,8 @@ export type EscConfig = {
     [CURRENT]: MeasurementConfig;
     [CONSUMPTION]: MeasurementConfig;
     [RPM]: MeasurementConfig;
+    [INPUT]: MeasurementConfig;
   };
-  inputsConfig: MeasurementConfig;
   motorConfig: MotorConfig;
 };
 
@@ -91,12 +92,12 @@ export const getNewEscConfig = (): EscConfig => {
         colorIndicators: [],
         shouldShow: true,
       },
-    },
-    inputsConfig: {
-      min: -100,
-      max: 100,
-      colorIndicators: [],
-      shouldShow: true,
+      [INPUT]: {
+        min: -100,
+        max: 100,
+        colorIndicators: [],
+        shouldShow: true,
+      },
     },
     motorConfig: {
       gearRatio: 1,
@@ -121,22 +122,14 @@ export const initRobotFromConfig = (robotConfig: RobotConfig): Robot => {
     ([escId, escConfig]) => {
       escMap[escId] = {
         name: escConfig.name,
-        data: {
-          timestamps: [],
-          measurements: ALL_MEASUREMENTS.reduce(
-            (acc, measurement) => {
-              acc[measurement] = {
-                values: [],
-              };
-              return acc;
-            },
-            {} as ESC["data"]["measurements"],
-          ),
-        },
-        inputs: {
-          timestamps: [],
-          values: [],
-        },
+        timestamps: [],
+        data: ALL_MEASUREMENTS.reduce(
+          (acc, measurement) => {
+            acc[measurement] = [];
+            return acc;
+          },
+          {} as ESC["data"],
+        ),
         errors: [],
       };
     },
@@ -148,5 +141,6 @@ export const initRobotFromConfig = (robotConfig: RobotConfig): Robot => {
     unknownMessages: [],
     initialTimestamp: null,
     matchMarkers: [],
+    signalStrengths: [],
   };
 };

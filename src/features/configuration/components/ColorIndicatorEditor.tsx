@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import { ColorIndicator } from "../../../robot";
 import {
   RadioHolder,
   NumberInput,
@@ -8,6 +7,7 @@ import {
 } from "./inputStyles";
 import { CondensedButton, MEDIUM_VIEWPORT } from "../../../styles";
 import { Draft } from "immer";
+import { ColorIndicator } from "../configUtils";
 
 const Container = styled.div`
   display: flex;

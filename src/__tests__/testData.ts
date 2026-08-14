@@ -11,57 +11,28 @@ export const getMockRobot = () => {
     escs: {
       a: {
         name: "Drive",
+        timestamps: [2, 4, 6, 8, 10],
+
         data: {
-          timestamps: [2, 4, 6, 8, 10],
-          measurements: {
-            temperature: {
-              values: [30, 30, 35, 35, 40],
-            },
-            rpm: {
-              values: [1000, 2000, 3000, 4000, 5000],
-            },
-            voltage: {
-              values: [20, 20, 19, 19, 18],
-            },
-            current: {
-              values: [20, 20, 20, 20, 20],
-            },
-            consumption: {
-              values: [200, 200, 200, 200, 200],
-            },
-          },
-        },
-        inputs: {
-          timestamps: [1, 2, 4, 7, 9],
-          values: [0, 0, 50, 50, -50],
+          temperature: [30, 30, 35, 35, 40],
+          rpm: [1000, 2000, 3000, 4000, 5000],
+          voltage: [20, 20, 19, 19, 18],
+          current: [20, 20, 20, 20, 20],
+          consumption: [200, 200, 200, 200, 200],
+          input: [0, 0, 50, 50, -50],
         },
         errors: [],
       },
       b: {
         name: "Weapon",
+        timestamps: [1, 3],
         data: {
-          timestamps: [1, 3],
-          measurements: {
-            temperature: {
-              values: [90, 90],
-            },
-            rpm: {
-              values: [3000, 3000],
-            },
-            voltage: {
-              values: [20, 20],
-            },
-            current: {
-              values: [30, 30],
-            },
-            consumption: {
-              values: [300, 300],
-            },
-          },
-        },
-        inputs: {
-          timestamps: [2, 4, 5, 6],
-          values: [0, 0, 0, 0],
+          temperature: [90, 90],
+          rpm: [3000, 3000],
+          voltage: [20, 20],
+          current: [30, 30],
+          consumption: [300, 300],
+          input: [0, 0],
         },
         errors: [
           { errorCode: 1, timestamp: 11 },
@@ -91,6 +62,20 @@ export const getMockRobot = () => {
       {
         type: "END",
         timestamp: 25,
+      },
+    ],
+    signalStrengths: [
+      {
+        value: 1,
+        timestamp: 1,
+      },
+      {
+        value: 2,
+        timestamp: 2,
+      },
+      {
+        value: 3,
+        timestamp: 3,
       },
     ],
   };

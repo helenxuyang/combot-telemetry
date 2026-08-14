@@ -1,4 +1,4 @@
-import { ColorIndicator, type Measurement } from "./robot";
+import { ColorIndicator } from "./features/configuration/configUtils";
 
 export const DEFAULT_COLOR = "skyblue";
 export const HIGHLIGHT_COLOR = "green";
@@ -29,7 +29,7 @@ export const getClampedPercent = (value: number, min: number, max: number) => {
   return Math.round(Math.max(Math.min(percent, 100), 0));
 };
 
-export const getLatestValue = (values: Measurement["values"]) => {
+export const getLatestValue = (values: number[]) => {
   return values.at(-1) ?? 0;
 };
 

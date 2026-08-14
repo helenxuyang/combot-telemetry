@@ -1,8 +1,9 @@
 import styled from "styled-components";
 import { getColor, getLatestValueDisplay } from "../../../dataUtils";
 import { useLayoutEffect, useRef } from "react";
-import { MeasurementName, ColorIndicator } from "../../../robot";
+import { MeasurementName } from "../../../robot";
 import { METADATA } from "../../../displayUtils";
+import { ColorIndicator } from "../../configuration/configUtils";
 
 type Props = {
   innerName: MeasurementName;

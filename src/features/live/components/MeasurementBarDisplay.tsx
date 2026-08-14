@@ -1,12 +1,12 @@
 import { getDisplayMinCharacters, getLatestValue } from "../../../dataUtils";
 import { METADATA } from "../../../displayUtils";
-import { Measurement, MeasurementName } from "../../../robot";
+import { MeasurementName } from "../../../robot";
 import { MeasurementConfig } from "../../configuration/configUtils";
 import { BarDisplay } from "./BarDisplay";
 
 type Props = {
   name: MeasurementName;
-  measurement: Measurement;
+  values: number[];
   config: MeasurementConfig;
   className?: string;
   orientation?: "vertical" | "horizontal";
@@ -14,7 +14,7 @@ type Props = {
 
 export const MeasurementBarDisplay = ({
   name,
-  measurement,
+  values,
   config,
   ...rest
 }: Props) => {
@@ -30,7 +30,7 @@ export const MeasurementBarDisplay = ({
   return (
     <BarDisplay
       name={displayName}
-      value={getLatestValue(measurement.values)}
+      value={getLatestValue(values)}
       unit={unit}
       min={config.min}
       max={config.max}

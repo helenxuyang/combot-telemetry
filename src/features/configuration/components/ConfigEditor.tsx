@@ -9,7 +9,6 @@ import { ALL_ESC_IDs, EscId } from "../../../robot";
 import { useImmer } from "use-immer";
 import {
   useIsEditing,
-  useRobot,
   useRobotConfig,
   useSetIsEditing,
   useSetRobot,
@@ -63,7 +62,6 @@ export const ConfigEditor = ({ initConfig }: Props) => {
   const isEditing = useIsEditing();
   const setIsEditing = useSetIsEditing();
 
-  const robot = useRobot();
   const setRobot = useSetRobot();
   const config = useRobotConfig();
   const setRobotConfig = useSetRobotConfig();

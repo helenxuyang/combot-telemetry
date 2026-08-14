@@ -2,7 +2,7 @@ import {
   CONSUMPTION,
   CURRENT,
   INPUT,
-  MeasurementOrInput,
+  MeasurementName,
   RPM,
   TEMPERATURE,
   VOLTAGE,
@@ -14,7 +14,7 @@ type Metadata = {
   decimals: number;
 };
 
-export const METADATA: Record<MeasurementOrInput, Metadata> = {
+export const METADATA: Record<MeasurementName, Metadata> = {
   [TEMPERATURE]: {
     unit: "°C",
     displayName: "Temp",

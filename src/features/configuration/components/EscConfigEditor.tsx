@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { ALL_ESC_IDs, EscId, INPUT, MeasurementName } from "../../../robot";
+import { ALL_ESC_IDs, EscId, MeasurementName } from "../../../robot";
 import { MeasurementConfig, MotorConfig } from "../configUtils";
 import { EscConfig } from "../configUtils";
 import { MeasurementConfigEditor } from "./MeasurementConfigEditor";
@@ -48,14 +48,7 @@ export const EscConfigEditor = ({
   usedEscIds,
 }: Props) => {
   const isEditing = useIsEditing();
-  const updateInputsConfig = (
-    updater: (measurementConfig: Draft<MeasurementConfig> | undefined) => void,
-  ) =>
-    updateConfig((config) => {
-      if (config) {
-        updater(config.inputsConfig);
-      }
-    });
+
   const updateMotorConfig = (
     updater: (motorConfig: Draft<MotorConfig> | undefined) => void,
   ) =>
@@ -164,13 +157,6 @@ export const EscConfigEditor = ({
               />
             ) : null;
           })}
-          <MeasurementConfigEditor
-            key={INPUT}
-            name={INPUT}
-            config={config.inputsConfig}
-            updateConfig={updateInputsConfig}
-            escId={escId}
-          />
         </tbody>
       </Table>
       <MotorConfigEditor

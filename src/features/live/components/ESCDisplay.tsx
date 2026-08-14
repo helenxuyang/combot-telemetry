@@ -86,7 +86,7 @@ export const ESCDisplay = ({ esc, config, className }: Props) => {
   }
 
   const getMeasurementData = (key: MeasurementName) => ({
-    measurement: esc.data.measurements[key],
+    measurement: esc.data[key],
     config: config.measurementConfigs[key],
   });
 
@@ -95,8 +95,8 @@ export const ESCDisplay = ({ esc, config, className }: Props) => {
   const { measurement: rpm, config: rpmConfig } = getMeasurementData(RPM);
   const { measurement: current, config: currentConfig } =
     getMeasurementData(CURRENT);
-  const inputs = esc.inputs;
-  const inputsConfig = config.inputsConfig;
+  const { measurement: inputs, config: inputsConfig } =
+    getMeasurementData(INPUT);
 
   return (
     <DisplayHolder className={className}>
@@ -105,7 +105,7 @@ export const ESCDisplay = ({ esc, config, className }: Props) => {
         {temperatureConfig.shouldShow && (
           <TemperatureDisplay
             name={TEMPERATURE}
-            measurement={temperature}
+            values={temperature}
             config={temperatureConfig}
             orientation={barOrientation}
           />
@@ -113,10 +113,10 @@ export const ESCDisplay = ({ esc, config, className }: Props) => {
         {rpmConfig.shouldShow && currentConfig.shouldShow && (
           <RPMCurrentDisplay
             innerName={CURRENT}
-            innerMeasurement={current}
+            innerValues={current}
             innerConfig={currentConfig}
             outerName={RPM}
-            outerMeasurement={rpm}
+            outerValues={rpm}
             outerConfig={rpmConfig}
           />
         )}
@@ -124,7 +124,7 @@ export const ESCDisplay = ({ esc, config, className }: Props) => {
         {inputsConfig.shouldShow && (
           <InputDisplay
             name={METADATA[INPUT].displayName}
-            value={getLatestValue(inputs.values)}
+            value={getLatestValue(inputs)}
             unit={METADATA[INPUT].unit}
             min={inputsConfig.min}
             max={inputsConfig.max}

@@ -53,7 +53,7 @@ export const VoltageDisplay = ({ escs, min, max }: Props) => {
 
   let voltages: Record<string, number> = {};
   escs.forEach((esc) => {
-    voltages[esc.name] = getLatestValue(esc.data.measurements[VOLTAGE].values);
+    voltages[esc.name] = getLatestValue(esc.data[VOLTAGE]);
   });
   const values = Object.values(voltages);
 
