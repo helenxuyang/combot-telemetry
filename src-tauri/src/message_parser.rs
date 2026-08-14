@@ -87,10 +87,11 @@ fn parse_hex(hex_str: &str) -> Result<u8, ParseIntError> {
     return u8::from_str_radix(hex_str, 16);
 }
 
-fn parse_input(raw_high: &str, raw_low: &str) -> Result<f32, ParseIntError> {
+fn parse_input(raw_high: &str, raw_low: &str) -> Result<u32, ParseIntError> {
     let input_hex = parse_two_bytes(raw_high, raw_low, 1.0)?;
     // transform [1000, 2000] to [-100, 100]
-    return Ok((input_hex - 1500.0) * (0.2 as f32));
+    let input_transformed = (input_hex - 1500.0) * (0.2 as f32);
+    return Ok(input_transformed.round() as u32);
 }
 
 fn parse_timestamp(raw_values: &[&str]) -> Result<u32, ParseIntError> {
@@ -103,7 +104,8 @@ fn parse_timestamp(raw_values: &[&str]) -> Result<u32, ParseIntError> {
 }
 
 fn parse_snr(hex_str: &str) -> Result<i8, ParseIntError> {
-    return i8::from_str_radix(hex_str, 16);
+    let unsigned_val = u8::from_str_radix(hex_str, 16)?;
+    return Ok(unsigned_val as i8);
 }
 
 fn merge_four_bytes(bytes: Vec<u8>) -> u32 {
@@ -243,7 +245,7 @@ fn parse_data_message(
     let checksum = parse_hex(message_components[10])?;
     let is_valid_checksum = validate_checksum(&message_components[1..=9], checksum);
 
-    let input = parse_input(message_components[11], message_components[12])? as u32;
+    let input = parse_input(message_components[11], message_components[12])?;
     let timestamp = parse_timestamp(&message_components[13..=16])?;
     let snr = parse_snr(message_components[17])?;
 
@@ -372,7 +374,34 @@ mod tests {
     #[test]
     fn test_parse_input() {
         let result = parse_input("5", "E7");
-        assert_eq!(result, Ok(1511.0));
+        assert_eq!(result, Ok(2));
+    }
+
+    #[test]
+    fn test_parse_esc_id() {
+        assert_eq!(parse_esc_id(0b00001100), 0);
+        assert_eq!(parse_esc_id(0b00000001), 1);
+        assert_eq!(parse_esc_id(0b00000110), 2);
+        assert_eq!(parse_esc_id(0b00001011), 3);
+    }
+
+    #[test]
+    fn test_parse_snr_positive() {
+        let result = parse_snr("8");
+        assert_eq!(result, Ok(8));
+    }
+
+    #[test]
+    fn test_parse_snr_negative() {
+        let result = parse_snr("FF");
+        assert_eq!(result, Ok(-1));
+    }
+
+    #[test]
+    fn test_merge_four_bytes_values() {
+        let bytes = vec![0x00_u8, 0x0E_u8, 0xAA_u8, 0xCA_u8];
+        let result = merge_four_bytes(bytes);
+        assert_eq!(result, 961226);
     }
 
     #[test]
