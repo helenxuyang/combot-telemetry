@@ -8,7 +8,7 @@ use crate::{app_settings::get_settings, telemetry_session::AppState};
 #[serde(rename_all = "camelCase")]
 pub struct RobotConfig {
     pub name: String,
-    pub esc_configs: HashMap<String, EscConfig>,
+    pub esc_configs: HashMap<u8, EscConfig>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -61,13 +61,13 @@ pub fn fetch_current_config(app: AppHandle) -> Result<(), tauri::Error> {
     return Ok(());
 }
 
-pub fn get_esc_config(app: &AppHandle, esc_id: &str) -> Option<EscConfig> {
+pub fn get_esc_config(app: &AppHandle, esc_id: u8) -> Option<EscConfig> {
     let state = app.state::<AppState>();
     let robot_config_lock = state.robot_config.read();
     if let Ok(lock) = robot_config_lock {
         return lock
             .as_ref()
-            .and_then(|config| config.esc_configs.get(esc_id))
+            .and_then(|config| config.esc_configs.get(&esc_id))
             .cloned();
     }
     return None;

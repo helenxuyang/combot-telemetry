@@ -8,13 +8,15 @@ use crate::robot_config::{get_esc_config, EscConfig};
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryData {
-    esc_id: String,
-    timestamp: u64,
+    esc_id: u8,
     temperature: u8,
     voltage: f32,
     current: f32,
     consumption: u32,
     rpm: u32,
+    timestamp: u32,
+    input: u32,
+    snr: i8,
 }
 
 #[derive(Debug)]
@@ -77,29 +79,42 @@ pub enum TelemetryMessage {
 
 const ERROR_MARKER: &str = "!";
 
-fn convert_input_id_to_esc_id(esc_id: &str) -> &str {
-    match esc_id {
-        "w" => "a",
-        "x" => "b",
-        "y" => "c",
-        "z" => "d",
-        _ => "Unknown",
-    }
+fn parse_esc_id(info_byte: u8) -> u8 {
+    return info_byte & 0b11;
 }
 
 fn parse_hex(hex_str: &str) -> Result<u8, ParseIntError> {
     return u8::from_str_radix(hex_str, 16);
 }
 
-fn parse_input(hex_str: &str) -> Result<u32, ParseIntError> {
-    return u32::from_str_radix(hex_str, 16);
+fn parse_input(raw_high: &str, raw_low: &str) -> Result<f32, ParseIntError> {
+    let input_hex = parse_two_bytes(raw_high, raw_low, 1.0)?;
+    // transform [1000, 2000] to [-100, 100]
+    return Ok((input_hex - 1500.0) * (0.2 as f32));
 }
 
-fn parse_timestamp(hex_str: &str) -> Result<u64, ParseIntError> {
-    return u64::from_str_radix(hex_str, 16);
+fn parse_timestamp(raw_values: &[&str]) -> Result<u32, ParseIntError> {
+    let timestamp_bytes: Vec<u8> = raw_values
+        .iter()
+        .map(|&hex| parse_hex(hex))
+        .collect::<Result<Vec<_>, _>>()?;
+    let timestamp_hex = merge_four_bytes(timestamp_bytes);
+    return Ok(timestamp_hex);
 }
 
-fn merge_bytes(high_byte: u8, low_byte: u8) -> u16 {
+fn parse_snr(hex_str: &str) -> Result<i8, ParseIntError> {
+    return i8::from_str_radix(hex_str, 16);
+}
+
+fn merge_four_bytes(bytes: Vec<u8>) -> u32 {
+    let mut hex: u32 = 0;
+    for b in bytes {
+        hex = (hex << 8) | (b as u32);
+    }
+    return hex;
+}
+
+fn merge_two_bytes(high_byte: u8, low_byte: u8) -> u16 {
     let extended_high_byte = high_byte as u16;
     let extended_low_byte = low_byte as u16;
     return (extended_high_byte << 8) + extended_low_byte;
@@ -113,7 +128,7 @@ fn parse_two_bytes(raw_high: &str, raw_low: &str, scale_factor: f32) -> Result<f
     let high_byte = parse_hex(raw_high)?;
     let low_byte = parse_hex(raw_low)?;
 
-    let raw = merge_bytes(high_byte, low_byte) as f32;
+    let raw = merge_two_bytes(high_byte, low_byte) as f32;
     return Ok(raw * scale_factor);
 }
 
@@ -152,8 +167,11 @@ fn validate_checksum(data: &[&str], received_checksum: u8) -> Result<bool, Parse
     }
 }
 
-/* ESC data:
-0.  ESC ID (a, b, c, d)
+/*
+0.  Info
+      bits 7-4: 0000 (TBD)
+      bits 3-2: message type
+      bites 1-0: ESC ID (0-3)
 1.  Temperature
 2.  Voltage high byte
 3.  Voltage low byte
@@ -164,7 +182,13 @@ fn validate_checksum(data: &[&str], received_checksum: u8) -> Result<bool, Parse
 8.  RPM high byte
 9.  RPM low byte
 10. Checksum
-11. Timestamp
+11. Input high byte
+12. Input low byte
+13. Timestamp byte 3
+14. Timestamp byte 2
+15. Timestamp byte 1
+16. Timestamp byte 0
+17. SNR
 
 Data conversions:
 temp: as-is, in C
@@ -172,13 +196,19 @@ voltage: / 100, in V
 current: / 100, in A
 consumption: as-is, in mAh
 rpm: * 100, divide by # motor pole pairs
-time since start: as-is, in ms
+input: [1000, 2000] -> [-100, 100] y = 0.2(x-1500)
+timestamp (time since start): as-is, in ms
+snr: as-is, in dB
+
  */
 fn parse_data_message(
     message_components: Vec<&str>,
     esc_config: Option<EscConfig>,
 ) -> Result<TelemetryData, TelemetryDataParseError> {
-    let esc_id = message_components[0].to_string();
+    let info_byte = parse_hex(message_components[0])?;
+    // let message_type = info_byte & 0b1100 >> 2;
+    let esc_id = parse_esc_id(info_byte);
+
     let temperature = parse_hex(message_components[1])?;
     let voltage = round_to_two_decimals(parse_two_bytes(
         message_components[2],
@@ -199,8 +229,8 @@ fn parse_data_message(
             config.motor_config.gear_ratio,
         )
     } else {
-        println!("MESSAGE PARSE ERROR: No config, using default motor values");
-        (7.0, 1.0)
+        println!("MESSAGE PARSE ERROR: No motor config");
+        (1.0, 1.0)
     };
 
     let rpm = parse_two_bytes(
@@ -209,11 +239,13 @@ fn parse_data_message(
         100.0 / motor_pole_pairs / gear_ratio,
     )?
     .round() as u32;
-    let timestamp = parse_timestamp(message_components[11])?;
 
     let checksum = parse_hex(message_components[10])?;
-
     let is_valid_checksum = validate_checksum(&message_components[1..=9], checksum);
+
+    let input = parse_input(message_components[11], message_components[12])? as u32;
+    let timestamp = parse_timestamp(&message_components[13..=16])?;
+    let snr = parse_snr(message_components[17])?;
 
     match is_valid_checksum {
         Ok(is_correct_checksum) => {
@@ -225,7 +257,9 @@ fn parse_data_message(
                     current,
                     consumption,
                     rpm,
+                    input,
                     timestamp,
+                    snr,
                 });
             } else {
                 return Err(TelemetryDataParseError::IncorrectChecksumError);
@@ -238,68 +272,41 @@ fn parse_data_message(
 }
 
 const HEX_REGEX: &str = "[0-9a-fA-F]+";
-
-fn validate_data_message_format(raw_message: &str) -> bool {
-    let data_format = format!("^<[abcd](?: {HEX_REGEX}){{11}}>$");
+fn validate_message_format(raw_message: &str) -> bool {
+    let data_format = format!("^<{HEX_REGEX}(?: {HEX_REGEX}){{17}}>$");
     let data_regex = Regex::new(&data_format).unwrap();
     return data_regex.is_match(raw_message);
 }
 
-/* ESC input:
-0. ESC ID (w, x, y, z)
-1. Input
-2. Timestamp
- */
-fn parse_input_message(message_components: Vec<&str>) -> Result<TelemetryInput, ParseIntError> {
-    let input_id = message_components[0];
-    let esc_id = convert_input_id_to_esc_id(input_id).to_string();
-    let raw_input = parse_input(message_components[1])? as f32;
-    let input = (0.2 * raw_input - 300.0) as i32; // scale from [1000, 2000] -> [-100, 100]
-    let timestamp = parse_timestamp(message_components[2])?;
-
-    return Ok(TelemetryInput {
-        esc_id,
-        input,
-        timestamp,
-    });
-}
-
-fn validate_input_message_format(raw_message: &str) -> bool {
-    let input_format = format!("^<[wxyz](?: {HEX_REGEX}){{2}}>$");
-    let input_regex = Regex::new(&input_format).unwrap();
-    return input_regex.is_match(raw_message);
-}
-
+// TODO: update later when error format is finalized
 /* ESC error:
 0. ESC ID (a, b, c, d)
 1. "!"
 2. Error code
 3. Timestamp
  */
-fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, ParseIntError> {
-    let esc_id = message_components[0].to_string();
-    let error_code = parse_hex(message_components[2])?;
-    let timestamp = parse_timestamp(message_components[3])?;
+// fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, ParseIntError> {
+//     let esc_id = message_components[0].to_string();
+//     let error_code = parse_hex(message_components[2])?;
+//     let timestamp = parse_timestamp(message_components[3])?;
 
-    return Ok(TelemetryError {
-        esc_id,
-        timestamp,
-        error_code,
-    });
-}
+//     return Ok(TelemetryError {
+//         esc_id,
+//         timestamp,
+//         error_code,
+//     });
+// }
 
-fn validate_error_message_format(raw_message: &str) -> bool {
-    let error_format = format!("^<[abcd] !(?: {HEX_REGEX}){{2}}>$");
-    let error_regex = Regex::new(&error_format).unwrap();
-    return error_regex.is_match(raw_message);
-}
+// fn validate_error_message_format(raw_message: &str) -> bool {
+//     let error_format = format!("^<[abcd] !(?: {HEX_REGEX}){{2}}>$");
+//     let error_regex = Regex::new(&error_format).unwrap();
+//     return error_regex.is_match(raw_message);
+// }
 
 pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
     // TODO: handle pong?
 
-    let is_valid_message = validate_data_message_format(&raw_message)
-        || validate_input_message_format(&raw_message)
-        || validate_error_message_format(&raw_message);
+    let is_valid_message = validate_message_format(&raw_message);
     if !is_valid_message {
         return TelemetryMessage::UnknownMessage(TelemetryUnknown {
             raw_message,
@@ -309,49 +316,27 @@ pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
 
     // remove < and >
     let innards = &raw_message[1..(raw_message.len() - 1)];
-
     // split into vec
     let message_components: Vec<&str> = innards.split(" ").collect();
 
-    if message_components[1] == ERROR_MARKER {
-        let telemetry_error = parse_error_message(message_components);
-        return match telemetry_error {
-            Ok(telem_error) => TelemetryMessage::ErrorMessage(telem_error),
-            Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
-                raw_message,
-                reason: "failed to parse error message".to_string(),
-            }),
-        };
-    }
-
-    let esc_id = message_components[0];
-    let esc_config = get_esc_config(&app, esc_id);
-    match esc_id {
-        "a" | "b" | "c" | "d" => {
-            let telemetry_data = parse_data_message(message_components, esc_config);
-            return match telemetry_data {
-                Ok(telem_data) => TelemetryMessage::DataMessage(telem_data),
-                Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
-                    raw_message,
-                    reason: "failed to parse data message".to_string(),
-                }),
-            };
-        }
-        "w" | "x" | "y" | "z" => {
-            let telemetry_input = parse_input_message(message_components);
-            return match telemetry_input {
-                Ok(telem_input) => TelemetryMessage::InputMessage(telem_input),
-                Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
-                    raw_message,
-                    reason: "failed to parse input message".to_string(),
-                }),
-            };
-        }
-        _ => TelemetryMessage::UnknownMessage(TelemetryUnknown {
+    let info_byte = parse_hex(message_components[0]);
+    let Ok(byte) = info_byte else {
+        return TelemetryMessage::UnknownMessage(TelemetryUnknown {
             raw_message,
-            reason: "idk".to_string(),
+            reason: "failed to parse ESC ID".to_string(),
+        });
+    };
+    let esc_id = parse_esc_id(byte);
+    let esc_config = get_esc_config(&app, esc_id);
+
+    let telemetry_data = parse_data_message(message_components, esc_config);
+    return match telemetry_data {
+        Ok(telem_data) => TelemetryMessage::DataMessage(telem_data),
+        Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
+            raw_message,
+            reason: "failed to parse data message".to_string(),
         }),
-    }
+    };
 }
 
 #[cfg(test)]
@@ -386,31 +371,31 @@ mod tests {
 
     #[test]
     fn test_parse_input() {
-        let result = parse_input("7D0");
-        assert_eq!(result, Ok(2000));
+        let result = parse_input("5", "E7");
+        assert_eq!(result, Ok(1511.0));
     }
 
     #[test]
     fn test_parse_timestamp() {
-        let result = parse_timestamp("123456ABC");
-        assert_eq!(result, Ok(4886719164));
+        let result = parse_timestamp(&["0", "E", "AA", "CA"]);
+        assert_eq!(result, Ok(961226));
     }
 
     #[test]
-    fn test_merge_bytes() {
-        let result = merge_bytes(0x01_u8, 0xff_u8);
+    fn test_merge_two_bytes() {
+        let result = merge_two_bytes(0x01_u8, 0xff_u8);
         assert_eq!(result, 0x01ff_u16);
     }
 
     #[test]
-    fn test_merge_bytes_start_with_zeroes() {
-        let result = merge_bytes(0x01_u8, 0x02_u8);
+    fn test_merge_two_bytes_start_with_zeroes() {
+        let result = merge_two_bytes(0x01_u8, 0x02_u8);
         assert_eq!(result, 0x0102_u16);
     }
 
     #[test]
-    fn test_merge_bytes_end_with_zeroes() {
-        let result = merge_bytes(0x30_u8, 0x40_u8);
+    fn test_merge_two_bytes_end_with_zeroes() {
+        let result = merge_two_bytes(0x30_u8, 0x40_u8);
         assert_eq!(result, 0x3040_u16);
     }
 
@@ -476,179 +461,103 @@ mod tests {
     }
 
     #[test]
-    fn parse_data_message_with_motor_pole_pairs() {
+    fn parse_data_message_with_config() {
         let mock_config = EscConfig {
             motor_config: MotorConfig {
-                motor_pole_pairs: 5,
-                gear_ratio: 1.0,
+                motor_pole_pairs: 3,
+                gear_ratio: 5.0,
             },
             name: "foobar".to_string(),
         };
         let result = parse_data_message(
             [
-                "c", "1F", "3", "A0", "0", "16", "0", "4", "0", "F", "CD", "5D24",
+                "1", "17", "5", "7B", "0", "13", "0", "0", "0", "3", "94", "5", "DD", "0", "0",
+                "1D", "D8", "8",
             ]
             .to_vec(),
             Some(mock_config),
         )
         .unwrap();
         let expected = TelemetryData {
-            esc_id: "c".to_string(),
-            temperature: 31,
-            voltage: 9.28,
-            current: 0.22,
-            consumption: 4,
+            esc_id: 1,
+            temperature: 23,
+            voltage: 14.03,
+            current: 0.19,
+            consumption: 0,
+            rpm: 20,
+            timestamp: 7640,
+            input: 0,
+            snr: 8,
+        };
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn parse_data_message_without_config() {
+        let result = parse_data_message(
+            [
+                "1", "17", "5", "7B", "0", "13", "0", "0", "0", "3", "94", "5", "DD", "0", "0",
+                "1D", "D8", "8",
+            ]
+            .to_vec(),
+            None,
+        )
+        .unwrap();
+        let expected = TelemetryData {
+            esc_id: 1,
+            temperature: 23,
+            voltage: 14.03,
+            current: 0.19,
+            consumption: 0,
             rpm: 300,
-            timestamp: 23844,
+            timestamp: 7640,
+            input: 0,
+            snr: 8,
         };
         assert_eq!(result, expected);
     }
 
     #[test]
-    fn parse_data_message_with_gear_ratio() {
-        let mock_config = EscConfig {
-            motor_config: MotorConfig {
-                motor_pole_pairs: 1,
-                gear_ratio: 3.0,
-            },
-            name: "foobar".to_string(),
-        };
-        let result = parse_data_message(
-            [
-                "c", "1F", "3", "A0", "0", "16", "0", "4", "0", "F", "CD", "5D24",
-            ]
-            .to_vec(),
-            Some(mock_config),
-        )
-        .unwrap();
-        let expected = TelemetryData {
-            esc_id: "c".to_string(),
-            temperature: 31,
-            voltage: 9.28,
-            current: 0.22,
-            consumption: 4,
-            rpm: 500,
-            timestamp: 23844,
-        };
-        assert_eq!(result, expected);
+    fn validate_message_format_valid() {
+        let message = "<1 20 1 C1 0 6 0 3C 0 0 5E 5 E7 0 E AA CA 7>";
+        assert_eq!(validate_message_format(message), true);
     }
 
     #[test]
-    fn parse_data_message_with_motor_pole_pairs_and_gear_ratio() {
-        let mock_config = EscConfig {
-            motor_config: MotorConfig {
-                motor_pole_pairs: 7,
-                gear_ratio: 32.0,
-            },
-            name: "foobar".to_string(),
-        };
-        let result = parse_data_message(
-            [
-                "c", "1F", "3", "A0", "0", "16", "0", "4", "0", "F", "CD", "5D24",
-            ]
-            .to_vec(),
-            Some(mock_config),
-        )
-        .unwrap();
-        let expected = TelemetryData {
-            esc_id: "c".to_string(),
-            temperature: 31,
-            voltage: 9.28,
-            current: 0.22,
-            consumption: 4,
-            rpm: 7,
-            timestamp: 23844,
-        };
-        assert_eq!(result, expected);
+    fn validate_message_format_missing_start() {
+        let message = "1 20 1 C1 0 6 0 3C 0 0 5E 5 E7 0 E AA CA 7>";
+        assert_eq!(validate_message_format(message), false);
     }
 
     #[test]
-    fn parse_input_message_weapon() {
-        let result = parse_input_message(["y", "6D6", "4C5"].to_vec());
-        let expected = TelemetryInput {
-            esc_id: "c".to_string(),
-            input: 50,
-            timestamp: 1221,
-        };
-        assert_eq!(result, Ok(expected));
+    fn validate_message_format_missing_end() {
+        let message = "<1 20 1 C1 0 6 0 3C 0 0 5E 5 E7 0 E AA CA 7";
+        assert_eq!(validate_message_format(message), false);
     }
 
     #[test]
-    fn parse_input_message_drive() {
-        let result = parse_error_message(["a", "!", "2", "529"].to_vec());
-        let expected = TelemetryError {
-            esc_id: "a".to_string(),
-            error_code: 2,
-            timestamp: 1321,
-        };
-        assert_eq!(result, Ok(expected));
+    fn validate_message_format_not_enough_hex() {
+        let message = "<1 20 1 C1 0 6 0 3C 0 0 5E 5 E7 0 E AA CA>";
+        assert_eq!(validate_message_format(message), false);
+        let message = "<1>";
+        assert_eq!(validate_message_format(message), false);
     }
 
     #[test]
-    fn validate_data_message_format_valid() {
-        let message = "<c 1F 3 A0 0 16 0 4 0 0 E0 5D24>";
-        assert_eq!(validate_data_message_format(message), true);
+    fn validate_message_format_extra_space() {
+        let message = "<1  20 1 C1 0 6 0 3C 0 0 5E 5 E7 0 E AA CA 7>";
+        assert_eq!(validate_message_format(message), false);
     }
 
-    #[test]
-    fn validate_data_message_format_not_data_esc() {
-        let message = "<w 1F 3 A0 0 16 0 4 0 0 E0 5D24>";
-        assert_eq!(validate_data_message_format(message), false);
-    }
+    // #[test]
+    // fn validate_error_message_format_valid() {
+    //     let message = "<b ! 1 F42>";
+    //     assert_eq!(validate_error_message_format(message), true);
+    // }
 
-    #[test]
-    fn validate_data_message_format_missing_start() {
-        let message = "c 1F 3 A0 0 16 0 4 0 0 E0 5D24>";
-        assert_eq!(validate_data_message_format(message), false);
-    }
-
-    #[test]
-    fn validate_data_message_format_missing_end() {
-        let message = "<c 1F 3 A0 0 16 0 4 0 0 E0 5D24";
-        assert_eq!(validate_data_message_format(message), false);
-    }
-
-    #[test]
-    fn validate_data_message_format_not_enough_hex() {
-        let message = "<c 1F A0 0 16 0 4 0 0 E0 5D24";
-        assert_eq!(validate_data_message_format(message), false);
-        let message = "<c 1F 5D24>";
-        assert_eq!(validate_data_message_format(message), false);
-    }
-
-    #[test]
-    fn validate_data_message_format_extra_space() {
-        let message = "<c  1F 3 A0 0 16 0 4 0 0 E0 5D24>";
-        assert_eq!(validate_data_message_format(message), false);
-    }
-
-    #[test]
-    fn validate_input_message_format_valid() {
-        let message = "<w 1F 5D24>";
-        assert_eq!(validate_input_message_format(message), true);
-    }
-
-    #[test]
-    fn validate_input_message_format_not_input_esc() {
-        let message = "<a 1F 5D24>";
-        assert_eq!(validate_input_message_format(message), false);
-    }
-
-    #[test]
-    fn validate_input_message_format_not_enough_hex() {
-        let message = "<a 5D24>";
-        assert_eq!(validate_input_message_format(message), false);
-    }
-
-    #[test]
-    fn validate_error_message_format_valid() {
-        let message = "<b ! 1 F42>";
-        assert_eq!(validate_error_message_format(message), true);
-    }
-
-    #[test]
-    fn validate_error_message_format_no_code() {
-        let message = "<a ! 5D24>";
-        assert_eq!(validate_error_message_format(message), false);
-    }
+    // #[test]
+    // fn validate_error_message_format_no_code() {
+    //     let message = "<a ! 5D24>";
+    //     assert_eq!(validate_error_message_format(message), false);
+    // }
 }

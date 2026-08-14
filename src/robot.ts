@@ -19,7 +19,7 @@ export type SignalStrength = {
   timestamp: number;
 };
 
-export const ALL_ESC_IDs = ["a", "b", "c", "d"] as const;
+export const ALL_ESC_IDs = ["0", "1", "2", "3"] as const;
 export type EscId = (typeof ALL_ESC_IDs)[number];
 
 export const convertStrToEscId = (str: string): str is EscId => {
