@@ -5,17 +5,17 @@ use tauri::AppHandle;
 
 use crate::robot_config::{get_esc_config, EscConfig};
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryData {
-    esc_id: u8,
+    pub esc_id: u8,
     temperature: u8,
     voltage: f32,
     current: f32,
     consumption: u32,
     rpm: u32,
     timestamp: u32,
-    input: u32,
+    input: i32,
     snr: i8,
 }
 
@@ -60,20 +60,20 @@ pub struct TelemetryError {
     error_code: u8,
 }
 
-#[derive(Serialize, Debug, PartialEq)]
+#[derive(Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryUnknown {
     raw_message: String,
     reason: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "messageType")]
 pub enum TelemetryMessage {
     DataMessage(TelemetryData),
-    InputMessage(TelemetryInput),
-    ErrorMessage(TelemetryError),
+    // InputMessage(TelemetryInput),
+    // ErrorMessage(TelemetryError),
     UnknownMessage(TelemetryUnknown),
 }
 
@@ -87,11 +87,11 @@ fn parse_hex(hex_str: &str) -> Result<u8, ParseIntError> {
     return u8::from_str_radix(hex_str, 16);
 }
 
-fn parse_input(raw_high: &str, raw_low: &str) -> Result<u32, ParseIntError> {
+fn parse_input(raw_high: &str, raw_low: &str) -> Result<i32, ParseIntError> {
     let input_hex = parse_two_bytes(raw_high, raw_low, 1.0)?;
     // transform [1000, 2000] to [-100, 100]
     let input_transformed = (input_hex - 1500.0) * (0.2 as f32);
-    return Ok(input_transformed.round() as u32);
+    return Ok(input_transformed.round() as i32);
 }
 
 fn parse_timestamp(raw_values: &[&str]) -> Result<u32, ParseIntError> {
@@ -372,9 +372,15 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_input() {
-        let result = parse_input("5", "E7");
+    fn test_parse_input_positive() {
+        let result = parse_input("7", "08");
         assert_eq!(result, Ok(2));
+    }
+
+    #[test]
+    fn test_parse_input_negative() {
+        let result = parse_input("3", "E8");
+        assert_eq!(result, Ok(-100));
     }
 
     #[test]

@@ -1,7 +1,10 @@
+use crate::message_parser::TelemetryMessage::{self, DataMessage};
+use crate::telemetry_session::AppState;
 use crate::{csv_writer, message_parser, telemetry_session};
 use serde::Serialize;
 use serialport::SerialPortType::UsbPort;
 use std::time::Duration;
+use tauri::Manager;
 use tauri::{AppHandle, Emitter};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio_serial::SerialPortBuilderExt;
@@ -56,7 +59,25 @@ pub async fn read_serial(app: AppHandle, port: String) {
                         if let Err(error) = csv_writer::write_raw_messages_txt(&app, &raw_message) {
                             println!("CSV ERROR: Failed to write raw data: {}", error);
                         };
-                        let _ = sender.send(raw_message);
+                        // let _ = sender.send(raw_message);
+                        println!("{:?}", raw_message);
+
+                        let parsed_message = message_parser::parse_message(raw_message, &app);
+
+                        let state = app.state::<AppState>();
+                        let last_messages_guard = state.last_messages.write();
+                        if let Ok(mut last_messages) = last_messages_guard {
+                            match &parsed_message {
+                                TelemetryMessage::DataMessage(data) => {
+                                    let esc_id = data.esc_id;
+                                    last_messages.insert(esc_id, parsed_message.clone());
+                                }
+                                TelemetryMessage::UnknownMessage(_) => {
+                                    last_messages.insert(4, parsed_message.clone());
+                                    // TODO: do something less cursed
+                                }
+                            }
+                        }
                     }
                 }
                 Err(err) => {
@@ -72,10 +93,20 @@ pub async fn read_serial(app: AppHandle, port: String) {
         let mut interval = tokio::time::interval(duration);
         loop {
             interval.tick().await;
-            let line = receiver.borrow().clone();
-            let parsed_message = message_parser::parse_message(line, &app_clone);
-            if let Err(error) = app_clone.emit("telemetry-message", &parsed_message) {
-                println!("GUI ERROR: Failed to emit telemetry-message: {}", error);
+            // let line = receiver.borrow().clone();
+            // let parsed_message = message_parser::parse_message(line, &app_clone);
+            // if let Err(error) = app_clone.emit("telemetry-message", &parsed_message) {
+            //     println!("GUI ERROR: Failed to emit telemetry-message: {}", error);
+            // }
+
+            let state = app_clone.state::<AppState>();
+            let last_messages_guard = state.last_messages.write();
+            if let Ok(mut last_messages) = last_messages_guard {
+                let msgs: Vec<TelemetryMessage> = last_messages.values().cloned().collect();
+                if let Err(error) = app_clone.emit("telemetry-message", msgs) {
+                    println!("GUI ERROR: Failed to emit telemetry-message: {}", error);
+                }
+                last_messages.clear();
             }
         }
     });

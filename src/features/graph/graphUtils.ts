@@ -86,7 +86,7 @@ export const getSeriesConfig = (
     itemStyle: {
       color: getSeriesColor(plotName),
     },
-    sampling: "lttb",
+    // sampling: "lttb",
   };
 };
 

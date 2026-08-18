@@ -1,13 +1,16 @@
 use crate::csv_writer;
 use crate::message_parser;
+use crate::message_parser::TelemetryMessage;
 use crate::robot_config::RobotConfig;
 use chrono::{DateTime, Local};
+use std::collections::HashMap;
 use std::sync::RwLock;
 use tauri::{AppHandle, Emitter, Manager};
 
 pub struct AppState {
     pub session_start_time: RwLock<Option<DateTime<Local>>>,
     pub robot_config: RwLock<Option<RobotConfig>>,
+    pub last_messages: RwLock<HashMap<u8, TelemetryMessage>>,
 }
 
 pub fn handle_start(app: &AppHandle) {

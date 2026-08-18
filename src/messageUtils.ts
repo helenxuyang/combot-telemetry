@@ -86,10 +86,19 @@ export const getUpdatedRobot = (
     } else {
       esc.timestamps.push(timestamp);
     }
-    newRobot.signalStrengths.push({
-      value: snr,
-      timestamp,
-    });
+    if (shouldReplace) {
+      newRobot.signalStrengths = [
+        {
+          value: snr,
+          timestamp,
+        },
+      ];
+    } else {
+      newRobot.signalStrengths.push({
+        value: snr,
+        timestamp,
+      });
+    }
   }
 
   return newRobot;

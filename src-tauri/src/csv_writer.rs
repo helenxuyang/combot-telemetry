@@ -25,7 +25,8 @@ pub fn write_raw_messages_txt(
     raw_message: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     if let Some(formatted_time) = get_formatted_start_time(app) {
-        let file_name = format!("{formatted_time}_raw_log.txt");
+        let local_dir = app.path().app_local_data_dir()?;
+        let file_name = local_dir.join(format!("{formatted_time}_raw_log.txt"));
         let file = OpenOptions::new()
             .write(true)
             .create(true)

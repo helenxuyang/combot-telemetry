@@ -7,6 +7,7 @@ mod serial_communication;
 mod telemetry_session;
 mod websocket;
 
+use std::collections::HashMap;
 use std::sync::RwLock;
 use tauri::Manager;
 
@@ -20,6 +21,7 @@ pub fn run() {
             app.manage(telemetry_session::AppState {
                 session_start_time: RwLock::new(None),
                 robot_config: RwLock::new(None),
+                last_messages: RwLock::new(HashMap::new()),
             });
             Ok(())
         })

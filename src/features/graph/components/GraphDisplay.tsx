@@ -60,7 +60,6 @@ export const GraphDisplay = () => {
     })),
     series: series.map((s, index) => ({
       ...s,
-      xAxixIndex: 0, // TODO: properly fix the issue where data and inputs are out of sync
       yAxisIndex: index,
     })),
     legend: {

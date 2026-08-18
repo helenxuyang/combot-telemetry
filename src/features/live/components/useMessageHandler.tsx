@@ -1,5 +1,5 @@
 import { listen } from "@tauri-apps/api/event";
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import { TauriTelemetryMessage, getUpdatedRobot } from "../../../messageUtils";
 import { Robot } from "../../../robot";
 import { useRobot, useSetRobot } from "../../../store";
@@ -9,29 +9,24 @@ const TELEMETRY_MESSAGE_EVENT = "telemetry-message";
 export const useMessageHandler = () => {
   const robot = useRobot();
   const setRobot = useSetRobot();
-  const pendingRobotRef = useRef<Robot | null>(robot);
+  const robotRef = useRef<Robot>(robot);
   const frameRef = useRef<number | null>(null);
 
   const handleMessage = useCallback(
-    (message: TauriTelemetryMessage) => {
-      console.log(message);
-      // on each message, save the new robot (ref so it doesn't re-render)
-      if (pendingRobotRef.current) {
-        pendingRobotRef.current = getUpdatedRobot(
-          message,
-          pendingRobotRef.current,
-        );
-      } else {
-        pendingRobotRef.current = robot;
-      }
+    (messages: TauriTelemetryMessage[]) => {
       // don't request another frame if we've requested already
       if (frameRef.current !== null) {
         return;
       }
       // RAF: before next repaint, update state so we re-render
       frameRef.current = requestAnimationFrame(() => {
-        setRobot(pendingRobotRef.current);
-        frameRef.current = null;
+        if (robotRef.current) {
+          for (const message of messages) {
+            robotRef.current = getUpdatedRobot(message, robotRef.current);
+          }
+          setRobot(robotRef.current);
+          frameRef.current = null;
+        }
       });
     },
     [setRobot],
@@ -46,7 +41,7 @@ export const useMessageHandler = () => {
   }, []);
 
   useEffect(() => {
-    const unlisten = listen<TauriTelemetryMessage>(
+    const unlisten = listen<TauriTelemetryMessage[]>(
       TELEMETRY_MESSAGE_EVENT,
       (event) => {
         handleMessage(event.payload);
