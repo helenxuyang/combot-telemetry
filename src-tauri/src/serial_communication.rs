@@ -43,7 +43,6 @@ pub async fn read_serial(app: AppHandle, port: String) {
     telemetry_session::handle_start(&app);
 
     let mut serial_reader = BufReader::new(serial_port);
-    let (sender, receiver) = tokio::sync::watch::channel(String::new());
 
     let app_clone = app.clone();
 
@@ -59,8 +58,7 @@ pub async fn read_serial(app: AppHandle, port: String) {
                         if let Err(error) = csv_writer::write_raw_messages_txt(&app, &raw_message) {
                             println!("CSV ERROR: Failed to write raw data: {}", error);
                         };
-                        // let _ = sender.send(raw_message);
-                        println!("{:?}", raw_message);
+                        println!("raw: {:?}", raw_message);
 
                         let parsed_message = message_parser::parse_message(raw_message, &app);
 
@@ -97,11 +95,6 @@ pub async fn read_serial(app: AppHandle, port: String) {
         let mut interval = tokio::time::interval(duration);
         loop {
             interval.tick().await;
-            // let line = receiver.borrow().clone();
-            // let parsed_message = message_parser::parse_message(line, &app_clone);
-            // if let Err(error) = app_clone.emit("telemetry-message", &parsed_message) {
-            //     println!("GUI ERROR: Failed to emit telemetry-message: {}", error);
-            // }
 
             let state = app_clone.state::<AppState>();
             let last_messages_guard = state.last_messages.write();

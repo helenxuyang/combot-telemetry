@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useMessageHandler } from "./useMessageHandler";
+import { ButtonsHolder } from "../../../styles";
 
 const GET_SERIAL_PORTS = "get_serial_ports";
 const READ_SERIAL_COMMAND = "read_serial";
@@ -51,11 +52,13 @@ export const SerialConnector = () => {
       ) : (
         <div>
           <h3>Ports</h3>
-          {allPorts?.map((port) => (
-            <button onClick={() => startListening(port)}>
-              {getPortDisplayName(port)}
-            </button>
-          ))}
+          <ButtonsHolder>
+            {allPorts?.map((port) => (
+              <button onClick={() => startListening(port)}>
+                {getPortDisplayName(port)}
+              </button>
+            ))}
+          </ButtonsHolder>
         </div>
       )}
       {error && <p>Error: {error}</p>}
