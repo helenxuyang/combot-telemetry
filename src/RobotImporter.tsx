@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getUpdatedRobot, TauriTelemetryMessage } from "./messageUtils";
 import { ButtonsHolder } from "./styles";
 import { initRobotFromConfig } from "./features/configuration/configUtils";
+import { DotsLoader } from "./DotsLoader";
 
 // tell rust which file to parse
 const PARSE_RAW_FILE_COMMAND = "parse_raw_file";
@@ -17,6 +18,7 @@ export const RobotImporter = () => {
   const setRobot = useSetRobot();
   const config = useRobotConfig();
 
+  const [loading, setLoading] = useState<boolean>(false);
   const [file, setFile] = useState<string | null>(null);
 
   useEffect(() => {
@@ -68,8 +70,10 @@ export const RobotImporter = () => {
       ],
     });
     if (selectedFile) {
+      setLoading(true);
       await invoke(PARSE_RAW_FILE_COMMAND, { rawFileName: selectedFile });
       setFile(selectedFile);
+      setLoading(false);
     }
   };
 
@@ -84,6 +88,7 @@ export const RobotImporter = () => {
   return (
     <>
       <h2>Import</h2>
+
       {file && (
         <p>
           <strong>Current: </strong>
@@ -91,7 +96,12 @@ export const RobotImporter = () => {
         </p>
       )}
       <ButtonsHolder>
-        <button onClick={handleSelectFile}>Select CSV</button>
+        {!file &&
+          (loading ? (
+            <DotsLoader />
+          ) : (
+            <button onClick={handleSelectFile}>Select CSV</button>
+          ))}
         {file && (
           <button onClick={handleClearSelection}>Clear selection</button>
         )}
