@@ -10,6 +10,8 @@ use tauri::{AppHandle, Emitter, Manager};
 pub struct AppState {
     pub session_start_time: RwLock<Option<DateTime<Local>>>,
     pub robot_config: RwLock<Option<RobotConfig>>,
+    pub serial_task_handle: RwLock<Option<tokio::task::JoinHandle<()>>>,
+    pub emitter_task_handle: RwLock<Option<tokio::task::JoinHandle<()>>>,
     pub last_messages: RwLock<HashMap<u8, TelemetryMessage>>,
 }
 

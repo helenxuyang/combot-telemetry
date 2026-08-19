@@ -44,10 +44,11 @@ pub async fn read_serial(app: AppHandle, port: String) {
 
     let mut serial_reader = BufReader::new(serial_port);
 
-    let app_clone = app.clone();
+    let app_reader = app.clone();
+    let app_emitter = app.clone();
 
     // read from serial, write to CSV
-    tokio::task::spawn(async move {
+    let serial_handle = tokio::task::spawn(async move {
         loop {
             let mut line = String::new();
             let num_bytes = serial_reader.read_line(&mut line).await;
@@ -90,21 +91,48 @@ pub async fn read_serial(app: AppHandle, port: String) {
     });
 
     // parse and send to frontend
-    tokio::task::spawn(async move {
+    let emitter_handle = tokio::task::spawn(async move {
         let duration = Duration::from_millis(10);
         let mut interval = tokio::time::interval(duration);
         loop {
             interval.tick().await;
 
-            let state = app_clone.state::<AppState>();
+            let state = app_emitter.state::<AppState>();
             let last_messages_guard = state.last_messages.write();
             if let Ok(mut last_messages) = last_messages_guard {
                 let msgs: Vec<TelemetryMessage> = last_messages.values().cloned().collect();
-                if let Err(error) = app_clone.emit("telemetry-message", msgs) {
+                if let Err(error) = app_emitter.emit("telemetry-message", msgs) {
                     println!("GUI ERROR: Failed to emit telemetry-message: {}", error);
                 }
                 last_messages.clear();
             }
         }
     });
+
+    let state = app_reader.state::<AppState>();
+    let serial_task_handle_guard = state.serial_task_handle.write();
+    if let Ok(mut serial_task_handle) = serial_task_handle_guard {
+        *serial_task_handle = Some(serial_handle);
+    }
+    let emitter_task_handle_guard = state.emitter_task_handle.write();
+    if let Ok(mut emitter_task_handle) = emitter_task_handle_guard {
+        *emitter_task_handle = Some(emitter_handle);
+    }
+}
+
+#[tauri::command]
+pub async fn stop_serial(app: AppHandle) {
+    let state = app.state::<AppState>();
+    let serial_task_handle_guard = state.serial_task_handle.write();
+    if let Ok(mut serial_task_handle) = serial_task_handle_guard {
+        if let Some(handle) = serial_task_handle.take() {
+            handle.abort();
+        }
+    }
+    let emitter_task_handle_guard = state.emitter_task_handle.write();
+    if let Ok(mut emitter_task_handle) = emitter_task_handle_guard {
+        if let Some(handle) = emitter_task_handle.take() {
+            handle.abort();
+        }
+    }
 }

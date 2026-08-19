@@ -5,6 +5,7 @@ import { ButtonsHolder } from "../../../styles";
 
 const GET_SERIAL_PORTS = "get_serial_ports";
 const READ_SERIAL_COMMAND = "read_serial";
+const STOP_SERIAL_COMMAND = "stop_serial";
 
 type PortInfo = {
   name: string;
@@ -40,6 +41,11 @@ export const SerialConnector = () => {
     }
   };
 
+  const stopListening = async () => {
+    await invoke(STOP_SERIAL_COMMAND);
+    setPort(null);
+  };
+
   return (
     <div>
       <h2>Serial Connection</h2>
@@ -48,6 +54,7 @@ export const SerialConnector = () => {
         <>
           <h3>Current Port</h3>
           <p>{getPortDisplayName(port)}</p>
+          <button onClick={stopListening}>Stop listening</button>
         </>
       ) : (
         <div>
