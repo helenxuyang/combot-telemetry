@@ -10,16 +10,24 @@ export const getColor = (value: number, colorIndicators: ColorIndicator[]) => {
     return barColor;
   }
 
-  // TODO: this assumes they're sorted properly already
-  colorIndicators.forEach((indicator) => {
-    const isConditionMet =
-      indicator.condition === "below"
-        ? value <= indicator.threshold
-        : value >= indicator.threshold;
-    if (isConditionMet) {
-      barColor = indicator.color;
-    }
-  });
+  // TODO: this is cursed, rethink this
+  colorIndicators
+    .sort((a, b) => b.threshold - a.threshold)
+    .filter((indicator) => indicator.condition === "below")
+    .forEach((indicator) => {
+      if (value <= indicator.threshold) {
+        barColor = indicator.color;
+      }
+    });
+
+  colorIndicators
+    .sort((a, b) => a.threshold - b.threshold)
+    .filter((indicator) => indicator.condition === "above")
+    .forEach((indicator) => {
+      if (value >= indicator.threshold) {
+        barColor = indicator.color;
+      }
+    });
 
   return barColor;
 };

@@ -11,6 +11,7 @@ import {
 import { ColorIndicator } from "../features/configuration/configUtils";
 
 describe("getColor", () => {
+  // purposely order in a weird way
   const indicators: ColorIndicator[] = [
     {
       threshold: 40,
@@ -19,20 +20,26 @@ describe("getColor", () => {
       playSound: false,
     },
     {
-      threshold: 60,
-      condition: "above",
-      color: "orange",
-      playSound: false,
-    },
-    {
       threshold: 80,
       condition: "above",
       color: "red",
       playSound: false,
     },
+    {
+      threshold: 20,
+      condition: "below",
+      color: "blue",
+      playSound: false,
+    },
+    {
+      threshold: 60,
+      condition: "above",
+      color: "orange",
+      playSound: false,
+    },
   ];
   it("gets correct color based on thresholds", () => {
-    expect(getColor(0, indicators)).toBe("green");
+    expect(getColor(0, indicators)).toBe("blue");
     expect(getColor(40, indicators)).toBe("green");
     expect(getColor(50, indicators)).toBe(DEFAULT_COLOR);
     expect(getColor(70, indicators)).toBe("orange");
