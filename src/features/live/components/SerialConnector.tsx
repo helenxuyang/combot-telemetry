@@ -19,7 +19,7 @@ const getPortDisplayName = (port: PortInfo) => {
 export const SerialConnector = () => {
   const [allPorts, setAllPorts] = useState<PortInfo[]>([]);
   const [port, setPort] = useState<PortInfo | null>(null);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const getAllPorts = async () => {
@@ -33,6 +33,7 @@ export const SerialConnector = () => {
 
   const startListening = async (port: PortInfo) => {
     try {
+      setError(null);
       await invoke(READ_SERIAL_COMMAND, { port: port.name });
       setPort(port);
     } catch (e) {
@@ -42,6 +43,7 @@ export const SerialConnector = () => {
   };
 
   const stopListening = async () => {
+    setError(null);
     await invoke(STOP_SERIAL_COMMAND);
     setPort(null);
   };
