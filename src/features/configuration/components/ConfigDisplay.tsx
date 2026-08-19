@@ -10,9 +10,7 @@ import {
 import { ConfigEditor } from "./ConfigEditor";
 import styled from "styled-components";
 import { ButtonsHolder } from "../../../styles";
-import { confirm } from "@tauri-apps/plugin-dialog";
 import {
-  deleteCurrentConfig,
   getAllConfigNames,
   getConfig,
   selectConfig,

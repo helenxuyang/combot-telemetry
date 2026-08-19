@@ -1,5 +1,5 @@
 import { listen } from "@tauri-apps/api/event";
-import { useRef, useCallback, useEffect, useState } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import { TauriTelemetryMessage, getUpdatedRobot } from "../../../messageUtils";
 import { Robot } from "../../../robot";
 import { useRobot, useSetRobot } from "../../../store";

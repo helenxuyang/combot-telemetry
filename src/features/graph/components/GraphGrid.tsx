@@ -2,9 +2,8 @@ import { useState } from "react";
 import { GraphDisplay } from "./GraphDisplay";
 import styled from "styled-components";
 import { useRobot } from "../../../store";
-import { Container, ControlsSection } from "../../../styles";
+import { ControlsSection } from "../../../styles";
 import { RobotImporter } from "../../../RobotImporter";
-import { FullscreenButton } from "../../../FullscreenButton";
 
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
 

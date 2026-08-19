@@ -9,7 +9,7 @@ export const getMockRobot = () => {
   const robot: Robot = {
     name: "TestBot",
     escs: {
-      a: {
+      0: {
         name: "Drive",
         timestamps: [2, 4, 6, 8, 10],
 
@@ -23,7 +23,7 @@ export const getMockRobot = () => {
         },
         errors: [],
       },
-      b: {
+      1: {
         name: "Weapon",
         timestamps: [1, 3],
         data: {
@@ -35,8 +35,8 @@ export const getMockRobot = () => {
           input: [0, 0],
         },
         errors: [
-          { errorCode: 1, timestamp: 11 },
-          { errorCode: 2, timestamp: 12 },
+          { errorCode: 1, timestamp: 11, signalStrength: 8 },
+          { errorCode: 2, timestamp: 12, signalStrength: 9 },
         ],
       },
     },
