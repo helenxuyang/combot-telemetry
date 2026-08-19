@@ -2,8 +2,9 @@ import { useState } from "react";
 import { GraphDisplay } from "./GraphDisplay";
 import styled from "styled-components";
 import { useRobot } from "../../../store";
-import { ControlsSection } from "../../../styles";
+import { Container, ControlsSection } from "../../../styles";
 import { RobotImporter } from "../../../RobotImporter";
+import { FullscreenButton } from "../../../FullscreenButton";
 
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
@@ -127,6 +128,7 @@ export const GraphGrid = () => {
       <ControlsSection>
         <RobotImporter />
       </ControlsSection>
+
       <GridHolder>
         {graphConfigs.map((graph, index) => {
           const { id, isFullWidth } = graph;

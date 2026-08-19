@@ -25,9 +25,22 @@ export const RobotImporter = () => {
       (event) => {
         if (robot) {
           const messages = event.payload;
+          const firstTimestamp = messages
+            .filter((message) => "timestamp" in message)
+            .map((message) => message.timestamp)
+            .sort()[0];
+
           let newRobot = structuredClone(robot);
           for (let message of messages) {
-            newRobot = getUpdatedRobot(message, newRobot, {
+            let updatedMessage;
+            if (firstTimestamp && "timestamp" in message) {
+              const shiftedTimestamp = message.timestamp - firstTimestamp;
+              updatedMessage = { ...message, timestamp: shiftedTimestamp };
+            } else {
+              updatedMessage = message;
+            }
+
+            newRobot = getUpdatedRobot(updatedMessage, newRobot, {
               shouldReplace: false,
               shouldCopy: false,
             });

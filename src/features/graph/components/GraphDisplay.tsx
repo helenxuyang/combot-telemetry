@@ -152,7 +152,7 @@ export const GraphDisplay = () => {
             ref={graphRef}
             option={option}
             notMerge={true}
-            style={{ height: "700px", width: "100%" }}
+            style={{ height: "90dvh", width: "100%" }}
           />
         </div>
       )}
