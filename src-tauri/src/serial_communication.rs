@@ -72,6 +72,10 @@ pub async fn read_serial(app: AppHandle, port: String) {
                                     let esc_id = data.esc_id;
                                     last_messages.insert(esc_id, parsed_message.clone());
                                 }
+                                TelemetryMessage::ErrorMessage(data) => {
+                                    let esc_id = data.esc_id;
+                                    last_messages.insert(esc_id, parsed_message.clone());
+                                }
                                 TelemetryMessage::UnknownMessage(_) => {
                                     last_messages.insert(4, parsed_message.clone());
                                     // TODO: do something less cursed

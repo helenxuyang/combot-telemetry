@@ -44,20 +44,13 @@ impl From<ParseIntError> for TelemetryDataParseError {
     }
 }
 
-#[derive(Serialize, Debug, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct TelemetryInput {
-    esc_id: String,
-    timestamp: u64,
-    input: i32,
-}
-
-#[derive(Serialize, Debug, PartialEq)]
+#[derive(Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryError {
-    esc_id: String,
-    timestamp: u64,
+    pub esc_id: u8,
     error_code: u8,
+    timestamp: u32,
+    snr: i8,
 }
 
 #[derive(Serialize, Debug, PartialEq, Clone)]
@@ -72,12 +65,9 @@ pub struct TelemetryUnknown {
 #[serde(tag = "messageType")]
 pub enum TelemetryMessage {
     DataMessage(TelemetryData),
-    // InputMessage(TelemetryInput),
-    // ErrorMessage(TelemetryError),
+    ErrorMessage(TelemetryError),
     UnknownMessage(TelemetryUnknown),
 }
-
-const ERROR_MARKER: &str = "!";
 
 fn parse_esc_id(info_byte: u8) -> u8 {
     return info_byte & 0b11;
@@ -173,7 +163,7 @@ fn validate_checksum(data: &[&str], received_checksum: u8) -> Result<bool, Parse
 0.  Info
       bits 7-4: 0000 (TBD)
       bits 3-2: message type
-      bites 1-0: ESC ID (0-3)
+      bits 1-0: ESC ID (0-3)
 1.  Temperature
 2.  Voltage high byte
 3.  Voltage low byte
@@ -282,22 +272,36 @@ fn validate_message_format(raw_message: &str) -> bool {
 
 // TODO: update later when error format is finalized
 /* ESC error:
-0. ESC ID (a, b, c, d)
-1. "!"
-2. Error code
-3. Timestamp
- */
-// fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, ParseIntError> {
-//     let esc_id = message_components[0].to_string();
-//     let error_code = parse_hex(message_components[2])?;
-//     let timestamp = parse_timestamp(message_components[3])?;
+0.  Info
+      bits 7-4: 0000 (TBD)
+      bits 3-2: message type
+      bits 1-0: ESC ID (0-3)
+1.  Error code
+      1 - UART error
+      2 - Invalid checksum when reading telemetry from ESC
+2-12 Empty
+13. Timestamp byte 3
+14. Timestamp byte 2
+15. Timestamp byte 1
+16. Timestamp byte 0
+17. SNR
 
-//     return Ok(TelemetryError {
-//         esc_id,
-//         timestamp,
-//         error_code,
-//     });
-// }
+
+ */
+fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, ParseIntError> {
+    let info_byte = parse_hex(message_components[0])?;
+    let esc_id = parse_esc_id(info_byte);
+    let error_code = parse_hex(message_components[1])?;
+    let timestamp = parse_timestamp(&message_components[13..=16])?;
+    let snr = parse_snr(message_components[17])?;
+
+    return Ok(TelemetryError {
+        esc_id,
+        error_code,
+        timestamp,
+        snr,
+    });
+}
 
 // fn validate_error_message_format(raw_message: &str) -> bool {
 //     let error_format = format!("^<[abcd] !(?: {HEX_REGEX}){{2}}>$");
@@ -322,23 +326,44 @@ pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
     let message_components: Vec<&str> = innards.split(" ").collect();
 
     let info_byte = parse_hex(message_components[0]);
-    let Ok(byte) = info_byte else {
+    let Ok(parsed_info_byte) = info_byte else {
         return TelemetryMessage::UnknownMessage(TelemetryUnknown {
             raw_message,
             reason: "failed to parse ESC ID".to_string(),
         });
     };
-    let esc_id = parse_esc_id(byte);
-    let esc_config = get_esc_config(&app, esc_id);
+    let message_type = parsed_info_byte & 0b1100 >> 2;
 
-    let telemetry_data = parse_data_message(message_components, esc_config);
-    return match telemetry_data {
-        Ok(telem_data) => TelemetryMessage::DataMessage(telem_data),
-        Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
-            raw_message,
-            reason: "failed to parse data message".to_string(),
-        }),
-    };
+    /*
+    message types
+    00 - normal message
+    01 - only telemetry
+    10 - only input
+    11 - error
+    */
+    if message_type == 0b11 {
+        let telemetry_error = parse_error_message(message_components);
+        return match telemetry_error {
+            Ok(parsed_error) => TelemetryMessage::ErrorMessage(parsed_error),
+            Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
+                raw_message,
+                reason: "failed to parse error message".to_string(),
+            }),
+        };
+    } else {
+        // TODO: handle only telem/only input
+
+        let esc_id = parse_esc_id(parsed_info_byte);
+        let esc_config = get_esc_config(&app, esc_id);
+        let telemetry_data = parse_data_message(message_components, esc_config);
+        return match telemetry_data {
+            Ok(parsed_data) => TelemetryMessage::DataMessage(parsed_data),
+            Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
+                raw_message,
+                reason: "failed to parse data message".to_string(),
+            }),
+        };
+    }
 }
 
 #[cfg(test)]

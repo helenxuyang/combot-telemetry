@@ -18,6 +18,7 @@ export type EscErrorMessage = {
   escId: EscId;
   errorCode: number;
   timestamp: number;
+  snr: number;
 };
 
 export type UnknownMessage = {
@@ -64,9 +65,9 @@ export const getUpdatedRobot = (
   }
 
   if (messageType === "errorMessage") {
-    const { errorCode } = message;
+    const { errorCode, snr } = message;
 
-    esc.errors.push({ errorCode, timestamp });
+    esc.errors.push({ errorCode, timestamp, signalStrength: snr });
     return newRobot;
   }
 

@@ -29,6 +29,7 @@ export const convertStrToEscId = (str: string): str is EscId => {
 type EscError = {
   timestamp: number;
   errorCode: number;
+  signalStrength: number;
 };
 
 export const TEMPERATURE = "temperature" as const;
