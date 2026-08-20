@@ -12,7 +12,7 @@ export const getColor = (value: number, colorIndicators: ColorIndicator[]) => {
 
   // TODO: this is cursed, rethink this
   colorIndicators
-    .sort((a, b) => b.threshold - a.threshold)
+    .toSorted((a, b) => b.threshold - a.threshold)
     .filter((indicator) => indicator.condition === "below")
     .forEach((indicator) => {
       if (value <= indicator.threshold) {
@@ -21,7 +21,7 @@ export const getColor = (value: number, colorIndicators: ColorIndicator[]) => {
     });
 
   colorIndicators
-    .sort((a, b) => a.threshold - b.threshold)
+    .toSorted((a, b) => a.threshold - b.threshold)
     .filter((indicator) => indicator.condition === "above")
     .forEach((indicator) => {
       if (value >= indicator.threshold) {

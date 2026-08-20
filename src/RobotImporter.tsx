@@ -30,7 +30,7 @@ export const RobotImporter = () => {
           const firstTimestamp = messages
             .filter((message) => "timestamp" in message)
             .map((message) => message.timestamp)
-            .sort()[0];
+            .sort((a, b) => a - b)[0];
 
           let newRobot = structuredClone(robot);
           for (let message of messages) {
