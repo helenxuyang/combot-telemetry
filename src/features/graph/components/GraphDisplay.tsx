@@ -31,6 +31,8 @@ export const GraphDisplay = () => {
   const robot = useRobot();
   const config = useRobotConfig();
 
+  const [zoomRange, setZoomRange] = useState<number>(100);
+
   const graphRef = useRef<ReactECharts>(null);
 
   if (!robot || !config) {
@@ -50,7 +52,7 @@ export const GraphDisplay = () => {
     },
   ]);
 
-  const { xAxis, yAxis, series } = getPlotData(robot, config, plots);
+  const { xAxis, yAxis, series } = getPlotData(robot, config, plots, zoomRange);
 
   const option = {
     xAxis,
@@ -73,9 +75,10 @@ export const GraphDisplay = () => {
           return;
         }
         const plot = parsePlot(params.seriesId);
+        const escName = params.seriesName.split(" ")[0];
         const timestamp = params.value[0];
         const value = params.value[1];
-        return getLabel(plot, timestamp, value);
+        return getLabel(plot, timestamp, value, escName);
       },
       textStyle: {
         fontSize: 10,
@@ -106,7 +109,32 @@ export const GraphDisplay = () => {
     animation: false,
   };
 
-  console.log(option);
+  console.log({ option, zoomRange });
+
+  const dataZoom = (params: any) => {
+    console.log(params);
+    if ("batch" in params) {
+      for (const zoom of params.batch) {
+        // scroll zoom - gives percent
+        if (zoom.dataZoomId.includes("series")) {
+          setZoomRange(zoom.end - zoom.start);
+        }
+        // rectangle zoom - gives absolute values for all axes
+        else if (zoom.dataZoomId.includes("toolbox")) {
+        }
+      }
+    }
+    // slider zoom - gives percent
+    else {
+      if (params.dataZoomId.includes("series")) {
+        if (params.end - params.start) {
+          setZoomRange(params.end - params.start);
+        }
+      }
+    }
+  };
+
+  const onEvents = { dataZoom };
 
   return (
     <div>
@@ -126,6 +154,7 @@ export const GraphDisplay = () => {
                     name={
                       plot.type === "data" ? plot.measurementName : plot.type
                     }
+                    escId={escId}
                     isSelected={isSelected}
                     onClick={() => {
                       if (isSelected) {
@@ -151,7 +180,9 @@ export const GraphDisplay = () => {
           <ReactECharts
             ref={graphRef}
             option={option}
-            notMerge={true}
+            onEvents={onEvents}
+            replaceMerge={["series", "xAxis", "yAxis"]}
+            lazyUpdate={true}
             style={{ height: "90dvh", width: "100%" }}
           />
         </div>

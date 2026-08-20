@@ -1,9 +1,10 @@
 import styled from "styled-components";
 import { getSeriesColor } from "./features/graph/graphUtils";
-import { ERROR, MeasurementName } from "./robot";
+import { ERROR, EscId, MeasurementName } from "./robot";
 
 type Props = {
   name: MeasurementName | typeof ERROR;
+  escId: EscId;
   isSelected: boolean;
   onClick: () => void;
 };
@@ -18,8 +19,8 @@ const StyledPill = styled.button<{ $isSelected: boolean; $color?: string }>`
   }};
 `;
 
-export const PlotPill = ({ name, isSelected, onClick }: Props) => {
-  const color = getSeriesColor(name);
+export const PlotPill = ({ name, escId, isSelected, onClick }: Props) => {
+  const color = getSeriesColor(name, escId);
   return (
     <StyledPill onClick={onClick} $isSelected={isSelected} $color={color}>
       {name}

@@ -47,25 +47,38 @@ export const parsePlot = (id: string): Plot => {
   }
 };
 
+type Color = { h: number; s: number; l: number };
+
 export const getSeriesColor = (
   measurementName: MeasurementName | typeof ERROR,
+  escId: EscId,
 ) => {
-  switch (measurementName) {
-    case "temperature":
-      return "darkred";
-    case "rpm":
-      return "darkorange";
-    case "voltage":
-      return "goldenrod";
-    case "current":
-      return "darkgreen";
-    case "consumption":
-      return "blue";
-    case "input":
-      return "gray";
-    default:
-      return "black";
-  }
+  const baseColors: Record<MeasurementName | typeof ERROR, Color> = {
+    temperature: { h: 0, s: 100, l: 30 }, // red
+    rpm: { h: 33, s: 100, l: 50 }, // orange
+    voltage: { h: 45, s: 100, l: 50 }, // gold
+    current: { h: 120, s: 100, l: 30 }, // green
+    consumption: { h: 240, s: 100, l: 40 }, // blue
+    input: { h: 0, s: 0, l: 50 }, // gray
+    error: { h: 0, s: 0, l: 0 }, // black
+  };
+
+  const color = baseColors[measurementName];
+  const lightness = color.l + 15 * Number(escId);
+  return `hsl(${color.h}, ${color.s}%, ${lightness}%)`;
+};
+
+export const getSeriesSymbol = (escId: EscId, zoomRange: number) => {
+  const symbols = ["circle", "triangle", "diamond", "rect"];
+  const sizes = [5, 7, 10, 5];
+  const index = Number(escId);
+  const baseSize = sizes[index];
+  const minSize = baseSize;
+  const maxSize = baseSize * 1.75;
+  return {
+    symbol: symbols[index],
+    symbolSize: Math.max(minSize, Math.min(baseSize / zoomRange, maxSize)),
+  };
 };
 
 export const getSeriesData = (timestamps: number[], values: number[]) => {
@@ -76,21 +89,28 @@ export const getSeriesConfig = (
   escId: EscId,
   escName: string,
   plotName: MeasurementName,
+  zoomRange: number,
 ) => {
+  const { symbol, symbolSize } = getSeriesSymbol(escId, zoomRange);
   return {
     id: `${escId}-${plotName}`,
     name: `${escName} ${plotName}`,
     type: "line",
     showSymbol: true,
-    symbolSize: 2,
+    symbol,
+    symbolSize,
     itemStyle: {
-      color: getSeriesColor(plotName),
+      color: getSeriesColor(plotName, escId),
     },
     // sampling: "lttb",
   };
 };
 
-export const getDataSeries = (robot: Robot, plot: DataPlot) => {
+export const getDataSeries = (
+  robot: Robot,
+  plot: DataPlot,
+  zoomRange: number,
+) => {
   const { escId, measurementName } = plot;
   const esc = robot.escs[escId];
   if (!esc) {
@@ -102,7 +122,7 @@ export const getDataSeries = (robot: Robot, plot: DataPlot) => {
 
   return {
     data: seriesData,
-    ...getSeriesConfig(escId, esc.name, measurementName),
+    ...getSeriesConfig(escId, esc.name, measurementName, zoomRange),
   };
 };
 
@@ -195,11 +215,12 @@ export const getPlotData = (
   robot: Robot,
   config: RobotConfig,
   plots: Plot[],
+  zoomRange: number,
 ) => {
   const series = plots.map((plot) => {
     switch (plot.type) {
       case "data":
-        return getDataSeries(robot, plot);
+        return getDataSeries(robot, plot, zoomRange);
       case "error":
         return getErrorSeries(robot, plot);
       default:
@@ -223,7 +244,12 @@ export const getPlotData = (
   };
 };
 
-export const getLabel = (plot: Plot, timestamp: number, value: number) => {
+export const getLabel = (
+  plot: Plot,
+  timestamp: number,
+  value: number,
+  escName: string,
+) => {
   const formattedTimestamp = `(${timestamp / 1000} sec)`;
   let labelEntries: string[] = [String(value)];
   switch (plot.type) {
@@ -236,6 +262,7 @@ export const getLabel = (plot: Plot, timestamp: number, value: number) => {
       return null;
   }
   labelEntries.push(formattedTimestamp);
+  labelEntries.push(`[${escName}]`);
   return labelEntries.join(" ");
 };
 
