@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useMessageHandler } from "./useMessageHandler";
 import { ButtonsHolder } from "../../../styles";
+import styled from "styled-components";
 
 const GET_SERIAL_PORTS = "get_serial_ports";
 const READ_SERIAL_COMMAND = "read_serial";
@@ -16,16 +17,21 @@ const getPortDisplayName = (port: PortInfo) => {
   return `${port.name}: ${port.product}`;
 };
 
+const RefreshButton = styled.button`
+  margin-top: 4px;
+`;
+
 export const SerialConnector = () => {
   const [allPorts, setAllPorts] = useState<PortInfo[]>([]);
   const [port, setPort] = useState<PortInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const getAllPorts = async () => {
+    const ports = await invoke<PortInfo[]>(GET_SERIAL_PORTS);
+    setAllPorts(ports);
+  };
+
   useEffect(() => {
-    const getAllPorts = async () => {
-      const ports = await invoke<PortInfo[]>(GET_SERIAL_PORTS);
-      setAllPorts(ports);
-    };
     getAllPorts();
   }, []);
 
@@ -68,6 +74,7 @@ export const SerialConnector = () => {
               </button>
             ))}
           </ButtonsHolder>
+          <RefreshButton onClick={getAllPorts}>Refresh</RefreshButton>
         </div>
       )}
       {error && <p>Error: {error}</p>}
