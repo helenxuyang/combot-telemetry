@@ -32,8 +32,10 @@ const Canvas = styled.canvas`
   display: block;
 `;
 
-const width = 300;
-const height = width / 2 + 50;
+// TODO: fix super fragile sizing
+const width = 280;
+const height = width * 0.75;
+const innerValueY = 180;
 
 const outerStrokeWidth = 50;
 const outerRadius = width / 2 - outerStrokeWidth / 2;
@@ -210,7 +212,7 @@ export const ArcDisplay = ({
         innerMax,
       ),
       centerX,
-      canvasHeight - 10,
+      innerValueY,
     );
   }, [
     innerName,

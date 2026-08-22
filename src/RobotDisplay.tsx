@@ -1,11 +1,12 @@
 import { ConsumptionDonut } from "./features/live/components/ConsumptionDonut";
 import { calculateTotal, getLatestValue } from "./dataUtils";
 import { BarDisplay } from "./features/live/components/BarDisplay";
-import { CONSUMPTION, CURRENT, ESC, EscId, VOLTAGE } from "./robot";
+import { CURRENT, ESC, EscId, VOLTAGE } from "./robot";
 import {
   BACKGROUND,
   ControlsGrid,
   ControlsSection,
+  ESC_COLORS,
   SMALL_VIEWPORT,
 } from "./styles";
 import { VoltageDisplay } from "./features/live/components/VoltageDisplay";
@@ -153,6 +154,7 @@ export const RobotDisplay = () => {
               key={esc.name}
               esc={esc}
               config={config.escConfigs[id]}
+              accentColor={ESC_COLORS[Number(id)]}
             />
           ))}
         </ESCGrid>

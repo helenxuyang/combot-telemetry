@@ -4,6 +4,7 @@ export const MEDIUM_VIEWPORT = 800;
 export const SMALL_VIEWPORT = 600;
 
 export const BACKGROUND = "#ddd";
+export const ESC_COLORS = ["#3852B4", "#5E7AC4", "#F08D39", "#F3BE7A"];
 
 export const Container = styled.div`
   background-color: ${BACKGROUND};

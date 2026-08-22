@@ -32,13 +32,14 @@ const useMediaQuery = (query: string) => {
   return matches;
 };
 
-const DisplayHolder = styled(Container)`
+const DisplayHolder = styled(Container)<{ $accentColor?: string }>`
   display: flex;
   flex: 1;
   flex-direction: column;
   justify-content: start;
   align-items: center;
   position: relative;
+  ${(props) => props.$accentColor && `border: 4px solid ${props.$accentColor}`};
 `;
 
 const DisplayLayout = styled.div`
@@ -46,7 +47,6 @@ const DisplayLayout = styled.div`
   flex-direction: row;
   justify-content: space-between;
   align-items: end;
-  gap: 4px;
 
   @media (max-width: ${MEDIUM_VIEWPORT}px) {
     display: grid;
@@ -61,23 +61,23 @@ const DisplayLayout = styled.div`
 
 const TemperatureDisplay = styled(MeasurementBarDisplay)`
   grid-area: temp;
-  ${Container} {
-    background-color: unset;
-  }
 `;
 const RPMCurrentDisplay = styled(MeasurementArcDisplay)`
   grid-area: arc;
 `;
 
-const InputDisplay = styled(BarDisplay)`
+const InputDisplay = styled(MeasurementBarDisplay)`
   grid-area: input;
-  ${Container} {
-    background-color: unset;
-  }
 `;
-type Props = { esc: ESC; config?: EscConfig; className?: string };
 
-export const ESCDisplay = ({ esc, config, className }: Props) => {
+type Props = {
+  esc: ESC;
+  config?: EscConfig;
+  accentColor?: string;
+  className?: string;
+};
+
+export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
   const isMobileViewport = useMediaQuery(`(max-width: ${MEDIUM_VIEWPORT}px)`);
   const barOrientation = isMobileViewport ? "horizontal" : "vertical";
 
@@ -98,8 +98,24 @@ export const ESCDisplay = ({ esc, config, className }: Props) => {
   const { measurement: inputs, config: inputsConfig } =
     getMeasurementData(INPUT);
 
+  // keeps the display symmetrical
+  const largerMinimumCharacters = Math.max(
+    getDisplayMinCharacters(
+      temperatureConfig.min,
+      temperatureConfig.max,
+      METADATA[TEMPERATURE].decimals,
+      METADATA[TEMPERATURE].unit,
+    ),
+    getDisplayMinCharacters(
+      inputsConfig.min,
+      inputsConfig.max,
+      METADATA[INPUT].decimals,
+      METADATA[INPUT].unit,
+    ),
+  );
+
   return (
-    <DisplayHolder className={className}>
+    <DisplayHolder className={className} $accentColor={accentColor}>
       <h3>{esc.name}</h3>
       <DisplayLayout>
         {temperatureConfig.shouldShow && (
@@ -108,6 +124,7 @@ export const ESCDisplay = ({ esc, config, className }: Props) => {
             values={temperature}
             config={temperatureConfig}
             orientation={barOrientation}
+            minimumCharacters={largerMinimumCharacters}
           />
         )}
         {rpmConfig.shouldShow && currentConfig.shouldShow && (
@@ -123,19 +140,11 @@ export const ESCDisplay = ({ esc, config, className }: Props) => {
 
         {inputsConfig.shouldShow && (
           <InputDisplay
-            name={METADATA[INPUT].displayName}
-            value={getLatestValue(inputs)}
-            unit={METADATA[INPUT].unit}
-            min={inputsConfig.min}
-            max={inputsConfig.max}
-            colorIndicators={inputsConfig.colorIndicators}
+            name={INPUT}
+            values={inputs}
+            config={inputsConfig}
             orientation={barOrientation}
-            valueMinCharacters={getDisplayMinCharacters(
-              inputsConfig.min,
-              inputsConfig.max,
-              METADATA[INPUT].decimals,
-              METADATA[INPUT].unit,
-            )}
+            minimumCharacters={largerMinimumCharacters}
           />
         )}
       </DisplayLayout>

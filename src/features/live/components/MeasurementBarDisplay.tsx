@@ -10,22 +10,21 @@ type Props = {
   config: MeasurementConfig;
   className?: string;
   orientation?: "vertical" | "horizontal";
+  minimumCharacters?: number;
 };
 
 export const MeasurementBarDisplay = ({
   name,
   values,
   config,
+  minimumCharacters,
   ...rest
 }: Props) => {
   const { displayName, unit, decimals } = METADATA[name];
   // prevent flickering when length changes
-  const minCharacters = getDisplayMinCharacters(
-    config.min,
-    config.max,
-    decimals,
-    unit,
-  );
+  const minCharacters =
+    minimumCharacters ??
+    getDisplayMinCharacters(config.min, config.max, decimals, unit);
 
   return (
     <BarDisplay

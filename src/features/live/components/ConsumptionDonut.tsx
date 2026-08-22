@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { CONSUMPTION, ESC } from "../../../robot";
 import { useLayoutEffect, useRef, type ReactNode } from "react";
-import { Container } from "../../../styles";
+import { Container, ESC_COLORS } from "../../../styles";
 import { calculateTotal, getLatestValue } from "../../../dataUtils";
 import { useRobotConfig } from "../../../store";
 
@@ -48,7 +48,6 @@ type Props = {
 
 const svgSize = 150;
 const radius = svgSize / 3;
-const colors = ["cornflowerblue", "blue", "orange"];
 
 export const ConsumptionDonut = ({ escs }: Props) => {
   let consumptions: Record<string, number> = {};
@@ -121,7 +120,7 @@ export const ConsumptionDonut = ({ escs }: Props) => {
       const value = consumptions[esc];
       const percent =
         totalConsumption > 0 ? (value / totalConsumption) * 100 : 0;
-      const color = colors[index];
+      const color = ESC_COLORS[index];
 
       if (value > 0) {
         const sliceAngle = (percent / 100) * 2 * Math.PI;
