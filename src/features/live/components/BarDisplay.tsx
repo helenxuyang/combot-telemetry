@@ -10,6 +10,7 @@ import { ColorIndicator } from "../../configuration/configUtils";
 
 type Props = {
   name: string;
+  headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
   value: number;
   unit: string;
   min: number;
@@ -19,10 +20,6 @@ type Props = {
   orientation?: "vertical" | "horizontal";
   valueMinCharacters?: number;
 };
-
-const Label = styled.h4`
-  text-wrap: wrap;
-`;
 
 const BarDisplayWrapper = styled.div<{
   $orientation: "vertical" | "horizontal";
@@ -57,6 +54,7 @@ const RangeText = styled.p`
 
 export const BarDisplay = ({
   name,
+  headingLevel = 4,
   value,
   unit,
   min,
@@ -69,10 +67,12 @@ export const BarDisplay = ({
   const percent = getClampedPercent(value, min, max);
   const barColor = getColor(value, colorIndicators);
 
+  const Heading = `h${headingLevel}` as const;
+
   return (
     <div className={className}>
       <Container>
-        <Label>{name}</Label>
+        <Heading>{name}</Heading>
         <BarDisplayWrapper $orientation={orientation}>
           {orientation === "vertical" ? (
             <>

@@ -3,6 +3,7 @@ import { CONSUMPTION, ESC } from "../../../robot";
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { Container } from "../../../styles";
 import { calculateTotal, getLatestValue } from "../../../dataUtils";
+import { useRobotConfig } from "../../../store";
 
 const StyledContainer = styled.div`
   position: relative;
@@ -54,8 +55,12 @@ export const ConsumptionDonut = ({ escs }: Props) => {
   escs.forEach((esc) => {
     consumptions[esc.name] = getLatestValue(esc.data[CONSUMPTION]);
   });
+  const config = useRobotConfig();
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const totalConsumption = calculateTotal(Object.values(consumptions));
+  const maxConsumption =
+    config?.escConfigs[0]?.measurementConfigs[CONSUMPTION].max ?? 0;
 
   // create labels
   // TODO: maybe do on canvas
@@ -140,7 +145,9 @@ export const ConsumptionDonut = ({ escs }: Props) => {
         <CanvasWrapper>
           <Canvas ref={canvasRef} width={svgSize} height={svgSize} />
           <TotalLabel>
-            <p>{totalConsumption}</p>
+            <p>
+              {totalConsumption}/{maxConsumption}
+            </p>
             <p>mAh</p>
           </TotalLabel>
           {labels}

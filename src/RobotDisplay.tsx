@@ -85,7 +85,6 @@ const FlexBar = styled(BarDisplay)`
 `;
 
 const TOTAL_CURRENT = "Total Current";
-const TOTAL_CONSUMPTION = "Total Consumption";
 
 export const RobotDisplay = () => {
   const robot = useRobot();
@@ -114,9 +113,6 @@ export const RobotDisplay = () => {
   const totalCurrent = calculateTotal(
     escs.map((esc) => getLatestValue(esc.data[CURRENT])),
   );
-  const totalConsumption = calculateTotal(
-    escs.map((esc) => getLatestValue(esc.data[CONSUMPTION])),
-  );
 
   return (
     <Layout>
@@ -134,13 +130,7 @@ export const RobotDisplay = () => {
                 unit={METADATA[CURRENT].unit}
                 {...referenceConfig.measurementConfigs[CURRENT]}
                 orientation="horizontal"
-              />
-              <FlexBar
-                name={TOTAL_CONSUMPTION}
-                value={totalConsumption}
-                unit={METADATA[CONSUMPTION].unit}
-                {...referenceConfig.measurementConfigs[CONSUMPTION]}
-                orientation="horizontal"
+                headingLevel={3}
               />
             </HorizontalBarsHolder>
           </BarsHolder>
