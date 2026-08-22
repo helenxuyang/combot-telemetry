@@ -4,17 +4,19 @@ import {
   initializeStorage,
   tauriFetchConfig,
 } from "./storageUtils";
-import { useSetRobot } from "./store";
+import { useSetRobot, useSetRobotConfig } from "./store";
 import { initRobotFromConfig } from "./features/configuration/configUtils";
 
 export const useInitializer = () => {
   const setRobot = useSetRobot();
+  const setRobotConfig = useSetRobotConfig();
 
   useEffect(() => {
     const initialize = async () => {
       await initializeStorage();
       const config = await getCurrentConfig();
       if (config) {
+        setRobotConfig(config);
         await tauriFetchConfig();
         setRobot(initRobotFromConfig(config));
       } else {
