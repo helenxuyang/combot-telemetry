@@ -149,9 +149,9 @@ export const RobotDisplay = () => {
           </LayoutColumn>
           <LayoutColumn>
             <SignalStrengthDisplay
-              signalStrength={getLatestValue(
-                robot.signalStrengths.map((strength) => strength.value),
-              )}
+              signalStrength={robot.signalStrengths
+                .map((strength) => strength.value)
+                .at(-1)}
             />
           </LayoutColumn>
         </RobotLayout>
