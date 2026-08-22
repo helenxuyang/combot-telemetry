@@ -181,8 +181,7 @@ export const GraphDisplay = () => {
             ref={graphRef}
             option={option}
             onEvents={onEvents}
-            replaceMerge={["series", "xAxis", "yAxis"]}
-            lazyUpdate={true}
+            notMerge={true}
             style={{ height: "90dvh", width: "100%" }}
           />
         </div>
