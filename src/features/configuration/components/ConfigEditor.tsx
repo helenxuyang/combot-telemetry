@@ -16,7 +16,7 @@ import {
 } from "../../../store";
 import styled from "styled-components";
 import { EscConfigEditor } from "./EscConfigEditor";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ButtonsHolder, SMALL_VIEWPORT, SpacedRow } from "../../../styles";
 import type { Draft } from "immer";
 import { TextInput } from "./inputStyles";

@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import {
   useIsEditing,
-  useRobot,
   useRobotConfig,
   useSetIsEditing,
   useSetRobot,
-  useSetRobotConfig,
 } from "../../../store";
 import { ConfigEditor } from "./ConfigEditor";
 import styled from "styled-components";
