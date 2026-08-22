@@ -52,7 +52,7 @@ const radius = svgSize / 3;
 export const ConsumptionDonut = ({ escs }: Props) => {
   let consumptions: Record<string, number> = {};
   escs.forEach((esc) => {
-    consumptions[esc.name] = getLatestValue(esc.data[CONSUMPTION]);
+    consumptions[esc.name] = getLatestValue(esc.data[CONSUMPTION], 1);
   });
   const config = useRobotConfig();
 
@@ -139,7 +139,7 @@ export const ConsumptionDonut = ({ escs }: Props) => {
 
   return (
     <Container>
-      <h3>Consumption</h3>
+      <h2>Consumption</h2>
       <StyledContainer>
         <CanvasWrapper>
           <Canvas ref={canvasRef} width={svgSize} height={svgSize} />

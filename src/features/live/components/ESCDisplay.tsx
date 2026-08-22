@@ -7,12 +7,11 @@ import {
   TEMPERATURE,
   type ESC,
 } from "../../../robot";
-import { BarDisplay } from "./BarDisplay";
 import { Container, MEDIUM_VIEWPORT, SMALL_VIEWPORT } from "../../../styles";
 import { ErrorDisplay } from "./ErrorDisplay";
 import { useEffect, useState } from "react";
 import { METADATA } from "../../../displayUtils";
-import { getDisplayMinCharacters, getLatestValue } from "../../../dataUtils";
+import { getDisplayMinCharacters } from "../../../dataUtils";
 import { MeasurementBarDisplay } from "./MeasurementBarDisplay";
 import { EscConfig } from "../../configuration/configUtils";
 import { MeasurementArcDisplay } from "./MeasurementArcDisplay";
@@ -40,6 +39,7 @@ const DisplayHolder = styled(Container)<{ $accentColor?: string }>`
   align-items: center;
   position: relative;
   ${(props) => props.$accentColor && `border: 4px solid ${props.$accentColor}`};
+  padding: 8px;
 `;
 
 const DisplayLayout = styled.div`
@@ -116,7 +116,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
 
   return (
     <DisplayHolder className={className} $accentColor={accentColor}>
-      <h3>{esc.name}</h3>
+      <h2>{esc.name}</h2>
       <DisplayLayout>
         {temperatureConfig.shouldShow && (
           <TemperatureDisplay

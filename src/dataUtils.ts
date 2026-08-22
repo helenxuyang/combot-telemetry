@@ -37,8 +37,8 @@ export const getClampedPercent = (value: number, min: number, max: number) => {
   return Math.round(Math.max(Math.min(percent, 100), 0));
 };
 
-export const getLatestValue = (values: number[]) => {
-  return values.at(-1) ?? 0;
+export const getLatestValue = (values: number[], defaultValue?: number) => {
+  return values.at(-1) ?? (defaultValue !== undefined ? defaultValue : 0);
 };
 
 export const getLatestValueDisplay = (

@@ -6,6 +6,7 @@ import { useRobotConfig } from "./store";
 import { RobotDisplay } from "./RobotDisplay";
 import { GraphGrid } from "./features/graph/components/GraphGrid";
 import { useInitializer } from "./useInitializer";
+import { SignalStrengthDisplay } from "./features/live/components/SignalStrengthDisplay";
 
 const Layout = styled.div`
   display: flex;
@@ -16,8 +17,8 @@ const Layout = styled.div`
 
 const HeaderHolder = styled.div`
   display: flex;
-
   justify-content: space-between;
+  align-items: end;
 `;
 
 export const DashboardDisplay = () => {
@@ -45,7 +46,10 @@ export const DashboardDisplay = () => {
 
   return (
     <Layout>
-      <HeaderHolder>{config && <h1>{config.name}</h1>}</HeaderHolder>
+      <HeaderHolder>
+        {config && <h1>{config.name}</h1>}
+        <SignalStrengthDisplay />
+      </HeaderHolder>
       <NavigationTabs tabs={tabs} />
     </Layout>
   );

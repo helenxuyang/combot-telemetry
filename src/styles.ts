@@ -3,13 +3,24 @@ import styled, { css } from "styled-components";
 export const MEDIUM_VIEWPORT = 800;
 export const SMALL_VIEWPORT = 600;
 
-export const BACKGROUND = "#ddd";
+export const BACKGROUND = "#ccc";
 export const ESC_COLORS = ["#3852B4", "#5E7AC4", "#F08D39", "#F3BE7A"];
 
 export const Container = styled.div`
   background-color: ${BACKGROUND};
-  padding: 8px;
+  padding: 4px;
   color: black;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+`;
+
+export const HorizontalContainer = styled(Container)`
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
 `;
 
 export const Value = styled.p<{ $valueMinCharacters?: number }>`
@@ -82,7 +93,6 @@ export const ControlsSection = styled.div`
   gap: 8px;
   border: 3px solid black;
   padding: 16px;
-  flex: 1;
 `;
 
 export const Table = styled.table`

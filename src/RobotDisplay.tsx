@@ -2,13 +2,7 @@ import { ConsumptionDonut } from "./features/live/components/ConsumptionDonut";
 import { calculateTotal, getLatestValue } from "./dataUtils";
 import { BarDisplay } from "./features/live/components/BarDisplay";
 import { CURRENT, ESC, EscId, VOLTAGE } from "./robot";
-import {
-  BACKGROUND,
-  ControlsGrid,
-  ControlsSection,
-  ESC_COLORS,
-  SMALL_VIEWPORT,
-} from "./styles";
+import { ESC_COLORS } from "./styles";
 import { VoltageDisplay } from "./features/live/components/VoltageDisplay";
 import styled from "styled-components";
 import { ESCDisplay } from "./features/live/components/ESCDisplay";
@@ -16,10 +10,32 @@ import { useRobot, useRobotConfig } from "./store";
 import { METADATA } from "./displayUtils";
 import { SerialConnector } from "./features/live/components/SerialConnector";
 import { UnknownMessagesDisplay } from "./features/live/components/UnknownMessagesDisplay";
-import { SignalStrengthDisplay } from "./features/live/components/SignalStrengthDisplay";
 
-const ESCSection = styled.div`
-  flex: 4;
+const DisplayHolder = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const Layout = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+`;
+
+const Column = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  gap: 8px;
+  min-width: 300px;
+`;
+
+const Row = styled.div`
+  display: flex;
+  gap: 8px;
+  height: 40px;
 `;
 
 const ESCGrid = styled.div`
@@ -27,65 +43,6 @@ const ESCGrid = styled.div`
   flex-wrap: wrap;
   gap: 8px;
 `;
-
-const RobotSection = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-`;
-
-const RobotLayout = styled.div`
-  display: flex;
-
-  > * {
-    width: 100%;
-  }
-
-  @media (max-width: ${SMALL_VIEWPORT}px) {
-    flex-direction: column;
-    > * {
-      width: auto;
-    }
-  }
-`;
-
-const Layout = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-`;
-
-const LayoutColumn = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: ${BACKGROUND};
-`;
-
-const BarsHolder = styled.div`
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-`;
-
-const HorizontalBarsHolder = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  gap: 8px;
-  background: ${BACKGROUND};
-
-  @media (max-width: ${SMALL_VIEWPORT}px) {
-    flex-direction: column;
-  }
-`;
-
-const FlexBar = styled(BarDisplay)`
-  flex: 1;
-`;
-
-const TOTAL_CURRENT = "Total Current";
 
 export const RobotDisplay = () => {
   const robot = useRobot();
@@ -116,57 +73,40 @@ export const RobotDisplay = () => {
   );
 
   return (
-    <Layout>
-      <RobotSection>
-        <RobotLayout>
-          <BarsHolder>
-            <VoltageDisplay
-              escs={escs}
-              {...referenceConfig.measurementConfigs[VOLTAGE]}
-            />
-            <HorizontalBarsHolder>
-              <FlexBar
-                name={TOTAL_CURRENT}
-                value={totalCurrent}
-                unit={METADATA[CURRENT].unit}
-                {...referenceConfig.measurementConfigs[CURRENT]}
-                orientation="horizontal"
-                headingLevel={3}
+    <DisplayHolder>
+      <Layout>
+        <div>
+          <ESCGrid>
+            {(Object.entries(robot.escs) as [EscId, ESC][]).map(([id, esc]) => (
+              <ESCDisplay
+                key={esc.name}
+                esc={esc}
+                config={config.escConfigs[id]}
+                accentColor={ESC_COLORS[Number(id)]}
               />
-            </HorizontalBarsHolder>
-          </BarsHolder>
-          <LayoutColumn>
-            <ConsumptionDonut escs={escs} />
-          </LayoutColumn>
-          <LayoutColumn>
-            <SignalStrengthDisplay
-              signalStrength={robot.signalStrengths
-                .map((strength) => strength.value)
-                .at(-1)}
-            />
-          </LayoutColumn>
-        </RobotLayout>
-      </RobotSection>
-      <ESCSection>
-        <ESCGrid>
-          {(Object.entries(robot.escs) as [EscId, ESC][]).map(([id, esc]) => (
-            <ESCDisplay
-              key={esc.name}
-              esc={esc}
-              config={config.escConfigs[id]}
-              accentColor={ESC_COLORS[Number(id)]}
-            />
-          ))}
-        </ESCGrid>
-      </ESCSection>
-      <ControlsGrid>
-        <ControlsSection>
-          <SerialConnector />
-        </ControlsSection>
-        <ControlsSection>
-          <UnknownMessagesDisplay />
-        </ControlsSection>
-      </ControlsGrid>
-    </Layout>
+            ))}
+          </ESCGrid>
+        </div>
+        <Column>
+          <VoltageDisplay
+            escs={escs}
+            {...referenceConfig.measurementConfigs[VOLTAGE]}
+          />
+          <BarDisplay
+            name="Total Current"
+            value={totalCurrent}
+            unit={METADATA[CURRENT].unit}
+            {...referenceConfig.measurementConfigs[CURRENT]}
+            orientation="horizontal"
+            headingLevel={2}
+          />
+          <ConsumptionDonut escs={escs} />
+        </Column>
+      </Layout>
+      <Row>
+        <SerialConnector />
+        <UnknownMessagesDisplay />
+      </Row>
+    </DisplayHolder>
   );
 };

@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useMessageHandler } from "./useMessageHandler";
-import { ButtonsHolder } from "../../../styles";
-import styled from "styled-components";
+import { ButtonsHolder, HorizontalContainer } from "../../../styles";
 
 const GET_SERIAL_PORTS = "get_serial_ports";
 const READ_SERIAL_COMMAND = "read_serial";
@@ -16,10 +15,6 @@ type PortInfo = {
 const getPortDisplayName = (port: PortInfo) => {
   return `${port.name}: ${port.product}`;
 };
-
-const RefreshButton = styled.button`
-  margin-top: 4px;
-`;
 
 export const SerialConnector = () => {
   const [allPorts, setAllPorts] = useState<PortInfo[]>([]);
@@ -55,29 +50,27 @@ export const SerialConnector = () => {
   };
 
   return (
-    <div>
-      <h2>Serial Connection</h2>
+    <HorizontalContainer>
+      <h2>Serial</h2>
 
       {port ? (
         <>
-          <h3>Current Port</h3>
-          <p>{getPortDisplayName(port)}</p>
+          <i>{getPortDisplayName(port)}</i>
           <button onClick={stopListening}>Stop listening</button>
         </>
       ) : (
         <div>
-          <h3>Ports</h3>
           <ButtonsHolder>
             {allPorts?.map((port) => (
               <button onClick={() => startListening(port)}>
                 {getPortDisplayName(port)}
               </button>
             ))}
+            <button onClick={getAllPorts}>Refresh</button>
           </ButtonsHolder>
-          <RefreshButton onClick={getAllPorts}>Refresh</RefreshButton>
         </div>
       )}
       {error && <p>Error: {error}</p>}
-    </div>
+    </HorizontalContainer>
   );
 };

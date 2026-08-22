@@ -23,7 +23,6 @@ const CanvasWrapper = styled.div`
   display: flex;
   justify-content: center;
   width: 100%;
-  max-width: 400px;
 `;
 
 const Canvas = styled.canvas`
@@ -34,14 +33,14 @@ const Canvas = styled.canvas`
 
 // TODO: fix super fragile sizing
 const width = 280;
-const height = width * 0.75;
+const height = 200;
 const innerValueY = 180;
 
 const outerStrokeWidth = 50;
 const outerRadius = width / 2 - outerStrokeWidth / 2;
 const canvasHeight = height;
 
-const innerScale = 0.6;
+const innerScale = 0.5;
 const innerRadius = outerRadius * innerScale;
 
 const centerX = width / 2;

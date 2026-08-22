@@ -1,21 +1,15 @@
 import styled from "styled-components";
-import { Container } from "../../../styles";
+import { useRobot } from "../../../store";
 
-type Props = {
-  signalStrength: number | undefined;
-};
+const barWidth = 6;
+const svgSize = 50;
 
-const StyledValue = styled.p`
-  font-size: 16px;
-  font-weight: bold;
+const DisplayHolder = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 `;
-
-const StyledSvg = styled.svg`
-  margin: 8px;
-`;
-
-const barWidth = 14;
-const svgSize = 100;
 
 const getBars = (thresholds: number[]) => {
   const numBars = thresholds.length;
@@ -29,17 +23,25 @@ const getBars = (thresholds: number[]) => {
   });
 };
 
-export const SignalStrengthDisplay = ({ signalStrength }: Props) => {
+export const SignalStrengthDisplay = () => {
+  const robot = useRobot();
   const bars = getBars([-20, -10, -5, 0]);
+  const signalStrength = robot?.signalStrengths
+    .map((signalStrength) => signalStrength.value)
+    .at(-1);
+
   return (
-    <Container>
-      <h3>Signal Strength</h3>
-      <StyledSvg
+    <DisplayHolder>
+      <svg
         overflow="visible"
         xmlns="http://www.w3.org/2000/svg"
         viewBox={`0 0 ${svgSize} ${svgSize}`}
         width={svgSize}
+        height={svgSize}
       >
+        <text x={5} y={svgSize / 2}>
+          {signalStrength === undefined ? "0" : signalStrength}
+        </text>
         {bars.map((bar) => (
           <rect
             x={bar.x}
@@ -49,16 +51,13 @@ export const SignalStrengthDisplay = ({ signalStrength }: Props) => {
             fill={
               signalStrength !== undefined && signalStrength >= bar.threshold
                 ? "cornflowerblue"
-                : "white"
+                : "#ddd"
             }
             rx={0}
             ry={0}
           />
         ))}
-      </StyledSvg>
-      <StyledValue>
-        {"SNR: " + (signalStrength === undefined ? "none" : signalStrength)}
-      </StyledValue>
-    </Container>
+      </svg>
+    </DisplayHolder>
   );
 };

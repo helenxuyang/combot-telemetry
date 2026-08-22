@@ -26,7 +26,6 @@ const StyledTabButton = styled.button<{ $isCurrent: boolean }>`
   font-size: 16px;
   color: ${(props) => (props.$isCurrent ? "white" : "black")};
   border: 3px solid black;
-  border-bottom: none;
   padding: 4px 16px;
   text-decoration: ${(props) => (props.$isCurrent ? "underline" : "none")};
   cursor: pointer;
@@ -41,8 +40,7 @@ const StyledTabButton = styled.button<{ $isCurrent: boolean }>`
 `;
 
 const StyledTabPanel = styled.div`
-  border: 3px solid black;
-  padding: 8px;
+  padding-top: 8px;
 `;
 
 type Props = {

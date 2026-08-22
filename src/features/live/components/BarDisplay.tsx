@@ -45,7 +45,7 @@ const BarHolder = styled.div<{ $orientation: "vertical" | "horizontal" }>`
   min-width: ${({ $orientation }) =>
     $orientation === "vertical" ? "auto" : "100px"};
   background-color: white;
-  margin: 8px;
+  margin: 4px;
 `;
 
 const RangeText = styled.p`
@@ -70,40 +70,38 @@ export const BarDisplay = ({
   const Heading = `h${headingLevel}` as const;
 
   return (
-    <div className={className}>
-      <Container>
-        <Heading>{name}</Heading>
-        <BarDisplayWrapper $orientation={orientation}>
-          {orientation === "vertical" ? (
-            <>
-              <RangeText>{max}</RangeText>
-              <BarHolder $orientation={orientation}>
-                <CanvasBar
-                  percent={percent}
-                  color={barColor}
-                  orientation={orientation}
-                />
-              </BarHolder>
-              <RangeText>{min}</RangeText>
-            </>
-          ) : (
-            <>
-              <RangeText>{min}</RangeText>
-              <BarHolder $orientation={orientation}>
-                <CanvasBar
-                  percent={percent}
-                  color={barColor}
-                  orientation={orientation}
-                />
-              </BarHolder>
-              <RangeText>{max}</RangeText>
-            </>
-          )}
-        </BarDisplayWrapper>
-        <Value $valueMinCharacters={valueMinCharacters}>
-          {getLatestValueDisplay(value, unit, min, max)}
-        </Value>
-      </Container>
-    </div>
+    <Container className={className}>
+      <Heading>{name}</Heading>
+      <BarDisplayWrapper $orientation={orientation}>
+        {orientation === "vertical" ? (
+          <>
+            <RangeText>{max}</RangeText>
+            <BarHolder $orientation={orientation}>
+              <CanvasBar
+                percent={percent}
+                color={barColor}
+                orientation={orientation}
+              />
+            </BarHolder>
+            <RangeText>{min}</RangeText>
+          </>
+        ) : (
+          <>
+            <RangeText>{min}</RangeText>
+            <BarHolder $orientation={orientation}>
+              <CanvasBar
+                percent={percent}
+                color={barColor}
+                orientation={orientation}
+              />
+            </BarHolder>
+            <RangeText>{max}</RangeText>
+          </>
+        )}
+      </BarDisplayWrapper>
+      <Value $valueMinCharacters={valueMinCharacters}>
+        {getLatestValueDisplay(value, unit, min, max)}
+      </Value>
+    </Container>
   );
 };
