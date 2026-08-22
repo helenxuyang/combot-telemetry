@@ -6,7 +6,7 @@ use tauri::{AppHandle, Manager};
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
-    pub config_name: String,
+    pub config_name: Option<String>,
     pub is_mock_data: bool,
 }
 

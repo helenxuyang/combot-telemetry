@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs};
+use serde::Deserialize;
+use std::{collections::HashMap, fs, path::Path};
 use tauri::{AppHandle, Manager};
 
 use crate::{app_settings::get_settings, telemetry_session::AppState};
@@ -42,14 +42,8 @@ pub struct MotorConfig {
 //     pub should_show: bool,
 // }
 
-#[tauri::command]
-pub fn fetch_current_config(app: AppHandle) -> Result<(), tauri::Error> {
-    let settings = get_settings(&app)?;
-    let config_name = settings.config_name;
-    let local_dir = app.path().app_local_data_dir()?;
-    let config_file_path = local_dir.join(format!("configs/{config_name}.json"));
-    let config_file_contents = fs::read_to_string(config_file_path)?;
-
+fn save_config(app: AppHandle, file_path: &Path) -> Result<(), tauri::Error> {
+    let config_file_contents = fs::read_to_string(file_path)?;
     if let Some(robot_config) = serde_json::from_str(&config_file_contents)? {
         // save to app state
         let state = app.state::<AppState>();
@@ -57,6 +51,17 @@ pub fn fetch_current_config(app: AppHandle) -> Result<(), tauri::Error> {
         if let Ok(mut lock) = robot_config_lock {
             *lock = Some(robot_config);
         }
+    }
+    return Ok(());
+}
+
+#[tauri::command]
+pub fn fetch_current_config(app: AppHandle) -> Result<(), tauri::Error> {
+    let settings = get_settings(&app)?;
+    if let Some(config_name) = settings.config_name {
+        let local_dir = app.path().app_local_data_dir()?;
+        let config_file_path = local_dir.join(format!("configs/{config_name}.json"));
+        return save_config(app, config_file_path.as_path());
     }
     return Ok(());
 }

@@ -21,15 +21,7 @@ import { ButtonsHolder, SMALL_VIEWPORT, SpacedRow } from "../../../styles";
 import type { Draft } from "immer";
 import { TextInput } from "./inputStyles";
 import { confirm } from "@tauri-apps/plugin-dialog";
-import {
-  deleteCurrentConfig,
-  saveConfig,
-  selectConfig,
-} from "../../../storageUtils";
-
-type Props = {
-  initConfig: RobotConfig | null;
-};
+import { useStorageUtils } from "../../../storageUtils";
 
 const Container = styled.div`
   display: flex;
@@ -53,23 +45,32 @@ const EscConfigHolder = styled.div`
   padding: 4px;
 `;
 
-export const ConfigEditor = ({ initConfig }: Props) => {
-  const [configInput, setConfigInput] = useImmer<RobotConfig>(
-    initConfig ?? getNewRobotConfig(),
-  );
-  const [preEditsConfig, setPreEditsConfig] =
-    useState<RobotConfig>(configInput);
-  const isEditing = useIsEditing();
-  const setIsEditing = useSetIsEditing();
+type Props = {
+  isNewConfig: boolean;
+  onDelete: () => Promise<void>;
+};
 
+export const ConfigEditor = ({ isNewConfig, onDelete }: Props) => {
   const setRobot = useSetRobot();
   const config = useRobotConfig();
   const setRobotConfig = useSetRobotConfig();
+  const { saveConfig, selectConfig, deleteCurrentConfig } = useStorageUtils();
+
+  const [configInput, setConfigInput] = useImmer<RobotConfig>(
+    config ?? getNewRobotConfig(),
+  );
+  const isEditing = useIsEditing();
+  const setIsEditing = useSetIsEditing();
+
   const usedEscIds = Object.keys(configInput.escConfigs) as EscId[];
   const canAddEsc = ALL_ESC_IDs.length !== usedEscIds.length;
 
-  // TODO: handle switching configs while editing - maybe show are you sure dialog
-  // might be better to pull configInput and isEditing state up to Display or to store
+  useEffect(() => {
+    setConfigInput(
+      isNewConfig ? getNewRobotConfig() : (config ?? getNewRobotConfig()),
+    );
+  }, [isNewConfig]);
+
   useEffect(() => {
     if (!isEditing && config) {
       setConfigInput(config);
@@ -112,7 +113,6 @@ export const ConfigEditor = ({ initConfig }: Props) => {
   };
 
   const startEditing = async () => {
-    setPreEditsConfig(structuredClone(configInput));
     setIsEditing(true);
   };
 
@@ -123,7 +123,9 @@ export const ConfigEditor = ({ initConfig }: Props) => {
     );
     if (isSure) {
       setIsEditing(false);
-      setConfigInput(preEditsConfig);
+      if (config) {
+        setConfigInput(config);
+      }
     }
   };
 
@@ -136,7 +138,7 @@ export const ConfigEditor = ({ initConfig }: Props) => {
     setRobot(initRobotFromConfig(configInput));
   };
 
-  const deleteConfig = async () => {
+  const handleDelete = async () => {
     if (!config) {
       return;
     }
@@ -145,10 +147,7 @@ export const ConfigEditor = ({ initConfig }: Props) => {
     );
     if (isSure) {
       await deleteCurrentConfig();
-      setRobotConfig(null);
-      setRobotConfig(null);
-      setPreEditsConfig(getNewRobotConfig());
-      setConfigInput(getNewRobotConfig());
+      await onDelete();
     }
   };
 
@@ -178,7 +177,7 @@ export const ConfigEditor = ({ initConfig }: Props) => {
         {!isEditing && (
           <ButtonsHolder>
             <button onClick={startEditing}>Edit</button>
-            <button onClick={deleteConfig}>Delete</button>
+            <button onClick={handleDelete}>Delete</button>
           </ButtonsHolder>
         )}
       </SpacedRow>
@@ -211,7 +210,7 @@ export const ConfigEditor = ({ initConfig }: Props) => {
             };
 
             return (
-              <EscConfigHolder>
+              <EscConfigHolder key={escId}>
                 <EscConfigEditor
                   key={escId}
                   escId={escId}

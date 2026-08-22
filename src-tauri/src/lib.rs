@@ -33,7 +33,7 @@ pub fn run() {
             serial_communication::get_serial_ports,
             serial_communication::read_serial,
             serial_communication::stop_serial,
-            robot_config::fetch_current_config
+            robot_config::fetch_current_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

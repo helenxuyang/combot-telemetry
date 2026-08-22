@@ -10,8 +10,9 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { RobotConfig } from "./features/configuration/configUtils";
 import { invoke } from "@tauri-apps/api/core";
+import { useSetRobotConfig } from "./store";
 
-const baseDir = BaseDirectory.AppLocalData;
+export const baseDir = BaseDirectory.AppLocalData;
 const CONFIGS_DIRECTORY = "configs";
 const SETTINGS = "settings.json";
 
@@ -93,35 +94,11 @@ export const getConfig = async (
   return null;
 };
 
-export const saveConfig = async (robotConfig: RobotConfig) => {
-  const contents = JSON.stringify(robotConfig);
-  const slugifiedName = getConfigName(robotConfig.name);
-  const fileName = getConfigPath(slugifiedName);
-  await writeTextFile(fileName, contents, {
-    baseDir,
-    create: true,
-  });
-};
-
 export const tauriFetchConfig = async () => {
-  await invoke(FETCH_CURRENT_CONFIG_COMMAND);
-};
-
-export const selectConfig = async (robotName: string | null) => {
-  const prevSettings = await getSettings();
-  const newSettings = {
-    ...prevSettings,
-    configName: robotName ? getConfigName(robotName) : null,
-  };
-  await saveSettings(newSettings);
-  await tauriFetchConfig();
-};
-
-export const deleteCurrentConfig = async () => {
-  const currentConfigName = await getCurrentConfigName();
-  if (currentConfigName) {
-    await remove(getConfigPath(currentConfigName), { baseDir });
-    await selectConfig(null);
+  try {
+    await invoke(FETCH_CURRENT_CONFIG_COMMAND);
+  } catch (err) {
+    console.log(`RUST ERROR: ${err}`);
   }
 };
 
@@ -144,4 +121,50 @@ export const getCurrentConfig = async () => {
   }
   const config = await getConfig(configName);
   return config;
+};
+
+export const useStorageUtils = () => {
+  const setConfig = useSetRobotConfig();
+
+  const saveConfig = async (robotConfig: RobotConfig) => {
+    const contents = JSON.stringify(robotConfig);
+    const slugifiedName = getConfigName(robotConfig.name);
+    const fileName = getConfigPath(slugifiedName);
+    await writeTextFile(fileName, contents, {
+      baseDir,
+      create: true,
+    });
+    setConfig(robotConfig);
+  };
+
+  const selectConfig = async (robotName: string | null) => {
+    const prevSettings = await getSettings();
+    const newSettings = {
+      ...prevSettings,
+      configName: robotName ? getConfigName(robotName) : null,
+    };
+    await saveSettings(newSettings);
+    await tauriFetchConfig();
+    if (robotName) {
+      const config = await getCurrentConfig();
+      setConfig(config);
+    } else {
+      setConfig(null);
+    }
+  };
+
+  const deleteCurrentConfig = async () => {
+    const currentConfigName = await getCurrentConfigName();
+    if (currentConfigName) {
+      await remove(getConfigPath(currentConfigName), { baseDir });
+      await selectConfig(null);
+    }
+  };
+
+  const importConfig = async (config: RobotConfig) => {
+    await saveConfig(config);
+    await selectConfig(config.name);
+  };
+
+  return { saveConfig, selectConfig, deleteCurrentConfig, importConfig };
 };
