@@ -104,6 +104,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
             colorIndicators={temperatureConfig.colorIndicators}
             orientation={barOrientation}
             valueMinCharacters={largerMinimumCharacters}
+            defaultColor={accentColor}
           />
         )}
         {rpmConfig.shouldShow && currentConfig.shouldShow && (
@@ -120,6 +121,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
             outerColorIndicators={rpmConfig.colorIndicators}
             maxWidth={maxArcWidth}
             maxHeight={maxArcHeight}
+            defaultColor={accentColor}
           />
         )}
 
@@ -133,6 +135,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
             colorIndicators={inputsConfig.colorIndicators}
             orientation={barOrientation}
             valueMinCharacters={largerMinimumCharacters}
+            defaultColor={accentColor}
           />
         )}
       </DisplayLayout>

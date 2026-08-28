@@ -27,6 +27,7 @@ type Props = {
   className?: string;
   orientation?: Orientation;
   valueMinCharacters?: number;
+  defaultColor?: string;
 };
 
 const StyledContainer = styled(Container)<{
@@ -86,9 +87,10 @@ export const BarDisplay = ({
   className = "",
   orientation = "vertical",
   valueMinCharacters,
+  defaultColor,
 }: Props) => {
   const percent = getClampedPercent(value, min, max);
-  const barColor = getColor(value, colorIndicators);
+  const barColor = getColor(value, colorIndicators, defaultColor);
 
   const Heading = `h${headingLevel}` as const;
   const BarHolderComponent =

@@ -1,8 +1,12 @@
 import { ColorIndicator } from "./features/configuration/configUtils";
 import { PLOT_FILL_COLOR } from "./styles";
 
-export const getColor = (value: number, colorIndicators: ColorIndicator[]) => {
-  let barColor = PLOT_FILL_COLOR;
+export const getColor = (
+  value: number,
+  colorIndicators: ColorIndicator[],
+  defaultColor?: string,
+) => {
+  let barColor = defaultColor ?? PLOT_FILL_COLOR;
 
   if (!colorIndicators) {
     return barColor;

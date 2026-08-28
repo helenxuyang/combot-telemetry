@@ -4,11 +4,11 @@ export const MEDIUM_VIEWPORT = 1280;
 export const SMALL_VIEWPORT = 800;
 export const EXTRA_SMALL_VIEWPORT = 500;
 
-export const BACKGROUND = "#ffffff";
-export const PLOT_BASE_COLOR = "#dfdfdf";
-export const PLOT_FILL_COLOR = "#333333";
+export const BACKGROUND = "#f9f9f9";
+export const PLOT_BASE_COLOR = "#e2e2e2";
+export const PLOT_FILL_COLOR = "#00639B";
 
-export const ESC_COLORS = ["#3852B4", "#5E7AC4", "#F08D39", "#F3BE7A"];
+export const ESC_COLORS = ["#00639B", "#0A82B4", "#24A1C7", "#4EC3E7"];
 
 export const Container = styled.div`
   background-color: ${BACKGROUND};

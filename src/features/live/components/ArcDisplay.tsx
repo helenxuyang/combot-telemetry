@@ -18,6 +18,7 @@ type Props = {
   outerColorIndicators: ColorIndicator[];
   maxWidth: number;
   maxHeight: number;
+  defaultColor?: string;
   className?: string;
 };
 
@@ -34,6 +35,7 @@ export const ArcDisplay = ({
   outerColorIndicators,
   maxWidth,
   maxHeight,
+  defaultColor,
   className,
 }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -138,7 +140,7 @@ export const ArcDisplay = ({
       Math.min((outerValue - outerMin) / (outerMax - outerMin), 1),
       0,
     );
-    const outerColor = getColor(outerValue, outerColorIndicators);
+    const outerColor = getColor(outerValue, outerColorIndicators, defaultColor);
 
     // outer fill
     drawArc(
@@ -158,7 +160,7 @@ export const ArcDisplay = ({
       Math.min((innerValue - innerMin) / (innerMax - innerMin), 1),
       0,
     );
-    const innerColor = getColor(innerValue, innerColorIndicators);
+    const innerColor = getColor(innerValue, innerColorIndicators, defaultColor);
 
     // outer label
     ctx.fillStyle = "black";
