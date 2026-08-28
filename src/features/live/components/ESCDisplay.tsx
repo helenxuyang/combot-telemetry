@@ -54,7 +54,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const { width, height } = useElementSize(ref);
-  const maxArcWidth = width * 0.6;
+  const maxArcWidth = width * 0.55;
   const maxArcHeight = height;
 
   if (!config) {

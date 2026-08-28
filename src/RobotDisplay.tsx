@@ -3,7 +3,7 @@ import { calculateTotal, getLatestValue } from "./dataUtils";
 import { BarDisplay } from "./features/live/components/BarDisplay";
 import { CURRENT, ESC, EscId, VOLTAGE } from "./robot";
 import { VoltageDisplay } from "./features/live/components/VoltageDisplay";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { ESCDisplay } from "./features/live/components/ESCDisplay";
 import { useRobot, useRobotConfig } from "./store";
 import { METADATA } from "./displayUtils";
@@ -11,8 +11,7 @@ import { SerialConnector } from "./features/live/components/SerialConnector";
 import { UnknownMessagesDisplay } from "./features/live/components/UnknownMessagesDisplay";
 import { ESC_COLORS, MEDIUM_VIEWPORT, SMALL_VIEWPORT } from "./styles";
 
-const DisplayHolder = styled.div`
-  width: 100%;
+const EQUAL_LAYOUT = css`
   display: grid;
   gap: 8px;
   grid-template-columns: 40% 40% 1fr;
@@ -49,6 +48,11 @@ const DisplayHolder = styled.div`
       "control"
       "control";
   }
+`;
+
+const DisplayHolder = styled.div`
+  width: 100%;
+  ${EQUAL_LAYOUT}
 `;
 
 const EscDisplayHolder = styled.div`
