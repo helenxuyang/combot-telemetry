@@ -5,7 +5,13 @@ import { Container, ESC_COLORS } from "../../../styles";
 import { calculateTotal, getLatestValue } from "../../../dataUtils";
 import { useRobotConfig } from "../../../store";
 
-const StyledContainer = styled.div`
+const svgSize = 150;
+const radius = svgSize / 3;
+
+const StyledContainer = styled(Container)`
+  height: 100%;
+`;
+const DonutHolder = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
@@ -16,7 +22,7 @@ const StyledContainer = styled.div`
 const CanvasWrapper = styled.div`
   position: relative;
   width: 100%;
-  max-width: 150px;
+  max-width: ${svgSize}px;
 `;
 
 const Canvas = styled.canvas`
@@ -46,9 +52,6 @@ type Props = {
   escs: ESC[];
 };
 
-const svgSize = 150;
-const radius = svgSize / 3;
-
 export const ConsumptionDonut = ({ escs }: Props) => {
   let consumptions: Record<string, number> = {};
   escs.forEach((esc) => {
@@ -65,28 +68,28 @@ export const ConsumptionDonut = ({ escs }: Props) => {
   // TODO: maybe do on canvas
   const labels: ReactNode[] = [];
   let angle = 0;
-  Object.keys(consumptions).forEach((esc) => {
-    const value = consumptions[esc];
+  escs.forEach((esc) => {
+    const value = getLatestValue(esc.data[CONSUMPTION], 1);
     const percent = totalConsumption > 0 ? (value / totalConsumption) * 100 : 0;
     const strokeWidth = 10;
     const sliceAngle = (percent / 100) * 360;
 
     if (value > 0) {
       const labelAngleRadians = (angle - 90 + sliceAngle / 2) * (Math.PI / 180);
-      const labelRadius = radius + strokeWidth * 2;
+      const labelRadius = radius + strokeWidth + 2;
       const translateX = Math.cos(labelAngleRadians) * labelRadius;
       const translateY = Math.sin(labelAngleRadians) * labelRadius;
 
       labels.push(
         <Label
-          key={esc}
+          key={esc.name}
           style={{
             left: "50%",
             bottom: "50%",
             transform: `translate(calc(${translateX < 0 ? "-100" : "0"}% + ${translateX}px), calc(50% + ${translateY}px))`,
           }}
         >
-          {esc}: {value}
+          {esc.name}: {value}
         </Label>,
       );
     }
@@ -138,9 +141,9 @@ export const ConsumptionDonut = ({ escs }: Props) => {
   }, [escs]);
 
   return (
-    <Container>
+    <StyledContainer>
       <h2>Consumption</h2>
-      <StyledContainer>
+      <DonutHolder>
         <CanvasWrapper>
           <Canvas ref={canvasRef} width={svgSize} height={svgSize} />
           <TotalLabel>
@@ -151,7 +154,7 @@ export const ConsumptionDonut = ({ escs }: Props) => {
           </TotalLabel>
           {labels}
         </CanvasWrapper>
-      </StyledContainer>
-    </Container>
+      </DonutHolder>
+    </StyledContainer>
   );
 };

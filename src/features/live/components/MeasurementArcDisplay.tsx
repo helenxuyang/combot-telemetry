@@ -10,6 +10,8 @@ type Props = {
   outerName: MeasurementName;
   outerValues: number[];
   outerConfig: MeasurementConfig;
+  maxWidth: number;
+  maxHeight: number;
   className?: string;
 };
 
@@ -20,6 +22,8 @@ export const MeasurementArcDisplay = ({
   outerName,
   outerValues,
   outerConfig,
+  maxWidth,
+  maxHeight,
   className,
 }: Props) => {
   return (
@@ -34,6 +38,8 @@ export const MeasurementArcDisplay = ({
       outerMin={outerConfig.min}
       outerMax={outerConfig.max}
       outerColorIndicators={outerConfig.colorIndicators}
+      maxWidth={maxWidth}
+      maxHeight={maxHeight}
       className={className}
     />
   );

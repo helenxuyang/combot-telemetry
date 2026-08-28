@@ -25,22 +25,21 @@ const StyledTabButton = styled.button<{ $isCurrent: boolean }>`
   background-color: ${(props) => (props.$isCurrent ? "black" : "white")};
   font-size: 16px;
   color: ${(props) => (props.$isCurrent ? "white" : "black")};
-  border: 3px solid black;
+  border: 2px solid black;
   padding: 4px 16px;
   text-decoration: ${(props) => (props.$isCurrent ? "underline" : "none")};
   cursor: pointer;
 
   &:hover {
-    text-decoration: underline wavy;
+    background-color: ${(props) => (props.$isCurrent ? "black" : "inherit")};
+    color: ${(props) => (props.$isCurrent ? "white" : "black")};
+    text-decoration: underline;
+    border: 2px solid black;
   }
 
   @media (max-width: ${SMALL_VIEWPORT}px) {
     padding: 2px;
   }
-`;
-
-const StyledTabPanel = styled.div`
-  padding-top: 8px;
 `;
 
 type Props = {
@@ -104,7 +103,7 @@ export const NavigationTabs = ({ tabs }: Props) => {
   };
 
   return (
-    <div>
+    <>
       <StyledTabButtonHolder
         role="tablist"
         ref={tabListRef}
@@ -130,13 +129,9 @@ export const NavigationTabs = ({ tabs }: Props) => {
           );
         })}
       </StyledTabButtonHolder>
-      <StyledTabPanel
-        id={PANEL_ID}
-        role="tabpanel"
-        aria-labelledby={currentTabId}
-      >
+      <div id={PANEL_ID} role="tabpanel" aria-labelledby={currentTabId}>
         {currentPanelContent}
-      </StyledTabPanel>
-    </div>
+      </div>
+    </>
   );
 };

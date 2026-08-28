@@ -1,19 +1,23 @@
 import styled, { css } from "styled-components";
 
-export const MEDIUM_VIEWPORT = 800;
-export const SMALL_VIEWPORT = 600;
+export const MEDIUM_VIEWPORT = 1280;
+export const SMALL_VIEWPORT = 800;
+export const EXTRA_SMALL_VIEWPORT = 500;
 
-export const BACKGROUND = "#ccc";
+export const BACKGROUND = "#ffffff";
+export const PLOT_BASE_COLOR = "#dfdfdf";
+export const PLOT_FILL_COLOR = "#333333";
+
 export const ESC_COLORS = ["#3852B4", "#5E7AC4", "#F08D39", "#F3BE7A"];
 
 export const Container = styled.div`
   background-color: ${BACKGROUND};
-  padding: 4px;
+  padding: 8px;
   color: black;
-  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  border-radius: 8px;
 `;
 
 export const HorizontalContainer = styled(Container)`

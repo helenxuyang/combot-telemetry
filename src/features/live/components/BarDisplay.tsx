@@ -1,5 +1,11 @@
 import styled from "styled-components";
-import { Container, Value } from "../../../styles";
+import {
+  Container,
+  MEDIUM_VIEWPORT,
+  PLOT_BASE_COLOR,
+  SMALL_VIEWPORT,
+  Value,
+} from "../../../styles";
 import {
   getColor,
   getClampedPercent,
@@ -7,6 +13,8 @@ import {
 } from "../../../dataUtils";
 import { CanvasBar } from "./CanvasBar";
 import { ColorIndicator } from "../../configuration/configUtils";
+
+type Orientation = "vertical" | "horizontal";
 
 type Props = {
   name: string;
@@ -17,35 +25,50 @@ type Props = {
   max: number;
   colorIndicators: ColorIndicator[];
   className?: string;
-  orientation?: "vertical" | "horizontal";
+  orientation?: Orientation;
   valueMinCharacters?: number;
 };
 
+const StyledContainer = styled(Container)<{
+  $orientation: Orientation;
+}>`
+  height: 100%;
+
+  @media (max-width: ${SMALL_VIEWPORT}px) {
+    width: ${({ $orientation }) =>
+      $orientation === "horizontal" ? "100%" : "auto"};
+  }
+`;
+
 const BarDisplayWrapper = styled.div<{
-  $orientation: "vertical" | "horizontal";
+  $orientation: Orientation;
 }>`
   display: flex;
+  flex: ${({ $orientation }) => ($orientation === "vertical" ? 1 : "none")};
   flex-direction: ${({ $orientation }) =>
-    $orientation === "vertical" ? "column" : "row"};
+    $orientation === "vertical" ? "column" : "row-reverse"};
   align-items: center;
   justify-content: center;
 `;
 
-const BarHolder = styled.div<{ $orientation: "vertical" | "horizontal" }>`
+const BarHolder = styled.div`
   position: relative;
   display: flex;
-  align-items: ${({ $orientation }) =>
-    $orientation === "vertical" ? "flex-end" : "center"};
-  height: ${({ $orientation }) =>
-    $orientation === "vertical" ? "100px" : "25px"};
-  width: ${({ $orientation }) =>
-    $orientation === "vertical" ? "20px" : "100%"};
-  min-height: ${({ $orientation }) =>
-    $orientation === "vertical" ? "100px" : "auto"};
-  min-width: ${({ $orientation }) =>
-    $orientation === "vertical" ? "auto" : "100px"};
-  background-color: white;
+  background-color: ${PLOT_BASE_COLOR};
   margin: 4px;
+`;
+
+const VerticalBarHolder = styled(BarHolder)`
+  align-items: flex-end;
+  height: 100%;
+  width: 30px;
+  min-height: 100px;
+`;
+
+const HorizontalBarHolder = styled(BarHolder)`
+  align-items: center;
+  height: 25px;
+  width: 100%;
 `;
 
 const RangeText = styled.p`
@@ -68,40 +91,26 @@ export const BarDisplay = ({
   const barColor = getColor(value, colorIndicators);
 
   const Heading = `h${headingLevel}` as const;
+  const BarHolderComponent =
+    orientation === "vertical" ? VerticalBarHolder : HorizontalBarHolder;
 
   return (
-    <Container className={className}>
+    <StyledContainer $orientation={orientation} className={className}>
       <Heading>{name}</Heading>
       <BarDisplayWrapper $orientation={orientation}>
-        {orientation === "vertical" ? (
-          <>
-            <RangeText>{max}</RangeText>
-            <BarHolder $orientation={orientation}>
-              <CanvasBar
-                percent={percent}
-                color={barColor}
-                orientation={orientation}
-              />
-            </BarHolder>
-            <RangeText>{min}</RangeText>
-          </>
-        ) : (
-          <>
-            <RangeText>{min}</RangeText>
-            <BarHolder $orientation={orientation}>
-              <CanvasBar
-                percent={percent}
-                color={barColor}
-                orientation={orientation}
-              />
-            </BarHolder>
-            <RangeText>{max}</RangeText>
-          </>
-        )}
+        <RangeText>{max}</RangeText>
+        <BarHolderComponent>
+          <CanvasBar
+            percent={percent}
+            color={barColor}
+            orientation={orientation}
+          />
+        </BarHolderComponent>
+        <RangeText>{min}</RangeText>
       </BarDisplayWrapper>
       <Value $valueMinCharacters={valueMinCharacters}>
         {getLatestValueDisplay(value, unit, min, max)}
       </Value>
-    </Container>
+    </StyledContainer>
   );
 };

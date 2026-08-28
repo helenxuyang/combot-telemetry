@@ -7,67 +7,38 @@ import {
   TEMPERATURE,
   type ESC,
 } from "../../../robot";
-import { Container, MEDIUM_VIEWPORT, SMALL_VIEWPORT } from "../../../styles";
+import { Container, EXTRA_SMALL_VIEWPORT } from "../../../styles";
 import { ErrorDisplay } from "./ErrorDisplay";
-import { useEffect, useState } from "react";
+import { useRef } from "react";
 import { METADATA } from "../../../displayUtils";
 import { getDisplayMinCharacters } from "../../../dataUtils";
 import { MeasurementBarDisplay } from "./MeasurementBarDisplay";
 import { EscConfig } from "../../configuration/configUtils";
 import { MeasurementArcDisplay } from "./MeasurementArcDisplay";
-
-const useMediaQuery = (query: string) => {
-  const [matches, setMatches] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia(query).matches : false,
-  );
-
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    const listener = () => setMatches(media.matches);
-    media.addEventListener("change", listener);
-    return () => media.removeEventListener("change", listener);
-  }, [query]);
-
-  return matches;
-};
+import { useElementSize } from "../../../useElementSize";
+import { useMediaQuery } from "../../useMediaQuery";
 
 const DisplayHolder = styled(Container)<{ $accentColor?: string }>`
+  height: 100%;
   display: flex;
-  flex: 1;
   flex-direction: column;
   justify-content: start;
   align-items: center;
   position: relative;
-  ${(props) => props.$accentColor && `border: 4px solid ${props.$accentColor}`};
   padding: 8px;
 `;
 
 const DisplayLayout = styled.div`
+  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: end;
+  align-items: center;
 
-  @media (max-width: ${MEDIUM_VIEWPORT}px) {
-    display: grid;
-    grid-template-areas: "arc arc" "temp input";
+  @media (max-width: ${EXTRA_SMALL_VIEWPORT}px) {
+    flex-direction: column;
   }
-
-  @media (max-width: ${SMALL_VIEWPORT}px) {
-    display: grid;
-    grid-template-areas: "arc" "temp" "input";
-  }
-`;
-
-const TemperatureDisplay = styled(MeasurementBarDisplay)`
-  grid-area: temp;
-`;
-const RPMCurrentDisplay = styled(MeasurementArcDisplay)`
-  grid-area: arc;
-`;
-
-const InputDisplay = styled(MeasurementBarDisplay)`
-  grid-area: input;
 `;
 
 type Props = {
@@ -78,8 +49,13 @@ type Props = {
 };
 
 export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
-  const isMobileViewport = useMediaQuery(`(max-width: ${MEDIUM_VIEWPORT}px)`);
-  const barOrientation = isMobileViewport ? "horizontal" : "vertical";
+  const isLarge = useMediaQuery(`(max-width: ${EXTRA_SMALL_VIEWPORT}px)`);
+  const barOrientation = isLarge ? "horizontal" : "vertical";
+  const ref = useRef<HTMLDivElement>(null);
+
+  const { width, height } = useElementSize(ref);
+  const maxArcWidth = width * 0.6;
+  const maxArcHeight = height;
 
   if (!config) {
     return null;
@@ -115,11 +91,11 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
   );
 
   return (
-    <DisplayHolder className={className} $accentColor={accentColor}>
+    <DisplayHolder ref={ref} className={className} $accentColor={accentColor}>
       <h2>{esc.name}</h2>
       <DisplayLayout>
         {temperatureConfig.shouldShow && (
-          <TemperatureDisplay
+          <MeasurementBarDisplay
             name={TEMPERATURE}
             values={temperature}
             config={temperatureConfig}
@@ -128,18 +104,20 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
           />
         )}
         {rpmConfig.shouldShow && currentConfig.shouldShow && (
-          <RPMCurrentDisplay
+          <MeasurementArcDisplay
             innerName={CURRENT}
             innerValues={current}
             innerConfig={currentConfig}
             outerName={RPM}
             outerValues={rpm}
             outerConfig={rpmConfig}
+            maxWidth={maxArcWidth}
+            maxHeight={maxArcHeight}
           />
         )}
 
         {inputsConfig.shouldShow && (
-          <InputDisplay
+          <MeasurementBarDisplay
             name={INPUT}
             values={inputs}
             config={inputsConfig}

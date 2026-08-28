@@ -6,13 +6,13 @@ import { useRobotConfig } from "./store";
 import { RobotDisplay } from "./RobotDisplay";
 import { GraphGrid } from "./features/graph/components/GraphGrid";
 import { useInitializer } from "./useInitializer";
-import { SignalStrengthDisplay } from "./features/live/components/SignalStrengthDisplay";
 
 const Layout = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: 100%;
+  height: 100%;
 `;
 
 const HeaderHolder = styled.div`
@@ -46,10 +46,7 @@ export const DashboardDisplay = () => {
 
   return (
     <Layout>
-      <HeaderHolder>
-        {config && <h1>{config.name}</h1>}
-        <SignalStrengthDisplay />
-      </HeaderHolder>
+      <HeaderHolder>{config && <h1>{config.name}</h1>}</HeaderHolder>
       <NavigationTabs tabs={tabs} />
     </Layout>
   );

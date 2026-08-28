@@ -21,7 +21,6 @@ const GridHolder = styled.div`
 `;
 
 const GraphHolder = styled.div<{ $isFullWidth: boolean }>`
-  box-sizing: border-box;
   flex-basis: ${({ $isFullWidth }) =>
     $isFullWidth ? "100%" : "calc(50% - 2px)"}; // to account for gap
   min-width: 0;

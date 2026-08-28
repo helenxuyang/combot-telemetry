@@ -1,10 +1,8 @@
 import { ColorIndicator } from "./features/configuration/configUtils";
-
-export const DEFAULT_COLOR = "skyblue";
-export const HIGHLIGHT_COLOR = "green";
+import { PLOT_FILL_COLOR } from "./styles";
 
 export const getColor = (value: number, colorIndicators: ColorIndicator[]) => {
-  let barColor = DEFAULT_COLOR;
+  let barColor = PLOT_FILL_COLOR;
 
   if (!colorIndicators) {
     return barColor;

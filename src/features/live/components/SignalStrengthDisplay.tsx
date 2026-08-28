@@ -5,10 +5,27 @@ const barWidth = 6;
 const svgSize = 50;
 
 const DisplayHolder = styled.div`
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+`;
+
+const Strength = styled.p`
+  font-size: 16px;
+  font-weight: bold;
+`;
+
+const SignalSvg = styled.svg`
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  width: 100%;
+  height: 100%;
+  max-width: 120px;
 `;
 
 const getBars = (thresholds: number[]) => {
@@ -18,7 +35,7 @@ const getBars = (thresholds: number[]) => {
     const centerX = (svgSize / (numBars + 1)) * (i + 1);
     const x = centerX - barWidth / 2;
     const height = ((svgSize * 0.75) / numBars) * (i + 1);
-    const y = svgSize - height;
+    const y = svgSize - height - svgSize * 0.1;
     return { x, y, width: barWidth, height, threshold };
   });
 };
@@ -32,16 +49,14 @@ export const SignalStrengthDisplay = () => {
 
   return (
     <DisplayHolder>
-      <svg
-        overflow="visible"
+      <Strength>
+        {"SNR: " + (signalStrength === undefined ? "0" : signalStrength)}
+      </Strength>
+      <SignalSvg
+        overflow="hidden"
         xmlns="http://www.w3.org/2000/svg"
         viewBox={`0 0 ${svgSize} ${svgSize}`}
-        width={svgSize}
-        height={svgSize}
       >
-        <text x={5} y={svgSize / 2}>
-          {signalStrength === undefined ? "0" : signalStrength}
-        </text>
         {bars.map((bar) => (
           <rect
             x={bar.x}
@@ -57,7 +72,7 @@ export const SignalStrengthDisplay = () => {
             ry={0}
           />
         ))}
-      </svg>
+      </SignalSvg>
     </DisplayHolder>
   );
 };

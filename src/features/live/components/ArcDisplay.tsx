@@ -1,9 +1,9 @@
-import styled from "styled-components";
 import { getColor, getLatestValueDisplay } from "../../../dataUtils";
 import { useLayoutEffect, useRef } from "react";
 import { MeasurementName } from "../../../robot";
 import { METADATA } from "../../../displayUtils";
 import { ColorIndicator } from "../../configuration/configUtils";
+import { PLOT_BASE_COLOR } from "../../../styles";
 
 type Props = {
   innerName: MeasurementName;
@@ -16,79 +16,9 @@ type Props = {
   outerMin: number;
   outerMax: number;
   outerColorIndicators: ColorIndicator[];
+  maxWidth: number;
+  maxHeight: number;
   className?: string;
-};
-
-const CanvasWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-`;
-
-const Canvas = styled.canvas`
-  width: 100%;
-  height: auto;
-  display: block;
-`;
-
-// TODO: fix super fragile sizing
-const width = 280;
-const height = 200;
-const innerValueY = 180;
-
-const outerStrokeWidth = 50;
-const outerRadius = width / 2 - outerStrokeWidth / 2;
-const canvasHeight = height;
-
-const innerScale = 0.5;
-const innerRadius = outerRadius * innerScale;
-
-const centerX = width / 2;
-const centerY = outerRadius + outerStrokeWidth / 2 + 50;
-
-const drawArc = (
-  ctx: CanvasRenderingContext2D,
-  radius: number,
-  startAngle: number,
-  endAngle: number,
-  color: string,
-  strokeWidth: number,
-  anticlockwise = false,
-) => {
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, startAngle, endAngle, anticlockwise);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = strokeWidth;
-  ctx.stroke();
-};
-
-const drawMarks = (
-  ctx: CanvasRenderingContext2D,
-  min: number,
-  max: number,
-  colorIndicators: ColorIndicator[],
-) => {
-  for (let colorIndicator of colorIndicators) {
-    const { threshold: value } = colorIndicator;
-    const onePercent = (max - min) / 100;
-    const targetStart = value - onePercent / 2;
-    const targetEnd = value + onePercent / 2;
-    const targetStartAngle =
-      Math.PI +
-      Math.max(Math.min((targetStart - min) / (max - min), 1), 0) * Math.PI;
-    const targetEndAngle =
-      Math.PI +
-      Math.max(Math.min((targetEnd - min) / (max - min), 1), 0) * Math.PI;
-    drawArc(
-      ctx,
-      outerRadius,
-      targetStartAngle,
-      targetEndAngle,
-      "darkgreen",
-      outerStrokeWidth,
-      false,
-    );
-  }
 };
 
 export const ArcDisplay = ({
@@ -102,9 +32,78 @@ export const ArcDisplay = ({
   outerMin,
   outerMax,
   outerColorIndicators,
+  maxWidth,
+  maxHeight,
   className,
 }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // TODO: fix super fragile sizing
+  const aspectRatio = 5 / 7;
+  let width = maxWidth;
+  let height = width * aspectRatio;
+
+  if (height > maxHeight) {
+    height = maxHeight;
+    width = height / aspectRatio;
+  }
+
+  const outerStrokeWidth = width / 8;
+  const outerRadius = width / 2 - outerStrokeWidth / 2;
+  const canvasHeight = height;
+
+  const innerScale = 0.6;
+  const innerRadius = outerRadius * innerScale;
+  const innerStrokeWidth = outerStrokeWidth / 2;
+  const innerValueY = height - innerRadius / 4;
+
+  const centerX = width / 2;
+  const centerY = outerRadius + outerStrokeWidth / 2 + 50;
+
+  const drawArc = (
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    startAngle: number,
+    endAngle: number,
+    color: string,
+    strokeWidth: number,
+    anticlockwise = false,
+  ) => {
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, startAngle, endAngle, anticlockwise);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = strokeWidth;
+    ctx.stroke();
+  };
+
+  const drawMarks = (
+    ctx: CanvasRenderingContext2D,
+    min: number,
+    max: number,
+    colorIndicators: ColorIndicator[],
+  ) => {
+    for (let colorIndicator of colorIndicators) {
+      const { threshold: value } = colorIndicator;
+      const onePercent = (max - min) / 100;
+      const targetStart = value - onePercent / 2;
+      const targetEnd = value + onePercent / 2;
+      const targetStartAngle =
+        Math.PI +
+        Math.max(Math.min((targetStart - min) / (max - min), 1), 0) * Math.PI;
+      const targetEndAngle =
+        Math.PI +
+        Math.max(Math.min((targetEnd - min) / (max - min), 1), 0) * Math.PI;
+      drawArc(
+        ctx,
+        outerRadius,
+        targetStartAngle,
+        targetEndAngle,
+        "darkgreen",
+        outerStrokeWidth,
+        false,
+      );
+    }
+  };
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
@@ -130,7 +129,7 @@ export const ArcDisplay = ({
       outerRadius,
       Math.PI,
       2 * Math.PI,
-      "white",
+      PLOT_BASE_COLOR,
       outerStrokeWidth,
       false,
     );
@@ -182,8 +181,8 @@ export const ArcDisplay = ({
       innerRadius,
       Math.PI,
       2 * Math.PI,
-      "white",
-      outerStrokeWidth / 2,
+      PLOT_BASE_COLOR,
+      innerStrokeWidth,
       false,
     );
 
@@ -194,7 +193,7 @@ export const ArcDisplay = ({
       Math.PI,
       Math.PI + innerPercent * Math.PI,
       innerColor,
-      outerStrokeWidth / 2,
+      innerStrokeWidth,
       false,
     );
 
@@ -214,6 +213,7 @@ export const ArcDisplay = ({
       innerValueY,
     );
   }, [
+    width,
     innerName,
     innerValue,
     innerMin,
@@ -228,15 +228,13 @@ export const ArcDisplay = ({
 
   return (
     <div className={className}>
-      <CanvasWrapper>
-        <Canvas
-          ref={canvasRef}
-          style={{
-            width: width,
-            height: height,
-          }}
-        />
-      </CanvasWrapper>
+      <canvas
+        ref={canvasRef}
+        style={{
+          width,
+          height,
+        }}
+      />
     </div>
   );
 };

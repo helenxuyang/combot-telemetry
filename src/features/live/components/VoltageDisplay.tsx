@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { ESC, VOLTAGE } from "../../../robot";
-import { Container, Value } from "../../../styles";
+import { Container, PLOT_BASE_COLOR, Value } from "../../../styles";
 import { getClampedPercent, getLatestValue } from "../../../dataUtils";
 import { useLayoutEffect, useRef } from "react";
 
@@ -11,13 +11,16 @@ const BarDisplay = styled.div`
   margin-bottom: 4px;
 `;
 
+const StyledContainer = styled(Container)`
+  height: 100%;
+`;
 const BarHolder = styled.div`
   position: relative;
   display: flex;
   align-items: center;
   width: 100%;
   height: 25px;
-  background-color: white;
+  background-color: ${PLOT_BASE_COLOR};
   margin: 8px;
 `;
 
@@ -50,12 +53,7 @@ type Props = {
 
 export const VoltageDisplay = ({ escs, min, max }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  let voltages: Record<string, number> = {};
-  escs.forEach((esc) => {
-    voltages[esc.name] = getLatestValue(esc.data[VOLTAGE]);
-  });
-  const values = Object.values(voltages);
+  const values = escs.map((esc) => getLatestValue(esc.data[VOLTAGE]));
 
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
@@ -86,7 +84,7 @@ export const VoltageDisplay = ({ escs, min, max }: Props) => {
     );
 
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = "white";
+    ctx.fillStyle = PLOT_BASE_COLOR;
     ctx.fillRect(0, 0, width, height);
 
     const minWidth = (width * minPercent) / 100;
@@ -106,7 +104,7 @@ export const VoltageDisplay = ({ escs, min, max }: Props) => {
   }, [escs]);
 
   return (
-    <Container>
+    <StyledContainer>
       <h2>Battery Voltage</h2>
       <BarDisplay>
         <RangeText>{min}</RangeText>
@@ -122,6 +120,6 @@ export const VoltageDisplay = ({ escs, min, max }: Props) => {
       <Value>
         {minValue === maxValue ? minValue : `${minValue}-${maxValue}` + " V"}
       </Value>
-    </Container>
+    </StyledContainer>
   );
 };
