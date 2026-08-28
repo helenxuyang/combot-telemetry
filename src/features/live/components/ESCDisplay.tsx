@@ -11,10 +11,10 @@ import { Container, EXTRA_SMALL_VIEWPORT } from "../../../styles";
 import { ErrorDisplay } from "./ErrorDisplay";
 import { useRef } from "react";
 import { METADATA } from "../../../displayUtils";
-import { getDisplayMinCharacters } from "../../../dataUtils";
-import { MeasurementBarDisplay } from "./MeasurementBarDisplay";
+import { getDisplayMinCharacters, getLatestValue } from "../../../dataUtils";
+import { BarDisplay } from "./BarDisplay";
 import { EscConfig } from "../../configuration/configUtils";
-import { MeasurementArcDisplay } from "./MeasurementArcDisplay";
+import { ArcDisplay } from "./ArcDisplay";
 import { useElementSize } from "../../../useElementSize";
 import { useMediaQuery } from "../../useMediaQuery";
 
@@ -95,34 +95,44 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
       <h2>{esc.name}</h2>
       <DisplayLayout>
         {temperatureConfig.shouldShow && (
-          <MeasurementBarDisplay
-            name={TEMPERATURE}
-            values={temperature}
-            config={temperatureConfig}
+          <BarDisplay
+            name={METADATA[TEMPERATURE].displayName}
+            value={getLatestValue(temperature)}
+            unit={METADATA[TEMPERATURE].unit}
+            min={temperatureConfig.min}
+            max={temperatureConfig.max}
+            colorIndicators={temperatureConfig.colorIndicators}
             orientation={barOrientation}
-            minimumCharacters={largerMinimumCharacters}
+            valueMinCharacters={largerMinimumCharacters}
           />
         )}
         {rpmConfig.shouldShow && currentConfig.shouldShow && (
-          <MeasurementArcDisplay
+          <ArcDisplay
             innerName={CURRENT}
-            innerValues={current}
-            innerConfig={currentConfig}
+            innerValue={getLatestValue(current)}
+            innerMin={currentConfig.min}
+            innerMax={currentConfig.max}
+            innerColorIndicators={currentConfig.colorIndicators}
             outerName={RPM}
-            outerValues={rpm}
-            outerConfig={rpmConfig}
+            outerValue={getLatestValue(rpm)}
+            outerMin={rpmConfig.min}
+            outerMax={rpmConfig.max}
+            outerColorIndicators={rpmConfig.colorIndicators}
             maxWidth={maxArcWidth}
             maxHeight={maxArcHeight}
           />
         )}
 
         {inputsConfig.shouldShow && (
-          <MeasurementBarDisplay
-            name={INPUT}
-            values={inputs}
-            config={inputsConfig}
+          <BarDisplay
+            name={METADATA[INPUT].displayName}
+            value={getLatestValue(inputs)}
+            unit={METADATA[INPUT].unit}
+            min={inputsConfig.min}
+            max={inputsConfig.max}
+            colorIndicators={inputsConfig.colorIndicators}
             orientation={barOrientation}
-            minimumCharacters={largerMinimumCharacters}
+            valueMinCharacters={largerMinimumCharacters}
           />
         )}
       </DisplayLayout>
