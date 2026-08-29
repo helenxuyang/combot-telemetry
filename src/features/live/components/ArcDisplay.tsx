@@ -231,6 +231,7 @@ export const ArcDisplay = ({
         maxWidth: "100%",
         maxHeight: "100%",
       }}
+      className={className}
     />
   );
 };
