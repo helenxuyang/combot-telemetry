@@ -62,9 +62,16 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
   const isLarge = useMediaQuery(`(max-width: ${500}px)`);
   const barOrientation = isLarge ? "horizontal" : "vertical";
   const ref = useRef<HTMLDivElement>(null);
+  const temperatureBarRef = useRef<HTMLDivElement>(null);
+  const inputBarRef = useRef<HTMLDivElement>(null);
 
   const { width, height } = useElementSize(ref);
-  const maxArcWidth = width * 0.55;
+  const temperatureBarWidth = temperatureBarRef.current?.offsetWidth ?? 0;
+  const inputBarWidth = inputBarRef.current?.offsetWidth ?? 0;
+  const maxArcWidth = Math.min(
+    Math.max(0, width - temperatureBarWidth - inputBarWidth - 16),
+    width * 0.6,
+  );
   const maxArcHeight = height;
 
   if (!config) {
@@ -106,6 +113,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
       <DisplayLayout>
         {temperatureConfig.shouldShow && (
           <BarDisplay
+            ref={temperatureBarRef}
             name={METADATA[TEMPERATURE].displayName}
             value={getLatestValue(temperature)}
             unit={METADATA[TEMPERATURE].unit}
@@ -137,6 +145,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
 
         {inputsConfig.shouldShow && (
           <BarDisplay
+            ref={inputBarRef}
             name={METADATA[INPUT].displayName}
             value={getLatestValue(inputs)}
             unit={METADATA[INPUT].unit}

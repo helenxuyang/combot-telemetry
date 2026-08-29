@@ -1,12 +1,13 @@
+import { forwardRef } from "react";
 import styled from "styled-components";
-import { Container, media, PLOT_BASE_COLOR, Value } from "../../../styles";
 import {
-  getColor,
   getClampedPercent,
+  getColor,
   getLatestValueDisplay,
 } from "../../../dataUtils";
-import { CanvasBar } from "./CanvasBar";
+import { Container, media, PLOT_BASE_COLOR, Value } from "../../../styles";
 import { ColorIndicator } from "../../configuration/configUtils";
+import { CanvasBar } from "./CanvasBar";
 
 type Orientation = "vertical" | "horizontal";
 
@@ -70,19 +71,22 @@ const RangeText = styled.p`
   font-size: 12px;
 `;
 
-export const BarDisplay = ({
-  name,
-  headingLevel = 4,
-  value,
-  unit,
-  min,
-  max,
-  colorIndicators,
-  className = "",
-  orientation = "vertical",
-  valueMinCharacters,
-  defaultColor,
-}: Props) => {
+export const BarDisplay = forwardRef<HTMLDivElement, Props>(function BarDisplay(
+  {
+    name,
+    headingLevel = 4,
+    value,
+    unit,
+    min,
+    max,
+    colorIndicators,
+    className = "",
+    orientation = "vertical",
+    valueMinCharacters,
+    defaultColor,
+  },
+  ref,
+) {
   const percent = getClampedPercent(value, min, max);
   const barColor = getColor(value, colorIndicators, defaultColor);
 
@@ -91,7 +95,7 @@ export const BarDisplay = ({
     orientation === "vertical" ? VerticalBarHolder : HorizontalBarHolder;
 
   return (
-    <StyledContainer $orientation={orientation} className={className}>
+    <StyledContainer ref={ref} $orientation={orientation} className={className}>
       <Heading>{name}</Heading>
       <BarDisplayWrapper $orientation={orientation}>
         <RangeText>{max}</RangeText>
@@ -109,4 +113,4 @@ export const BarDisplay = ({
       </Value>
     </StyledContainer>
   );
-};
+});
