@@ -1,4 +1,4 @@
-import { CSSProperties, Fragment, useState } from "react";
+import { CSSProperties, useState } from "react";
 import styled, { css } from "styled-components";
 import { calculateTotal, getLatestValue } from "./dataUtils";
 import { METADATA } from "./displayUtils";
@@ -154,7 +154,40 @@ export const RobotDisplay = () => {
     escs.map((esc) => getLatestValue(esc.data[CURRENT])),
   );
 
-  const InfoWrapper = layout === "GRID" ? InfoHolder : Fragment;
+  const infoContent = (
+    <>
+      <RobotInfo style={{ gridColumn: "1 / span 3", gridRow: "1" }}>
+        <InfoBarHolder>
+          <VoltageDisplay
+            escs={escs}
+            {...referenceConfig.measurementConfigs[VOLTAGE]}
+          />
+        </InfoBarHolder>
+        <InfoBarHolder>
+          <BarDisplay
+            name="Total Current"
+            value={totalCurrent}
+            unit={METADATA[CURRENT].unit}
+            {...referenceConfig.measurementConfigs[CURRENT]}
+            orientation="horizontal"
+            headingLevel={2}
+          />
+        </InfoBarHolder>
+        <ConsumptionDonutHolder>
+          <ConsumptionDonut escs={escs} />
+        </ConsumptionDonutHolder>
+      </RobotInfo>
+      <SerialConnectorHolder
+        style={
+          layout === "FOCUS"
+            ? { gridColumn: "-4 / span 3", gridRow: 1 }
+            : undefined
+        }
+      >
+        <SerialConnector />
+      </SerialConnectorHolder>
+    </>
+  );
 
   return (
     <div key={layout}>
@@ -179,38 +212,11 @@ export const RobotDisplay = () => {
             </EscDisplayHolder>
           );
         })}
-        <InfoWrapper style={{ gridArea: "info" }}>
-          <RobotInfo style={{ gridColumn: "1 / span 3", gridRow: "1" }}>
-            <InfoBarHolder>
-              <VoltageDisplay
-                escs={escs}
-                {...referenceConfig.measurementConfigs[VOLTAGE]}
-              />
-            </InfoBarHolder>
-            <InfoBarHolder>
-              <BarDisplay
-                name="Total Current"
-                value={totalCurrent}
-                unit={METADATA[CURRENT].unit}
-                {...referenceConfig.measurementConfigs[CURRENT]}
-                orientation="horizontal"
-                headingLevel={2}
-              />
-            </InfoBarHolder>
-            <ConsumptionDonutHolder>
-              <ConsumptionDonut escs={escs} />
-            </ConsumptionDonutHolder>
-          </RobotInfo>
-          <SerialConnectorHolder
-            style={
-              layout === "FOCUS"
-                ? { gridColumn: "-4 / span 3", gridRow: 1 }
-                : undefined
-            }
-          >
-            <SerialConnector />
-          </SerialConnectorHolder>
-        </InfoWrapper>
+        {layout === "GRID" ? (
+          <InfoHolder style={{ gridArea: "info" }}>{infoContent}</InfoHolder>
+        ) : (
+          infoContent
+        )}
       </DisplayHolder>
     </div>
   );
