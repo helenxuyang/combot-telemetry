@@ -203,7 +203,7 @@ export const ArcDisplay = ({
     drawMarks(ctx, innerMin, innerMax, innerColorIndicators);
 
     // inner label
-    ctx.font = "bold 24px system-ui";
+    ctx.font = "bold 30px system-ui";
     ctx.fillText(
       getLatestValueDisplay(
         innerValue,

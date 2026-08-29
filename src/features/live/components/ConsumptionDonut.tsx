@@ -1,9 +1,9 @@
-import styled from "styled-components";
-import { CONSUMPTION, ESC } from "../../../robot";
 import { useLayoutEffect, useRef, type ReactNode } from "react";
-import { Container, ESC_COLORS } from "../../../styles";
+import styled from "styled-components";
 import { calculateTotal, getLatestValue } from "../../../dataUtils";
+import { CONSUMPTION, ESC } from "../../../robot";
 import { useRobotConfig } from "../../../store";
+import { Container, ESC_COLORS } from "../../../styles";
 
 const svgSize = 150;
 const radius = svgSize / 3;
@@ -45,7 +45,7 @@ const Label = styled.span`
   position: absolute;
   width: min-content;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 14px;
 `;
 
 type Props = {

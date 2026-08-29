@@ -69,7 +69,7 @@ const HorizontalBarHolder = styled(BarHolder)`
 `;
 
 const RangeText = styled.p`
-  font-size: 12px;
+  font-size: 16px;
 `;
 
 export const BarDisplay = forwardRef<HTMLDivElement, Props>(function BarDisplay(

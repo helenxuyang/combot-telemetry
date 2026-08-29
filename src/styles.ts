@@ -38,10 +38,10 @@ export const HorizontalContainer = styled(Container)`
 
 export const Value = styled.p<{ $valueMinCharacters?: number }>`
   font-weight: bold;
-  font-size: 24px;
+  font-size: 30px;
   line-height: normal;
   ${media.medium} {
-    font-size: 18px;
+    font-size: 24px;
   }
   white-space: nowrap;
   min-width: ${(props) =>

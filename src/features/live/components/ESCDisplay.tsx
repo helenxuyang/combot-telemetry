@@ -18,6 +18,10 @@ import { ArcDisplay } from "./ArcDisplay";
 import { BarDisplay } from "./BarDisplay";
 import { ErrorDisplay } from "./ErrorDisplay";
 
+const StyledEscName = styled.h2`
+  font-size: 24px;
+`;
+
 const DisplayHolder = styled(Container)<{ $accentColor?: string }>`
   height: 100%;
   min-height: 0;
@@ -111,7 +115,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
 
   return (
     <DisplayHolder ref={ref} className={className} $accentColor={accentColor}>
-      <h2>{esc.name}</h2>
+      <StyledEscName>{esc.name}</StyledEscName>
       <DisplayLayout>
         {temperatureConfig.shouldShow && (
           <BarDisplay
@@ -125,6 +129,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
             orientation={barOrientation}
             valueMinCharacters={largerMinimumCharacters}
             defaultColor={accentColor}
+            headingLevel={3}
           />
         )}
         {rpmConfig.shouldShow && currentConfig.shouldShow && (
@@ -157,6 +162,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
             orientation={barOrientation}
             valueMinCharacters={largerMinimumCharacters}
             defaultColor={accentColor}
+            headingLevel={3}
           />
         )}
       </DisplayLayout>

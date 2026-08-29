@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { useRobot } from "../../../store";
+import { Value } from "../../../styles";
 
 const barWidth = 6;
 const svgSize = 50;
@@ -12,11 +13,6 @@ const DisplayHolder = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-`;
-
-const Strength = styled.p`
-  font-size: 16px;
-  font-weight: bold;
 `;
 
 const SignalSvg = styled.svg`
@@ -49,9 +45,9 @@ export const SignalStrengthDisplay = () => {
 
   return (
     <DisplayHolder>
-      <Strength>
+      <Value>
         {"SNR: " + (signalStrength === undefined ? "0" : signalStrength)}
-      </Strength>
+      </Value>
       <SignalSvg
         overflow="hidden"
         xmlns="http://www.w3.org/2000/svg"

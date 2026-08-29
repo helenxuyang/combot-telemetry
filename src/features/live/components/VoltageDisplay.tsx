@@ -1,8 +1,8 @@
+import { useLayoutEffect, useRef } from "react";
 import styled from "styled-components";
+import { getClampedPercent, getLatestValue } from "../../../dataUtils";
 import { ESC, VOLTAGE } from "../../../robot";
 import { Container, PLOT_BASE_COLOR, Value } from "../../../styles";
-import { getClampedPercent, getLatestValue } from "../../../dataUtils";
-import { useLayoutEffect, useRef } from "react";
 
 const BarDisplay = styled.div`
   display: flex;
@@ -34,7 +34,7 @@ const ValueText = styled.p<{ $percent: number }>`
   position: absolute;
   left: ${({ $percent }) => `${$percent}%`};
   top: 100%;
-  font-size: 12px;
+  font-size: 14px;
 `;
 
 const MinValueText = styled(ValueText)`
@@ -42,7 +42,7 @@ const MinValueText = styled(ValueText)`
 `;
 
 const RangeText = styled.p`
-  font-size: 12px;
+  font-size: 16px;
 `;
 
 type Props = {
