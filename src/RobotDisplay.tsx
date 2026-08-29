@@ -7,10 +7,10 @@ import { ConsumptionDonut } from "./features/live/components/ConsumptionDonut";
 import { ESCDisplay } from "./features/live/components/ESCDisplay";
 import { SerialConnector } from "./features/live/components/SerialConnector";
 import { VoltageDisplay } from "./features/live/components/VoltageDisplay";
+import { useMediaQuery } from "./features/useMediaQuery";
 import { CURRENT, ESC, EscId, VOLTAGE } from "./robot";
 import { useRobot, useRobotConfig } from "./store";
 import { ESC_COLORS, media } from "./styles";
-import { useMediaQuery } from "./features/useMediaQuery";
 
 const FOCUS_LAYOUT = css`
   display: grid;
@@ -170,9 +170,8 @@ export const RobotDisplay = () => {
               : { gridRow: "2", gridColumn: "span 4" };
           }
           return (
-            <EscDisplayHolder style={style}>
+            <EscDisplayHolder style={style} key={id}>
               <ESCDisplay
-                key={esc.name}
                 esc={esc}
                 config={config.escConfigs[id]}
                 accentColor={ESC_COLORS[id]}

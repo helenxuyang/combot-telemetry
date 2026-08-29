@@ -55,6 +55,7 @@ export const SignalStrengthDisplay = () => {
       >
         {bars.map((bar) => (
           <rect
+            key={bar.threshold}
             x={bar.x}
             y={bar.y}
             width={bar.width}
