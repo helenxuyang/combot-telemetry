@@ -36,7 +36,7 @@ pub fn get_serial_ports() -> Result<Vec<SerializableSerialPortInfo>, String> {
 
 #[tauri::command]
 pub async fn read_serial(app: AppHandle, port: String) -> Result<(), String> {
-    let serial_port = tokio_serial::new(port, 115200).open_native_async();
+    let serial_port = tokio_serial::new(port, 230400).open_native_async();
     if let Err(error) = serial_port {
         return Err(format!("SERIAL ERROR: failed to open port - {}", error));
     }
