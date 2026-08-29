@@ -86,6 +86,7 @@ const InfoHolder = styled.div`
 `;
 
 const RobotInfo = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -163,7 +164,7 @@ export const RobotDisplay = () => {
   };
 
   return (
-    <>
+    <div key={layout}>
       <ToggleButton onClick={toggleLayout}>Toggle</ToggleButton>
       <DisplayHolder $layout={layout}>
         {(Object.entries(robot.escs) as [EscId, ESC][]).map(([id, esc]) => {
@@ -220,6 +221,6 @@ export const RobotDisplay = () => {
           </SerialConnectorHolder>
         </InfoWrapper>
       </DisplayHolder>
-    </>
+    </div>
   );
 };
