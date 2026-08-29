@@ -13,10 +13,6 @@ export const media = {
   extraSmall: createMediaQuery(EXTRA_SMALL_VIEWPORT),
 } as const;
 
-export const MEDIA_MEDIUM = media.medium;
-export const MEDIA_SMALL = media.small;
-export const MEDIA_EXTRA_SMALL = media.extraSmall;
-
 export const BACKGROUND = "#f9f9f9";
 export const PLOT_BASE_COLOR = "#e2e2e2";
 export const PLOT_FILL_COLOR = "#00639B";
@@ -44,7 +40,7 @@ export const Value = styled.p<{ $valueMinCharacters?: number }>`
   font-weight: bold;
   font-size: 24px;
   line-height: normal;
-  ${MEDIA_MEDIUM} {
+  ${media.medium} {
     font-size: 18px;
   }
   white-space: nowrap;
