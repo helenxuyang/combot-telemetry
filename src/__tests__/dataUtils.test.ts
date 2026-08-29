@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
-  DEFAULT_COLOR,
-  getColor,
-  getLatestValue,
-  getClampedPercent,
-  getLatestValueDisplay,
   calculateTotal,
+  getClampedPercent,
+  getColor,
   getDisplayMinCharacters,
+  getLatestValue,
+  getLatestValueDisplay,
 } from "../dataUtils";
 import { ColorIndicator } from "../features/configuration/configUtils";
+import { PLOT_FILL_COLOR } from "../styles";
 
 describe("getColor", () => {
   // purposely order in a weird way
@@ -41,7 +41,7 @@ describe("getColor", () => {
   it("gets correct color based on thresholds", () => {
     expect(getColor(0, indicators)).toBe("blue");
     expect(getColor(40, indicators)).toBe("green");
-    expect(getColor(50, indicators)).toBe(DEFAULT_COLOR);
+    expect(getColor(50, indicators)).toBe(PLOT_FILL_COLOR);
     expect(getColor(70, indicators)).toBe("orange");
     expect(getColor(80, indicators)).toBe("red");
     expect(getColor(100, indicators)).toBe("red");

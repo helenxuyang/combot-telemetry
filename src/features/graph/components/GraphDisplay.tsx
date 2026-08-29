@@ -134,6 +134,7 @@ export const GraphDisplay = () => {
     }
   };
 
+  // @ts-expect-error TODO wip try to prevent zoom reset
   const onEvents = { dataZoom };
 
   return (
