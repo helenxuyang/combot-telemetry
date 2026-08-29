@@ -10,6 +10,7 @@ import { VoltageDisplay } from "./features/live/components/VoltageDisplay";
 import { CURRENT, ESC, EscId, VOLTAGE } from "./robot";
 import { useRobot, useRobotConfig } from "./store";
 import { ESC_COLORS, media } from "./styles";
+import { useMediaQuery } from "./features/useMediaQuery";
 
 const FOCUS_LAYOUT = css`
   display: grid;
@@ -119,19 +120,15 @@ const SerialConnectorHolder = styled.div`
   }
 `;
 
-const ToggleButton = styled.button`
-  position: absolute;
-  top: 20px;
-  right: 16px;
-`;
-
 type Layout = "GRID" | "FOCUS";
 
 export const RobotDisplay = () => {
   const robot = useRobot();
   const config = useRobotConfig();
-  const [layout, setLayout] = useState<Layout>("FOCUS");
-  const [focusedEscId, setFocusedEscId] = useState<EscId | null>("2");
+  const isGridLayout = useMediaQuery("(max-width: 1280px)");
+  const [focusedEscId] = useState<EscId | null>("2");
+
+  const layout: Layout = isGridLayout ? "GRID" : "FOCUS";
 
   if (!robot) {
     return <div>No robot</div>;
@@ -159,13 +156,8 @@ export const RobotDisplay = () => {
 
   const InfoWrapper = layout === "GRID" ? InfoHolder : Fragment;
 
-  const toggleLayout = () => {
-    setLayout((layout) => (layout === "GRID" ? "FOCUS" : "GRID"));
-  };
-
   return (
     <div key={layout}>
-      <ToggleButton onClick={toggleLayout}>Toggle</ToggleButton>
       <DisplayHolder $layout={layout}>
         {(Object.entries(robot.escs) as [EscId, ESC][]).map(([id, esc]) => {
           const isFocused = id === focusedEscId;
