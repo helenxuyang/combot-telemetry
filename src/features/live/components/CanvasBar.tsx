@@ -11,16 +11,6 @@ type Props = {
   className?: string;
 };
 
-export const getCanvasDimensions = (
-  width: number,
-  height: number,
-  dpr: number,
-) => ({
-  width: Math.max(width, 1) * dpr,
-  height: Math.max(height, 1) * dpr,
-  dpr,
-});
-
 const Canvas = styled.canvas`
   width: 100%;
   height: 100%;
@@ -49,17 +39,12 @@ export const CanvasBar = ({
 
     const width = Math.max(canvas.clientWidth, 1);
     const height = Math.max(canvas.clientHeight, 1);
-    const dimensions = getCanvasDimensions(width, height, dpr);
 
-    if (
-      canvas.width !== dimensions.width ||
-      canvas.height !== dimensions.height
-    ) {
-      canvas.width = dimensions.width;
-      canvas.height = dimensions.height;
-    }
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = PLOT_BASE_COLOR;
     ctx.fillRect(0, 0, width, height);
