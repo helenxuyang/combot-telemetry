@@ -1,18 +1,18 @@
 import ReactECharts from "echarts-for-react";
-import { ESC, EscId, INPUT } from "../../../robot";
 import { useRef, useState } from "react";
+import { ESC, EscId, INPUT } from "../../../robot";
 
 import styled from "styled-components";
+import { PlotPill } from "../../../PlotPill";
+import { useRobot, useRobotConfig } from "../../../store";
 import {
   getAvailablePlots,
   getLabel,
-  parsePlot,
   getPlotData,
+  parsePlot,
   stringifyPlot,
   type Plot,
 } from "../graphUtils";
-import { PlotPill } from "../../../PlotPill";
-import { useRobot, useRobotConfig } from "../../../store";
 
 const PlotSelectionHolder = styled.div`
   display: flex;
@@ -180,7 +180,7 @@ export const GraphDisplay = () => {
           <ReactECharts
             ref={graphRef}
             option={option}
-            onEvents={onEvents}
+            // onEvents={onEvents}
             notMerge={true}
             style={{ height: "90dvh", width: "100%" }}
           />
