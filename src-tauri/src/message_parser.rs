@@ -159,6 +159,10 @@ fn validate_checksum(data: &[&str], received_checksum: u8) -> Result<bool, Parse
     }
 }
 
+fn parse_message_type(info_byte: u8) -> u8 {
+    return (info_byte & 0b1100) >> 2;
+}
+
 /*
 0.  Info
       bits 7-4: 0000 (TBD)
@@ -285,8 +289,6 @@ fn validate_message_format(raw_message: &str) -> bool {
 15. Timestamp byte 1
 16. Timestamp byte 0
 17. SNR
-
-
  */
 fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, ParseIntError> {
     let info_byte = parse_hex(message_components[0])?;
@@ -302,12 +304,6 @@ fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, 
         snr,
     });
 }
-
-// fn validate_error_message_format(raw_message: &str) -> bool {
-//     let error_format = format!("^<[abcd] !(?: {HEX_REGEX}){{2}}>$");
-//     let error_regex = Regex::new(&error_format).unwrap();
-//     return error_regex.is_match(raw_message);
-// }
 
 pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
     // TODO: handle pong?
@@ -332,7 +328,7 @@ pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
             reason: "failed to parse ESC ID".to_string(),
         });
     };
-    let message_type = parsed_info_byte & 0b1100 >> 2;
+    let message_type = parse_message_type(parsed_info_byte);
 
     /*
     message types
@@ -578,6 +574,42 @@ mod tests {
     }
 
     #[test]
+    fn parse_error_message_for_code_1() {
+        let result = parse_error_message(vec![
+            "D", "1", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1D", "D8",
+            "8",
+        ])
+        .unwrap();
+
+        let expected = TelemetryError {
+            esc_id: 1,
+            error_code: 1,
+            timestamp: 7640,
+            snr: 8,
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn parse_error_message_for_code_2() {
+        let result = parse_error_message(vec![
+            "D", "2", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1D", "D8",
+            "8",
+        ])
+        .unwrap();
+
+        let expected = TelemetryError {
+            esc_id: 1,
+            error_code: 2,
+            timestamp: 7640,
+            snr: 8,
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn validate_message_format_valid() {
         let message = "<1 20 1 C1 0 6 0 3C 0 0 5E 5 E7 0 E AA CA 7>";
         assert_eq!(validate_message_format(message), true);
@@ -609,15 +641,15 @@ mod tests {
         assert_eq!(validate_message_format(message), false);
     }
 
-    // #[test]
-    // fn validate_error_message_format_valid() {
-    //     let message = "<b ! 1 F42>";
-    //     assert_eq!(validate_error_message_format(message), true);
-    // }
-
-    // #[test]
-    // fn validate_error_message_format_no_code() {
-    //     let message = "<a ! 5D24>";
-    //     assert_eq!(validate_error_message_format(message), false);
-    // }
+    #[test]
+    fn validate_parse_message_type() {
+        let info_byte_11 = 0b00001100;
+        assert_eq!(parse_message_type(info_byte_11), 0b11);
+        let info_byte_10 = 0b00001000;
+        assert_eq!(parse_message_type(info_byte_10), 0b10);
+        let info_byte_01 = 0b00000100;
+        assert_eq!(parse_message_type(info_byte_01), 0b01);
+        let info_byte_00 = 0b00000000;
+        assert_eq!(parse_message_type(info_byte_00), 0b00);
+    }
 }
