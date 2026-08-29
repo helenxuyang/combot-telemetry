@@ -1,4 +1,7 @@
+import { useRef } from "react";
 import styled from "styled-components";
+import { getDisplayMinCharacters, getLatestValue } from "../../../dataUtils";
+import { METADATA } from "../../../displayUtils";
 import {
   CURRENT,
   INPUT,
@@ -7,16 +10,13 @@ import {
   TEMPERATURE,
   type ESC,
 } from "../../../robot";
-import { Container, EXTRA_SMALL_VIEWPORT } from "../../../styles";
-import { ErrorDisplay } from "./ErrorDisplay";
-import { useRef } from "react";
-import { METADATA } from "../../../displayUtils";
-import { getDisplayMinCharacters, getLatestValue } from "../../../dataUtils";
-import { BarDisplay } from "./BarDisplay";
-import { EscConfig } from "../../configuration/configUtils";
-import { ArcDisplay } from "./ArcDisplay";
+import { Container, media } from "../../../styles";
 import { useElementSize } from "../../../useElementSize";
+import { EscConfig } from "../../configuration/configUtils";
 import { useMediaQuery } from "../../useMediaQuery";
+import { ArcDisplay } from "./ArcDisplay";
+import { BarDisplay } from "./BarDisplay";
+import { ErrorDisplay } from "./ErrorDisplay";
 
 const DisplayHolder = styled(Container)<{ $accentColor?: string }>`
   height: 100%;
@@ -36,8 +36,18 @@ const DisplayLayout = styled.div`
   justify-content: space-between;
   align-items: center;
 
-  @media (max-width: ${EXTRA_SMALL_VIEWPORT}px) {
+  ${media.extraSmall} {
     flex-direction: column;
+  }
+`;
+
+const StyledErrorDisplay = styled(ErrorDisplay)`
+  position: absolute;
+  bottom: 16px;
+
+  ${media.small} {
+    margin-top: 16px;
+    position: relative;
   }
 `;
 
@@ -49,7 +59,7 @@ type Props = {
 };
 
 export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
-  const isLarge = useMediaQuery(`(max-width: ${EXTRA_SMALL_VIEWPORT}px)`);
+  const isLarge = useMediaQuery(`(max-width: ${500}px)`);
   const barOrientation = isLarge ? "horizontal" : "vertical";
   const ref = useRef<HTMLDivElement>(null);
 
@@ -139,7 +149,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
           />
         )}
       </DisplayLayout>
-      {<ErrorDisplay errors={esc.errors} />}
+      <StyledErrorDisplay errors={esc.errors} />
     </DisplayHolder>
   );
 };

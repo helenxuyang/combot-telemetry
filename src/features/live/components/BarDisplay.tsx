@@ -1,11 +1,5 @@
 import styled from "styled-components";
-import {
-  Container,
-  MEDIUM_VIEWPORT,
-  PLOT_BASE_COLOR,
-  SMALL_VIEWPORT,
-  Value,
-} from "../../../styles";
+import { Container, media, PLOT_BASE_COLOR, Value } from "../../../styles";
 import {
   getColor,
   getClampedPercent,
@@ -35,7 +29,7 @@ const StyledContainer = styled(Container)<{
 }>`
   height: 100%;
 
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     width: ${({ $orientation }) =>
       $orientation === "horizontal" ? "100%" : "auto"};
   }

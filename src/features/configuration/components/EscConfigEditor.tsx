@@ -4,7 +4,7 @@ import { MeasurementConfig, MotorConfig } from "../configUtils";
 import { EscConfig } from "../configUtils";
 import { MeasurementConfigEditor } from "./MeasurementConfigEditor";
 import { RadioHolder, RadioInput, RadioLabel, TextInput } from "./inputStyles";
-import { SMALL_VIEWPORT, SpacedRow, Table } from "../../../styles";
+import { media, SpacedRow, Table } from "../../../styles";
 import { Draft } from "immer";
 import { MotorConfigEditor } from "./MotorConfigEditor";
 import { useIsEditing } from "../../../store";
@@ -26,7 +26,7 @@ const Container = styled.div`
   gap: 16px;
   padding: 8px;
 
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     align-items: start;
   }
 `;
@@ -35,7 +35,7 @@ const IdSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: end;
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     align-items: start;
   }
 `;

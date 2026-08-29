@@ -17,7 +17,7 @@ import {
 import styled from "styled-components";
 import { EscConfigEditor } from "./EscConfigEditor";
 import { useEffect } from "react";
-import { ButtonsHolder, SMALL_VIEWPORT, SpacedRow } from "../../../styles";
+import { ButtonsHolder, media, SpacedRow } from "../../../styles";
 import type { Draft } from "immer";
 import { TextInput } from "./inputStyles";
 import { confirm } from "@tauri-apps/plugin-dialog";
@@ -35,7 +35,7 @@ const EscContainer = styled.div`
   flex-wrap: wrap;
   gap: 16px;
 
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     flex-direction: column;
   }
 `;

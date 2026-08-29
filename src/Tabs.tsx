@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import styled from "styled-components";
-import { SMALL_VIEWPORT } from "./styles";
+import { media } from "./styles";
 
 export type Tab = {
   name: string;
@@ -14,7 +14,7 @@ const StyledTabButtonHolder = styled.div`
   display: flex;
   gap: 8px;
 
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     gap: 4px;
   }
 `;
@@ -37,7 +37,7 @@ const StyledTabButton = styled.button<{ $isCurrent: boolean }>`
     border: 2px solid black;
   }
 
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     padding: 2px;
   }
 `;

@@ -1,5 +1,5 @@
 import { useRobot } from "../../../store";
-import { HorizontalContainer } from "../../../styles";
+import { Container } from "../../../styles";
 
 export const UnknownMessagesDisplay = () => {
   const robot = useRobot();
@@ -9,7 +9,7 @@ export const UnknownMessagesDisplay = () => {
   }
 
   return (
-    <HorizontalContainer>
+    <Container>
       <h3>Unknown Messages</h3>
       <p>
         Count: {robot.unknownMessages.length} | Last:{" "}
@@ -23,6 +23,6 @@ export const UnknownMessagesDisplay = () => {
             .join(", ")}
         </p>
       </details> */}
-    </HorizontalContainer>
+    </Container>
   );
 };

@@ -4,6 +4,7 @@ import { useMessageHandler } from "./useMessageHandler";
 import { ButtonsHolder, Container } from "../../../styles";
 import { SignalStrengthDisplay } from "./SignalStrengthDisplay";
 import styled from "styled-components";
+import { UnknownMessagesDisplay } from "./UnknownMessagesDisplay";
 
 const GET_SERIAL_PORTS = "get_serial_ports";
 const READ_SERIAL_COMMAND = "read_serial";
@@ -81,6 +82,7 @@ export const SerialConnector = () => {
         </ButtonsHolder>
       )}
       {error && <p>Error: {error}</p>}
+      <UnknownMessagesDisplay />
     </StyledContainer>
   );
 };

@@ -4,6 +4,19 @@ export const MEDIUM_VIEWPORT = 1280;
 export const SMALL_VIEWPORT = 800;
 export const EXTRA_SMALL_VIEWPORT = 500;
 
+const createMediaQuery = (viewport: number) =>
+  `@media (max-width: ${viewport}px)`;
+
+export const media = {
+  medium: createMediaQuery(MEDIUM_VIEWPORT),
+  small: createMediaQuery(SMALL_VIEWPORT),
+  extraSmall: createMediaQuery(EXTRA_SMALL_VIEWPORT),
+} as const;
+
+export const MEDIA_MEDIUM = media.medium;
+export const MEDIA_SMALL = media.small;
+export const MEDIA_EXTRA_SMALL = media.extraSmall;
+
 export const BACKGROUND = "#f9f9f9";
 export const PLOT_BASE_COLOR = "#e2e2e2";
 export const PLOT_FILL_COLOR = "#00639B";
@@ -31,7 +44,7 @@ export const Value = styled.p<{ $valueMinCharacters?: number }>`
   font-weight: bold;
   font-size: 24px;
   line-height: normal;
-  @media (max-width: ${MEDIUM_VIEWPORT}px) {
+  ${MEDIA_MEDIUM} {
     font-size: 18px;
   }
   white-space: nowrap;

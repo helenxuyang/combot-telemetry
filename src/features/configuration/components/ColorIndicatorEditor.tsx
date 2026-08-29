@@ -5,7 +5,7 @@ import {
   ColorInput,
   RadioInput,
 } from "./inputStyles";
-import { CondensedButton, MEDIUM_VIEWPORT } from "../../../styles";
+import { CondensedButton, media } from "../../../styles";
 import { Draft } from "immer";
 import { ColorIndicator } from "../configUtils";
 
@@ -13,7 +13,7 @@ const Container = styled.div`
   display: flex;
   gap: 4px;
   margin: 2px;
-  @media (max-width: ${MEDIUM_VIEWPORT}px) {
+  ${media.medium} {
     flex-direction: column;
     align-items: start;
   }

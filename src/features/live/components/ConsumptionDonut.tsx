@@ -67,6 +67,10 @@ export const ConsumptionDonut = ({ escs }: Props) => {
   // create labels
   // TODO: maybe do on canvas
   const labels: ReactNode[] = [];
+  const getLabelAbbreviation = (name: string): string => {
+    return [...name].filter((char) => char === char.toUpperCase()).join("");
+  };
+
   let angle = 0;
   escs.forEach((esc) => {
     const value = getLatestValue(esc.data[CONSUMPTION], 1);
@@ -89,7 +93,7 @@ export const ConsumptionDonut = ({ escs }: Props) => {
             transform: `translate(calc(${translateX < 0 ? "-100" : "0"}% + ${translateX}px), calc(50% + ${translateY}px))`,
           }}
         >
-          {esc.name}: {value}
+          {getLabelAbbreviation(esc.name)}: {value}
         </Label>,
       );
     }

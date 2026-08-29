@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import { SMALL_VIEWPORT } from "../../../styles";
+import { media } from "../../../styles";
 
 type Editable = { $isEditable: boolean };
 
@@ -25,7 +25,7 @@ export const NumberInput = styled.input<Editable>`
   max-width: 80px;
   ${(props) => !props.$isEditable && uneditableStyle};
 
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     max-width: 40px;
   }
 `;
@@ -34,7 +34,7 @@ export const RadioHolder = styled.div`
   display: flex;
   gap: 8px;
 
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     flex-direction: column;
     align-items: start;
   }
