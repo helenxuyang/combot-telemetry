@@ -117,9 +117,7 @@ export const VoltageDisplay = ({ escs, min, max }: Props) => {
         </BarHolder>
         <RangeText>{max}</RangeText>
       </BarDisplay>
-      <Value>
-        {minValue === maxValue ? minValue : `${minValue}-${maxValue}` + " V"}
-      </Value>
+      <Value>{`${minValue} V`}</Value>
     </StyledContainer>
   );
 };

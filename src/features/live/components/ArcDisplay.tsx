@@ -196,7 +196,7 @@ export const ArcDisplay = ({
     drawMarks(ctx, innerMin, innerMax, innerColorIndicators);
 
     // inner label
-    ctx.font = "bold 30px system-ui";
+    ctx.font = "bold 26px system-ui";
     ctx.fillText(
       getLatestValueDisplay(
         innerValue,
@@ -222,27 +222,15 @@ export const ArcDisplay = ({
   ]);
 
   return (
-    <div
-      className={className}
+    <canvas
+      ref={canvasRef}
       style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 0,
+        display: "block",
+        width,
+        height,
+        maxWidth: "100%",
+        maxHeight: "100%",
       }}
-    >
-      <canvas
-        ref={canvasRef}
-        style={{
-          display: "block",
-          width,
-          height,
-          maxWidth: "100%",
-          maxHeight: "100%",
-        }}
-      />
-    </div>
+    />
   );
 };

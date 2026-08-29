@@ -1,6 +1,12 @@
+import styled from "styled-components";
 import { useRobot } from "../../../store";
-import { Container } from "../../../styles";
 
+const StyledContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+`;
 export const UnknownMessagesDisplay = () => {
   const robot = useRobot();
 
@@ -9,7 +15,7 @@ export const UnknownMessagesDisplay = () => {
   }
 
   return (
-    <Container>
+    <StyledContainer>
       <h3>Unknown Messages</h3>
       <p>
         Count: {robot.unknownMessages.length} | Last:{" "}
@@ -23,6 +29,6 @@ export const UnknownMessagesDisplay = () => {
             .join(", ")}
         </p>
       </details> */}
-    </Container>
+    </StyledContainer>
   );
 };

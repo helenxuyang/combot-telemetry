@@ -10,7 +10,7 @@ import {
   TEMPERATURE,
   type ESC,
 } from "../../../robot";
-import { Container, media } from "../../../styles";
+import { Container, EXTRA_SMALL_VIEWPORT, media } from "../../../styles";
 import { useElementSize } from "../../../useElementSize";
 import { EscConfig } from "../../configuration/configUtils";
 import { useMediaQuery } from "../../useMediaQuery";
@@ -65,8 +65,9 @@ type Props = {
 };
 
 export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
-  const isLarge = useMediaQuery(`(max-width: ${500}px)`);
-  const barOrientation = isLarge ? "horizontal" : "vertical";
+  const isXs = useMediaQuery(`(max-width: ${EXTRA_SMALL_VIEWPORT}px)`);
+
+  const barOrientation = isXs ? "horizontal" : "vertical";
   const ref = useRef<HTMLDivElement>(null);
   const temperatureBarRef = useRef<HTMLDivElement>(null);
   const inputBarRef = useRef<HTMLDivElement>(null);
@@ -74,10 +75,9 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
   const { width } = useElementSize(ref);
   const temperatureBarWidth = temperatureBarRef.current?.offsetWidth ?? 0;
   const inputBarWidth = inputBarRef.current?.offsetWidth ?? 0;
-  const maxArcWidth = Math.max(
-    0,
-    width - temperatureBarWidth - inputBarWidth - 16,
-  );
+  const maxArcWidth = isXs
+    ? 300
+    : Math.max(0, width - temperatureBarWidth - inputBarWidth - 16);
 
   if (!config) {
     return null;

@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { ButtonsHolder, Container } from "../../../styles";
+import { ButtonsHolder, Container, WarningText } from "../../../styles";
 import { SignalStrengthDisplay } from "./SignalStrengthDisplay";
 import { UnknownMessagesDisplay } from "./UnknownMessagesDisplay";
 import { useMessageHandler } from "./useMessageHandler";
@@ -16,6 +16,14 @@ const StyledContainer = styled(Container)`
   display: flex;
   flex-direction: column;
   gap: 8px;
+`;
+
+const PortInfoHolder = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  flex: 1;
 `;
 
 type PortInfo = {
@@ -68,20 +76,24 @@ export const SerialConnector = () => {
       <SignalStrengthDisplay />
       {port ? (
         <>
-          <i>{getPortDisplayName(port)}</i>
+          <h3>Port</h3>
+          <p>{getPortDisplayName(port)}</p>
           <button onClick={stopListening}>Stop listening</button>
         </>
       ) : (
-        <ButtonsHolder>
-          {allPorts?.map((port) => (
-            <button key={port.name} onClick={() => startListening(port)}>
-              {getPortDisplayName(port)}
-            </button>
-          ))}
-          <button onClick={getAllPorts}>Refresh</button>
-        </ButtonsHolder>
+        <PortInfoHolder>
+          <h3>Ports</h3>
+          <ButtonsHolder>
+            {allPorts?.map((port) => (
+              <button key={port.name} onClick={() => startListening(port)}>
+                {getPortDisplayName(port)}
+              </button>
+            ))}
+            <button onClick={getAllPorts}>Refresh</button>
+          </ButtonsHolder>
+        </PortInfoHolder>
       )}
-      {error && <p>Error: {error}</p>}
+      {error && <WarningText>Error: {error}</WarningText>}
       <UnknownMessagesDisplay />
     </StyledContainer>
   );
