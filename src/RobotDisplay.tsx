@@ -1,17 +1,24 @@
-import { ConsumptionDonut } from "./features/live/components/ConsumptionDonut";
-import { calculateTotal, getLatestValue } from "./dataUtils";
-import { BarDisplay } from "./features/live/components/BarDisplay";
-import { CURRENT, ESC, EscId, VOLTAGE } from "./robot";
-import { VoltageDisplay } from "./features/live/components/VoltageDisplay";
+import { CSSProperties, Fragment, useState } from "react";
 import styled, { css } from "styled-components";
-import { ESCDisplay } from "./features/live/components/ESCDisplay";
-import { useRobot, useRobotConfig } from "./store";
+import { calculateTotal, getLatestValue } from "./dataUtils";
 import { METADATA } from "./displayUtils";
+import { BarDisplay } from "./features/live/components/BarDisplay";
+import { ConsumptionDonut } from "./features/live/components/ConsumptionDonut";
+import { ESCDisplay } from "./features/live/components/ESCDisplay";
 import { SerialConnector } from "./features/live/components/SerialConnector";
-import { UnknownMessagesDisplay } from "./features/live/components/UnknownMessagesDisplay";
-import { ESC_COLORS, MEDIUM_VIEWPORT, SMALL_VIEWPORT } from "./styles";
+import { VoltageDisplay } from "./features/live/components/VoltageDisplay";
+import { CURRENT, ESC, EscId, VOLTAGE } from "./robot";
+import { useRobot, useRobotConfig } from "./store";
+import { ESC_COLORS, media } from "./styles";
 
-const EQUAL_LAYOUT = css`
+const FOCUS_LAYOUT = css`
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: 3fr 2fr;
+`;
+
+const GRID_LAYOUT = css`
   display: grid;
   gap: 8px;
   grid-template-columns: 40% 40% 1fr;
@@ -25,7 +32,7 @@ const EQUAL_LAYOUT = css`
     height: auto;
   }
 
-  @media (max-width: ${MEDIUM_VIEWPORT}px) {
+  ${media.medium} {
     height: auto;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: none;
@@ -35,7 +42,7 @@ const EQUAL_LAYOUT = css`
       "info info"
       "control control";
   }
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     grid-template-columns: none;
     grid-template-rows: none;
     grid-template-areas:
@@ -50,9 +57,9 @@ const EQUAL_LAYOUT = css`
   }
 `;
 
-const DisplayHolder = styled.div`
+const DisplayHolder = styled.div<{ $layout: Layout }>`
   width: 100%;
-  ${EQUAL_LAYOUT}
+  ${({ $layout }) => ($layout === "GRID" ? GRID_LAYOUT : FOCUS_LAYOUT)}
 `;
 
 const EscDisplayHolder = styled.div`
@@ -69,17 +76,23 @@ const InfoHolder = styled.div`
   flex-direction: column;
   gap: 8px;
 
-  @media (max-width: ${MEDIUM_VIEWPORT}px) {
+  ${media.medium} {
     flex-direction: row;
   }
 
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     flex-direction: column;
   }
 `;
 
+const RobotInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
 const InfoBarHolder = styled.div`
-  @media (max-width: ${MEDIUM_VIEWPORT}px) {
+  ${media.medium} {
     height: 100%;
     flex: 1;
     min-width: 100px;
@@ -88,7 +101,7 @@ const InfoBarHolder = styled.div`
 
 const ConsumptionDonutHolder = styled.div`
   flex: 1;
-  @media (max-width: ${MEDIUM_VIEWPORT}px) {
+  ${media.medium} {
     min-width: min-content;
     flex: 1 0 auto;
   }
@@ -97,17 +110,27 @@ const ConsumptionDonutHolder = styled.div`
 const SerialConnectorHolder = styled.div`
   min-height: 0;
   flex: 1;
-  @media (max-width: ${MEDIUM_VIEWPORT}px) {
+  ${media.medium} {
     flex: 1;
   }
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  ${media.small} {
     min-height: 200px;
   }
 `;
 
+const ToggleButton = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 16px;
+`;
+
+type Layout = "GRID" | "FOCUS";
+
 export const RobotDisplay = () => {
   const robot = useRobot();
   const config = useRobotConfig();
+  const [layout, setLayout] = useState<Layout>("FOCUS");
+  const [focusedEscId, setFocusedEscId] = useState<EscId | null>("2");
 
   if (!robot) {
     return <div>No robot</div>;
@@ -133,46 +156,70 @@ export const RobotDisplay = () => {
     escs.map((esc) => getLatestValue(esc.data[CURRENT])),
   );
 
-  return (
-    <DisplayHolder>
-      {(Object.entries(robot.escs) as [EscId, ESC][]).map(([id, esc]) => (
-        <EscDisplayHolder style={{ gridArea: `esc${id}` }}>
-          <ESCDisplay
-            key={esc.name}
-            esc={esc}
-            config={config.escConfigs[id]}
-            accentColor={ESC_COLORS[id]}
-          />
-        </EscDisplayHolder>
-      ))}
-      <InfoHolder style={{ gridArea: "info" }}>
-        <InfoBarHolder>
-          <VoltageDisplay
-            escs={escs}
-            {...referenceConfig.measurementConfigs[VOLTAGE]}
-          />
-        </InfoBarHolder>
-        <InfoBarHolder>
-          <BarDisplay
-            name="Total Current"
-            value={totalCurrent}
-            unit={METADATA[CURRENT].unit}
-            {...referenceConfig.measurementConfigs[CURRENT]}
-            orientation="horizontal"
-            headingLevel={2}
-          />
-        </InfoBarHolder>
-        <ConsumptionDonutHolder>
-          <ConsumptionDonut escs={escs} />
-        </ConsumptionDonutHolder>
-        <SerialConnectorHolder>
-          <SerialConnector />
-        </SerialConnectorHolder>
-      </InfoHolder>
+  const InfoWrapper = layout === "GRID" ? InfoHolder : Fragment;
 
-      <div style={{ gridArea: "control" }}>
-        <UnknownMessagesDisplay />
-      </div>
-    </DisplayHolder>
+  const toggleLayout = () => {
+    setLayout((layout) => (layout === "GRID" ? "FOCUS" : "GRID"));
+  };
+
+  return (
+    <>
+      <ToggleButton onClick={toggleLayout}>Toggle</ToggleButton>
+      <DisplayHolder $layout={layout}>
+        {(Object.entries(robot.escs) as [EscId, ESC][]).map(([id, esc]) => {
+          const isFocused = id === focusedEscId;
+          let style: CSSProperties;
+          if (layout === "GRID") {
+            style = { gridArea: `esc${id}` };
+          } else {
+            style = isFocused
+              ? { gridRow: "1", gridColumn: "4 / span 6" }
+              : { gridRow: "2", gridColumn: "span 4" };
+          }
+          return (
+            <EscDisplayHolder style={style}>
+              <ESCDisplay
+                key={esc.name}
+                esc={esc}
+                config={config.escConfigs[id]}
+                accentColor={ESC_COLORS[id]}
+              />
+            </EscDisplayHolder>
+          );
+        })}
+        <InfoWrapper style={{ gridArea: "info" }}>
+          <RobotInfo style={{ gridColumn: "1 / span 3", gridRow: "1" }}>
+            <InfoBarHolder>
+              <VoltageDisplay
+                escs={escs}
+                {...referenceConfig.measurementConfigs[VOLTAGE]}
+              />
+            </InfoBarHolder>
+            <InfoBarHolder>
+              <BarDisplay
+                name="Total Current"
+                value={totalCurrent}
+                unit={METADATA[CURRENT].unit}
+                {...referenceConfig.measurementConfigs[CURRENT]}
+                orientation="horizontal"
+                headingLevel={2}
+              />
+            </InfoBarHolder>
+            <ConsumptionDonutHolder>
+              <ConsumptionDonut escs={escs} />
+            </ConsumptionDonutHolder>
+          </RobotInfo>
+          <SerialConnectorHolder
+            style={
+              layout === "FOCUS"
+                ? { gridColumn: "-4 / span 3", gridRow: 1 }
+                : undefined
+            }
+          >
+            <SerialConnector />
+          </SerialConnectorHolder>
+        </InfoWrapper>
+      </DisplayHolder>
+    </>
   );
 };
