@@ -1,9 +1,9 @@
-import { getColor, getLatestValueDisplay } from "../../../dataUtils";
 import { useLayoutEffect, useRef } from "react";
-import { MeasurementName } from "../../../robot";
+import { getColor, getLatestValueDisplay } from "../../../dataUtils";
 import { METADATA } from "../../../displayUtils";
-import { ColorIndicator } from "../../configuration/configUtils";
+import { MeasurementName } from "../../../robot";
 import { PLOT_BASE_COLOR } from "../../../styles";
+import { ColorIndicator } from "../../configuration/configUtils";
 
 type Props = {
   innerName: MeasurementName;
@@ -229,12 +229,25 @@ export const ArcDisplay = ({
   ]);
 
   return (
-    <div className={className}>
+    <div
+      className={className}
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 0,
+      }}
+    >
       <canvas
         ref={canvasRef}
         style={{
+          display: "block",
           width,
           height,
+          maxWidth: "100%",
+          maxHeight: "100%",
         }}
       />
     </div>

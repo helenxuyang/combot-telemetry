@@ -45,6 +45,7 @@ const BarDisplayWrapper = styled.div<{
     $orientation === "vertical" ? "column" : "row-reverse"};
   align-items: center;
   justify-content: center;
+  margin-top: 4px;
 `;
 
 const BarHolder = styled.div`

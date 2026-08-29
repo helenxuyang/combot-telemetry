@@ -20,6 +20,7 @@ import { ErrorDisplay } from "./ErrorDisplay";
 
 const DisplayHolder = styled(Container)<{ $accentColor?: string }>`
   height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: start;
@@ -29,8 +30,9 @@ const DisplayHolder = styled(Container)<{ $accentColor?: string }>`
 `;
 
 const DisplayLayout = styled.div`
-  height: 100%;
+  flex: 1;
   width: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;

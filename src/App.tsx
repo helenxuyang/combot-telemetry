@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import "./App.css";
 import { DashboardDisplay } from "./DashboardDisplay";
+import "./reset.css";
 
 const Container = styled.div`
   display: flex;

@@ -1,18 +1,16 @@
+import { useMemo } from "react";
 import styled from "styled-components";
+import { RobotDisplay } from "./RobotDisplay";
 import { NavigationTabs, type Tab } from "./Tabs";
 import { ConfigDisplay } from "./features/configuration/components/ConfigDisplay";
-import { useMemo } from "react";
-import { useRobotConfig } from "./store";
-import { RobotDisplay } from "./RobotDisplay";
 import { GraphGrid } from "./features/graph/components/GraphGrid";
+import { useRobotConfig } from "./store";
 import { useInitializer } from "./useInitializer";
 
 const Layout = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 100%;
-  height: 100%;
 `;
 
 const HeaderHolder = styled.div`
