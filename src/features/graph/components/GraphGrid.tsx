@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { GraphDisplay } from "./GraphDisplay";
 import styled from "styled-components";
-import { useRobot } from "../../../store";
-import { ControlsSection } from "../../../styles";
 import { RobotImporter } from "../../../RobotImporter";
+import { useRobot } from "../../../store";
+import { GraphDisplay } from "./GraphDisplay";
 
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
@@ -11,6 +10,7 @@ const Holder = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
+  margin-bottom: 16px;
 `;
 
 const GridHolder = styled.div`
@@ -18,6 +18,8 @@ const GridHolder = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  background-color: white;
+  border-radius: 8px;
 `;
 
 const GraphHolder = styled.div<{ $isFullWidth: boolean }>`
@@ -26,8 +28,10 @@ const GraphHolder = styled.div<{ $isFullWidth: boolean }>`
   min-width: 0;
   display: flex;
   flex-direction: column;
-  border: 2px solid #cccccc;
-  padding: 4px;
+  margin: 16px;
+  padding: 8px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
   gap: 8px;
 
   @media (max-width: 700px) {
@@ -45,10 +49,10 @@ const RoundButton = styled.button`
   height: 24px;
   padding: 16px;
   border-radius: 50%;
+  color: #444;
 
-  background-color: #cccccc;
   &:hover {
-    background-color: #bbbbbb;
+    background-color: #ccc;
   }
 `;
 
@@ -123,9 +127,7 @@ export const GraphGrid = () => {
 
   return (
     <Holder>
-      <ControlsSection>
-        <RobotImporter />
-      </ControlsSection>
+      <RobotImporter />
 
       <GridHolder>
         {graphConfigs.map((graph, index) => {

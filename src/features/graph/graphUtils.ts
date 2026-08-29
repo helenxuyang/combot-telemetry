@@ -1,10 +1,10 @@
 import { METADATA } from "../../displayUtils";
 import {
-  type Robot,
   type MeasurementName,
+  type Robot,
   ERROR,
-  EscId,
   ESC,
+  EscId,
 } from "../../robot";
 import { MeasurementConfig, RobotConfig } from "../configuration/configUtils";
 
@@ -47,25 +47,24 @@ export const parsePlot = (id: string): Plot => {
   }
 };
 
-type Color = { h: number; s: number; l: number };
+const SERIES_COLORS: Record<
+  MeasurementName | typeof ERROR,
+  [string, string, string, string]
+> = {
+  temperature: ["#7A0000", "#F06262", "#B00020", "#D32F2F"],
+  rpm: ["#B83D00", "#FFB703", "#E85D04", "#F48C06"],
+  voltage: ["#8A6500", "#E8C547", "#B88600", "#D4A017"],
+  current: ["#005A24", "#52B788", "#008C3A", "#00A651"],
+  consumption: ["#003F88", "#4DA3E8", "#0057B8", "#0077CC"],
+  input: ["#303030", "#A0A0A0", "#555555", "#787878"],
+  error: ["black", "black", "black", "black"],
+};
 
 export const getSeriesColor = (
   measurementName: MeasurementName | typeof ERROR,
   escId: EscId,
-) => {
-  const baseColors: Record<MeasurementName | typeof ERROR, Color> = {
-    temperature: { h: 0, s: 100, l: 30 }, // red
-    rpm: { h: 33, s: 100, l: 50 }, // orange
-    voltage: { h: 45, s: 100, l: 50 }, // gold
-    current: { h: 120, s: 100, l: 30 }, // green
-    consumption: { h: 240, s: 100, l: 40 }, // blue
-    input: { h: 0, s: 0, l: 50 }, // gray
-    error: { h: 0, s: 0, l: 0 }, // black
-  };
-
-  const color = baseColors[measurementName];
-  const lightness = color.l + 15 * Number(escId);
-  return `hsl(${color.h}, ${color.s}%, ${lightness}%)`;
+): string => {
+  return SERIES_COLORS[measurementName][escId];
 };
 
 export const getSeriesSymbol = (escId: EscId, zoomRange: number) => {

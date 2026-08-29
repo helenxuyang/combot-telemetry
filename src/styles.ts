@@ -118,7 +118,7 @@ export const Table = styled.table`
     padding: 4px;
   }
 
-  @media (max-width: ${SMALL_VIEWPORT}px) {
+  @media (max-width: ${EXTRA_SMALL_VIEWPORT}px) {
     width: 100%;
     tr {
       display: block;

@@ -10,13 +10,23 @@ type Props = {
 };
 
 const StyledPill = styled.button<{ $isSelected: boolean; $color?: string }>`
-  border-radius: 64px;
+  border: 2px solid ${({ $color }) => $color};
   padding: 4px;
-  color: ${({ $color }) => $color};
   font-size: 12px;
-  background-color: ${({ $isSelected }) => {
-    return $isSelected ? "lightgreen" : "white";
+  background-color: ${({ $isSelected, $color }) => {
+    return $isSelected ? $color : "white";
   }};
+  color: ${({ $isSelected, $color }) => {
+    return $isSelected ? "white" : $color;
+  }};
+
+  &:hover {
+    border: 2px solid ${({ $color }) => $color};
+    background-color: ${({ $isSelected, $color }) => {
+      return $isSelected ? $color : "white";
+    }};
+    text-decoration: underline;
+  }
 `;
 
 export const PlotPill = ({ name, escId, isSelected, onClick }: Props) => {

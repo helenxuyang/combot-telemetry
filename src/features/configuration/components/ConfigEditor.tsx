@@ -1,12 +1,10 @@
-import {
-  EscConfig,
-  getNewEscConfig,
-  getNewRobotConfig,
-  initRobotFromConfig,
-  RobotConfig,
-} from "../configUtils";
-import { ALL_ESC_IDs, EscId } from "../../../robot";
+import { confirm } from "@tauri-apps/plugin-dialog";
+import type { Draft } from "immer";
+import { useEffect } from "react";
+import styled from "styled-components";
 import { useImmer } from "use-immer";
+import { ALL_ESC_IDs, EscId } from "../../../robot";
+import { useStorageUtils } from "../../../storageUtils";
 import {
   useIsEditing,
   useRobotConfig,
@@ -14,14 +12,16 @@ import {
   useSetRobot,
   useSetRobotConfig,
 } from "../../../store";
-import styled from "styled-components";
-import { EscConfigEditor } from "./EscConfigEditor";
-import { useEffect } from "react";
 import { ButtonsHolder, media, SpacedRow } from "../../../styles";
-import type { Draft } from "immer";
+import {
+  EscConfig,
+  getNewEscConfig,
+  getNewRobotConfig,
+  initRobotFromConfig,
+  RobotConfig,
+} from "../configUtils";
+import { EscConfigEditor } from "./EscConfigEditor";
 import { TextInput } from "./inputStyles";
-import { confirm } from "@tauri-apps/plugin-dialog";
-import { useStorageUtils } from "../../../storageUtils";
 
 const Container = styled.div`
   display: flex;
@@ -41,7 +41,8 @@ const EscContainer = styled.div`
 `;
 
 const EscConfigHolder = styled.div`
-  border: 1px solid black;
+  border: 2px solid #ddd;
+  border-radius: 8px;
   padding: 4px;
 `;
 

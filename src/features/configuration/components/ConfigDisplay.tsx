@@ -1,11 +1,6 @@
+import { open } from "@tauri-apps/plugin-dialog";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useEffect, useState } from "react";
-import {
-  useIsEditing,
-  useRobotConfig,
-  useSetIsEditing,
-  useSetRobot,
-} from "../../../store";
-import { ConfigEditor } from "./ConfigEditor";
 import styled from "styled-components";
 import {
   baseDir,
@@ -13,9 +8,14 @@ import {
   getCurrentConfig,
   useStorageUtils,
 } from "../../../storageUtils";
+import {
+  useIsEditing,
+  useRobotConfig,
+  useSetIsEditing,
+  useSetRobot,
+} from "../../../store";
 import { initRobotFromConfig, RobotConfig } from "../configUtils";
-import { open } from "@tauri-apps/plugin-dialog";
-import { readTextFile } from "@tauri-apps/plugin-fs";
+import { ConfigEditor } from "./ConfigEditor";
 
 const Container = styled.div`
   text-align: left;
@@ -23,6 +23,9 @@ const Container = styled.div`
   flex-direction: column;
   align-items: stretch;
   gap: 16px;
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
 `;
 
 export const ButtonsHolder = styled.div`

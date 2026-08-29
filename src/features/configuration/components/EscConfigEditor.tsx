@@ -1,13 +1,12 @@
+import { Draft } from "immer";
 import styled from "styled-components";
 import { ALL_ESC_IDs, EscId, MeasurementName } from "../../../robot";
-import { MeasurementConfig, MotorConfig } from "../configUtils";
-import { EscConfig } from "../configUtils";
-import { MeasurementConfigEditor } from "./MeasurementConfigEditor";
-import { RadioHolder, RadioInput, RadioLabel, TextInput } from "./inputStyles";
-import { media, SpacedRow, Table } from "../../../styles";
-import { Draft } from "immer";
-import { MotorConfigEditor } from "./MotorConfigEditor";
 import { useIsEditing } from "../../../store";
+import { media, SpacedRow, Table } from "../../../styles";
+import { EscConfig, MeasurementConfig, MotorConfig } from "../configUtils";
+import { MeasurementConfigEditor } from "./MeasurementConfigEditor";
+import { MotorConfigEditor } from "./MotorConfigEditor";
+import { RadioHolder, RadioInput, RadioLabel, TextInput } from "./inputStyles";
 
 type Props = {
   escId: EscId;
@@ -26,7 +25,7 @@ const Container = styled.div`
   gap: 16px;
   padding: 8px;
 
-  ${media.small} {
+  ${media.extraSmall} {
     align-items: start;
   }
 `;
@@ -35,7 +34,7 @@ const IdSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: end;
-  ${media.small} {
+  ${media.extraSmall} {
     align-items: start;
   }
 `;
