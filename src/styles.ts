@@ -8,7 +8,7 @@ export const BACKGROUND = "#f9f9f9";
 export const PLOT_BASE_COLOR = "#e2e2e2";
 export const PLOT_FILL_COLOR = "#00639B";
 
-export const ESC_COLORS = ["#00639B", "#0A82B4", "#24A1C7", "#4EC3E7"];
+export const ESC_COLORS = ["#00639B", "#3997C1", "#56B1D4", "#72CBE6"];
 
 export const Container = styled.div`
   background-color: ${BACKGROUND};
