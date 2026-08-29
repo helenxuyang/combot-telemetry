@@ -71,14 +71,13 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
   const temperatureBarRef = useRef<HTMLDivElement>(null);
   const inputBarRef = useRef<HTMLDivElement>(null);
 
-  const { width, height } = useElementSize(ref);
+  const { width } = useElementSize(ref);
   const temperatureBarWidth = temperatureBarRef.current?.offsetWidth ?? 0;
   const inputBarWidth = inputBarRef.current?.offsetWidth ?? 0;
-  const maxArcWidth = Math.min(
-    Math.max(0, width - temperatureBarWidth - inputBarWidth - 16),
-    width * 0.6,
+  const maxArcWidth = Math.max(
+    0,
+    width - temperatureBarWidth - inputBarWidth - 16,
   );
-  const maxArcHeight = height;
 
   if (!config) {
     return null;
@@ -145,7 +144,6 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
             outerMax={rpmConfig.max}
             outerColorIndicators={rpmConfig.colorIndicators}
             maxWidth={maxArcWidth}
-            maxHeight={maxArcHeight}
             defaultColor={accentColor}
           />
         )}

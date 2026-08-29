@@ -17,7 +17,6 @@ type Props = {
   outerMax: number;
   outerColorIndicators: ColorIndicator[];
   maxWidth: number;
-  maxHeight: number;
   defaultColor?: string;
   className?: string;
 };
@@ -34,7 +33,6 @@ export const ArcDisplay = ({
   outerMax,
   outerColorIndicators,
   maxWidth,
-  maxHeight,
   defaultColor,
   className,
 }: Props) => {
@@ -44,11 +42,6 @@ export const ArcDisplay = ({
   const aspectRatio = 5 / 7;
   let width = maxWidth;
   let height = width * aspectRatio;
-
-  if (height > maxHeight) {
-    height = maxHeight;
-    width = height / aspectRatio;
-  }
 
   const outerStrokeWidth = width / 8;
   const outerRadius = width / 2 - outerStrokeWidth / 2;
