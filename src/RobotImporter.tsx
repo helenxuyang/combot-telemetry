@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { DotsLoader } from "./DotsLoader";
 import { initRobotFromConfig } from "./features/configuration/configUtils";
-import { getUpdatedRobot, TauriTelemetryMessage } from "./messageUtils";
-import { useRobot, useRobotConfig, useSetRobot } from "./store";
+import { TauriTelemetryMessage } from "./messageUtils";
+import { useRobot, useRobotConfig, useSetRobot, useUpdateRobot } from "./store";
 import { ButtonsHolder, Container } from "./styles";
 
 const StyledContainer = styled(Container)`
@@ -22,6 +22,7 @@ const IMPORT_SESSION_EVENT = "import-session";
 export const RobotImporter = () => {
   const robot = useRobot();
   const setRobot = useSetRobot();
+  const updateRobot = useUpdateRobot();
   const config = useRobotConfig();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -38,23 +39,18 @@ export const RobotImporter = () => {
             .map((message) => message.timestamp)
             .sort((a, b) => a - b)[0];
 
-          let newRobot = structuredClone(robot);
-          for (let message of messages) {
-            let updatedMessage;
+          const shiftedMessages = messages.map((message) => {
             if (firstTimestamp && "timestamp" in message) {
-              const shiftedTimestamp = message.timestamp - firstTimestamp;
-              updatedMessage = { ...message, timestamp: shiftedTimestamp };
-            } else {
-              updatedMessage = message;
+              return {
+                ...message,
+                timestamp: message.timestamp - firstTimestamp,
+              };
             }
+            return message;
+          });
 
-            newRobot = getUpdatedRobot(updatedMessage, newRobot, {
-              shouldReplace: false,
-              shouldCopy: false,
-            });
-          }
-          setRobot(newRobot);
-          console.log("Imported robot", newRobot);
+          updateRobot(shiftedMessages);
+          console.log("Imported robot", robot);
         }
       },
     );

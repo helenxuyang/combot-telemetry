@@ -5,13 +5,12 @@ use crate::robot_config::RobotConfig;
 use chrono::{DateTime, Local};
 use std::collections::HashMap;
 use std::sync::RwLock;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
 
 pub struct AppState {
     pub session_start_time: RwLock<Option<DateTime<Local>>>,
     pub robot_config: RwLock<Option<RobotConfig>>,
     pub serial_task_handle: RwLock<Option<tokio::task::JoinHandle<()>>>,
-    pub emitter_task_handle: RwLock<Option<tokio::task::JoinHandle<()>>>,
     pub last_messages: RwLock<HashMap<u8, TelemetryMessage>>,
 }
 
@@ -31,12 +30,22 @@ pub fn handle_message(app: &AppHandle, raw_message: String) {
         println!("CSV ERROR: Failed to write raw data: {}", error);
     };
 
-    // parse
     let parsed_message = message_parser::parse_message(raw_message, &app);
 
-    // send to frontend
-    if let Err(error) = app.emit("telemetry-message", &parsed_message) {
-        println!("GUI ERROR: Failed to emit telemetry-message: {}", error);
+    let state = app.state::<AppState>();
+    let last_messages_guard = state.last_messages.write();
+    if let Ok(mut last_messages) = last_messages_guard {
+        match &parsed_message {
+            TelemetryMessage::DataMessage(data) => {
+                last_messages.insert(data.esc_id, parsed_message.clone());
+            }
+            TelemetryMessage::ErrorMessage(data) => {
+                last_messages.insert(data.esc_id, parsed_message.clone());
+            }
+            TelemetryMessage::UnknownMessage(_) => {
+                last_messages.insert(4, parsed_message.clone());
+            }
+        }
     }
 
     // save parsed to CSV

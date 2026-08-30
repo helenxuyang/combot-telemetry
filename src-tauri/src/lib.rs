@@ -23,7 +23,6 @@ pub fn run() {
                 robot_config: RwLock::new(None),
                 last_messages: RwLock::new(HashMap::new()),
                 serial_task_handle: RwLock::new(None),
-                emitter_task_handle: RwLock::new(None),
             });
             Ok(())
         })
@@ -31,6 +30,7 @@ pub fn run() {
             websocket::websocket_connect,
             csv_importer::parse_raw_file,
             serial_communication::get_serial_ports,
+            serial_communication::get_latest_messages,
             serial_communication::read_serial,
             serial_communication::stop_serial,
             robot_config::fetch_current_config,
