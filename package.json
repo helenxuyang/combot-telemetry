@@ -15,6 +15,7 @@
     "@tauri-apps/plugin-dialog": "~2.7.1",
     "@tauri-apps/plugin-fs": "~2.5.1",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-updater": "~2",
     "chart.js": "^4.5.1",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.6",
