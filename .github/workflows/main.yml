@@ -25,12 +25,11 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: lts/*
-          cache: "pnpm" # Set this to npm, yarn or pnpm.
+          cache: "pnpm"
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          # This matches tauri's default project layout. Change this if you have a different layout.
           workspaces: "./src-tauri -> target"
 
       - name: install frontend dependencies
@@ -42,8 +41,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces __VERSION__ with the app version.
-          releaseName: "Combot Telemetry v__VERSION__"
+          tagName: v__VERSION__
+          releaseName: "v__VERSION__"
           releaseBody: "See the assets to download this version and install."
           releaseDraft: false
           prerelease: false
