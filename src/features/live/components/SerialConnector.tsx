@@ -40,6 +40,10 @@ export const SerialConnector = () => {
 
   useEffect(() => {
     getAllPorts();
+
+    return () => {
+      stopListening();
+    };
   }, []);
 
   useMessageHandler();

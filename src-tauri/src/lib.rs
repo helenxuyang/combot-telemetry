@@ -5,7 +5,6 @@ mod message_parser;
 mod robot_config;
 mod serial_communication;
 mod telemetry_session;
-mod websocket;
 
 use std::collections::HashMap;
 use std::sync::RwLock;
@@ -27,7 +26,6 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            websocket::websocket_connect,
             csv_importer::parse_raw_file,
             serial_communication::get_serial_ports,
             serial_communication::get_latest_messages,
