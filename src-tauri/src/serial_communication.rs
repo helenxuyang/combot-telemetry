@@ -3,6 +3,7 @@ use crate::telemetry_session::AppState;
 use crate::{csv_writer, message_parser, telemetry_session};
 use serde::Serialize;
 use serialport::SerialPortType::UsbPort;
+use std::time::Instant;
 use tauri::AppHandle;
 use tauri::Manager;
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -57,43 +58,53 @@ pub async fn read_serial(app: AppHandle, port: String) -> Result<(), String> {
         let mut serial_reader = BufReader::new(stream);
 
         let app_reader = app.clone();
+        let mut last_successful_read: Option<Instant> = None;
 
         // read from serial, write to CSV
         let serial_handle = tokio::task::spawn(async move {
             loop {
                 let mut line = String::new();
                 let num_bytes = serial_reader.read_line(&mut line).await;
+                println!("read_line, num_bytes={:?}", num_bytes);
+
                 match num_bytes {
                     Ok(num) => {
                         if num > 0 {
-                            let raw_message = line.trim_end().to_string();
-                            if let Err(error) =
-                                csv_writer::write_raw_messages_txt(&app, &raw_message)
-                            {
-                                println!("CSV ERROR: Failed to write raw data: {}", error);
-                            };
-                            println!("raw: {:?}", raw_message);
-
-                            let parsed_message = message_parser::parse_message(raw_message, &app);
-
-                            let state = app.state::<AppState>();
-                            let last_messages_guard = state.last_messages.write();
-                            if let Ok(mut last_messages) = last_messages_guard {
-                                match &parsed_message {
-                                    TelemetryMessage::DataMessage(data) => {
-                                        let esc_id = data.esc_id;
-                                        last_messages.insert(esc_id, parsed_message.clone());
-                                    }
-                                    TelemetryMessage::ErrorMessage(data) => {
-                                        let esc_id = data.esc_id;
-                                        last_messages.insert(esc_id, parsed_message.clone());
-                                    }
-                                    TelemetryMessage::UnknownMessage(_) => {
-                                        last_messages.insert(4, parsed_message.clone());
-                                        // TODO: do something less cursed
-                                    }
-                                }
+                            let now = Instant::now();
+                            if let Some(previous_read) = last_successful_read {
+                                let elapsed_ms = previous_read.elapsed().as_millis();
+                                println!("{} ms (num_bytes={})", elapsed_ms, num);
                             }
+                            last_successful_read = Some(now);
+
+                            // let raw_message = line.trim_end().to_string();
+                            // if let Err(error) =
+                            //     csv_writer::write_raw_messages_txt(&app, &raw_message)
+                            // {
+                            //     println!("CSV ERROR: Failed to write raw data: {}", error);
+                            // };
+                            // println!("raw: {:?}", raw_message);
+
+                            // let parsed_message = message_parser::parse_message(raw_message, &app);
+
+                            // let state = app.state::<AppState>();
+                            // let last_messages_guard = state.last_messages.write();
+                            // if let Ok(mut last_messages) = last_messages_guard {
+                            //     match &parsed_message {
+                            //         TelemetryMessage::DataMessage(data) => {
+                            //             let esc_id = data.esc_id;
+                            //             last_messages.insert(esc_id, parsed_message.clone());
+                            //         }
+                            //         TelemetryMessage::ErrorMessage(data) => {
+                            //             let esc_id = data.esc_id;
+                            //             last_messages.insert(esc_id, parsed_message.clone());
+                            //         }
+                            //         TelemetryMessage::UnknownMessage(_) => {
+                            //             last_messages.insert(4, parsed_message.clone());
+                            //             // TODO: do something less cursed
+                            //         }
+                            //     }
+                            // }
                         }
                     }
                     Err(err) => {
