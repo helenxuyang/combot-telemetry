@@ -1,3 +1,5 @@
+import { check } from "@tauri-apps/plugin-updater";
+import { useEffect } from "react";
 import styled from "styled-components";
 import "./App.css";
 import { DashboardDisplay } from "./DashboardDisplay";
@@ -9,7 +11,23 @@ const Container = styled.div`
   width: 100%;
 `;
 
+export async function checkForUpdates() {
+  try {
+    const update = await check();
+
+    if (update) {
+      console.log(`Update available: ${update.version}`);
+      await update.downloadAndInstall();
+    }
+  } catch (error) {
+    console.error("Update check failed:", error);
+  }
+}
+
 function App() {
+  useEffect(() => {
+    checkForUpdates();
+  });
   return (
     <Container>
       <DashboardDisplay />
