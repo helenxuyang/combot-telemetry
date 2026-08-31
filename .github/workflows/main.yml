@@ -1,4 +1,4 @@
-name: 'publish'
+name: "publish"
 
 on:
   workflow_dispatch:
@@ -10,23 +10,28 @@ jobs:
   publish-tauri:
     permissions:
       contents: write
-      
-    runs-on: 'windows-latest'
-    
+
+    runs-on: "windows-latest"
+
     steps:
       - uses: actions/checkout@v7
+
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: setup node
         uses: actions/setup-node@v6
         with:
           node-version: lts/*
-          cache: 'pnpm' # Set this to npm, yarn or pnpm.
+          cache: "pnpm" # Set this to npm, yarn or pnpm.
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
           # This matches tauri's default project layout. Change this if you have a different layout.
-          workspaces: './src-tauri -> target'
+          workspaces: "./src-tauri -> target"
 
       - name: install frontend dependencies
         run: pnpm install --frozen-lockfile
@@ -36,7 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: app-v__VERSION__ # the action automatically replaces __VERSION__ with the app version.
-          releaseName: 'Combot Telemetry v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
+          releaseName: "Combot Telemetry v__VERSION__"
+          releaseBody: "See the assets to download this version and install."
           releaseDraft: false
           prerelease: false
