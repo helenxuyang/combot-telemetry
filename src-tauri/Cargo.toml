@@ -33,4 +33,5 @@ tauri-plugin-fs = "2"
 tauri-plugin-dialog = "2"
 serialport = "4.9.0"
 tokio-serial = "5.5.0"
+serial2-tokio = "0.1.25"
 

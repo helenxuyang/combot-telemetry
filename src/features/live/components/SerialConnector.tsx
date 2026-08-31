@@ -26,24 +26,15 @@ const PortInfoHolder = styled.div`
   flex: 1;
 `;
 
-type PortInfo = {
-  name: string;
-  product: string | null;
-};
-
-const getPortDisplayName = (port: PortInfo) => {
-  return `${port.name}: ${port.product}`;
-};
-
 export const SerialConnector = () => {
-  const [allPorts, setAllPorts] = useState<PortInfo[]>([]);
-  const [port, setPort] = useState<PortInfo | null>(null);
+  const [allPorts, setAllPorts] = useState<string[]>([]);
+  const [port, setPort] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const ref = useRef<HTMLDivElement>(null);
 
   const getAllPorts = async () => {
-    const ports = await invoke<PortInfo[]>(GET_SERIAL_PORTS);
+    const ports = await invoke<string[]>(GET_SERIAL_PORTS);
     setAllPorts(ports);
   };
 
@@ -53,10 +44,10 @@ export const SerialConnector = () => {
 
   useMessageHandler();
 
-  const startListening = async (port: PortInfo) => {
+  const startListening = async (port: string) => {
     try {
       setError(null);
-      await invoke(READ_SERIAL_COMMAND, { port: port.name });
+      await invoke(READ_SERIAL_COMMAND, { port });
       setPort(port);
     } catch (e) {
       setError(String(e));
@@ -77,7 +68,7 @@ export const SerialConnector = () => {
       {port ? (
         <>
           <h3>Port</h3>
-          <p>{getPortDisplayName(port)}</p>
+          <p>{port}</p>
           <button onClick={stopListening}>Stop listening</button>
         </>
       ) : (
@@ -85,8 +76,8 @@ export const SerialConnector = () => {
           <h3>Ports</h3>
           <ButtonsHolder>
             {allPorts?.map((port) => (
-              <button key={port.name} onClick={() => startListening(port)}>
-                {getPortDisplayName(port)}
+              <button key={port} onClick={() => startListening(port)}>
+                {port}
               </button>
             ))}
             <button onClick={getAllPorts}>Refresh</button>

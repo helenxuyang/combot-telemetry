@@ -493,6 +493,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "serial2-tokio",
  "serialport",
  "tauri",
  "tauri-build",
@@ -3206,6 +3207,29 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "serial2"
+version = "0.2.38"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b16809bc35793b19ce4e0c53924bc0dce3937f15487997cfdaed936004180730"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "serial2-tokio"
+version = "0.1.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5da5d1d379ecbacdfb9cd4b971b1b475947e4dca84249e9cde9b57109a5e7c28"
+dependencies = [
+ "libc",
+ "serial2",
+ "tokio",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
