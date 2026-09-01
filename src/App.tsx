@@ -1,3 +1,4 @@
+import { ask } from "@tauri-apps/plugin-dialog";
 import { check } from "@tauri-apps/plugin-updater";
 import { useEffect } from "react";
 import styled from "styled-components";
@@ -14,10 +15,16 @@ const Container = styled.div`
 export async function checkForUpdates() {
   try {
     const update = await check();
-
     if (update) {
-      console.log(`Update available: ${update.version}`);
-      await update.downloadAndInstall();
+      const answer = await ask(
+        `Update available: ${update.version}. Install and restart?`,
+        {
+          title: "Update",
+        },
+      );
+      if (answer) {
+        await update.downloadAndInstall();
+      }
     }
   } catch (error) {
     console.error("Update check failed:", error);
@@ -27,7 +34,8 @@ export async function checkForUpdates() {
 function App() {
   useEffect(() => {
     checkForUpdates();
-  });
+  }, []);
+
   return (
     <Container>
       <DashboardDisplay />
