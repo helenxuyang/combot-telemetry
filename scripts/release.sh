@@ -107,7 +107,7 @@ VERSION_COMMIT=$(git rev-parse HEAD)
 
 echo "=== Pushing release ==="
 
-# git push origin release
+git push origin release
 
 echo
 echo "Release branch pushed."
@@ -123,7 +123,7 @@ echo "=== Applying version bump to main ==="
 git checkout main
 git cherry-pick "$VERSION_COMMIT"
 
-# git push origin main
+git push origin main
 
 echo
 echo "========================================"
