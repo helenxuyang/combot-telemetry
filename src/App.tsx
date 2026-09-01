@@ -27,7 +27,8 @@ export async function checkForUpdates() {
 function App() {
   useEffect(() => {
     checkForUpdates();
-  });
+  }, []);
+
   return (
     <Container>
       <DashboardDisplay />
