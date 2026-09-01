@@ -1,6 +1,10 @@
+import { current } from "immer";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { RobotConfig } from "./features/configuration/configUtils";
+import {
+  initRobotFromConfig,
+  RobotConfig,
+} from "./features/configuration/configUtils";
 import { TauriTelemetryMessage } from "./messageUtils";
 import { MeasurementName, type MatchMarker, type Robot } from "./robot";
 
@@ -11,7 +15,11 @@ type RobotState = {
 
 type RobotActions = {
   setRobot: (robot: RobotState["robot"]) => void;
-  updateRobot: (message: TauriTelemetryMessage[]) => void;
+  clearRobot: () => void;
+  updateRobot: (
+    message: TauriTelemetryMessage[],
+    options: { replace: boolean },
+  ) => void;
   setRobotConfig: (robotConfig: RobotConfig | null) => void;
   addMatchMarker: (marker: MatchMarker) => void;
 };
@@ -23,11 +31,22 @@ const useRobotStore = create<
   immer((set) => ({
     robot: null,
     robotConfig: null,
+    clearRobot: () =>
+      set((state) => {
+        const config = current(state.robotConfig);
+        if (config) {
+          state.robot = initRobotFromConfig(config);
+        }
+      }),
+
     setRobot: (robot: Robot | null) =>
       set((state) => {
         state.robot = robot;
       }),
-    updateRobot: (messages: TauriTelemetryMessage[]) =>
+    updateRobot: (
+      messages: TauriTelemetryMessage[],
+      options: { replace: boolean } = { replace: true },
+    ) =>
       set((state) => {
         if (state.robot) {
           for (let message of messages) {
@@ -36,13 +55,13 @@ const useRobotStore = create<
               state.robot.unknownMessages.push({
                 rawMessage: message.rawMessage,
               });
-            } else {
+            } else if (message.messageType !== "startupMessage") {
               const { timestamp, escId } = message;
               const esc = state.robot.escs[escId];
 
               // for Stack--no drive but can still get drive inputs from noise
               if (!esc) {
-                return state.robot;
+                return;
               }
 
               if (state.robot.initialTimestamp === null) {
@@ -56,17 +75,32 @@ const useRobotStore = create<
               } else if (messageType === "dataMessage") {
                 const { messageType, escId, timestamp, snr, ...escData } =
                   message;
+                // timestamp
+                if (options.replace) {
+                  esc.timestamps = [timestamp];
+                } else {
+                  esc.timestamps.push(timestamp);
+                }
+                // data
                 (
                   Object.entries(escData) as [MeasurementName, number][]
                 ).forEach(([measurementKey, measurementValue]) => {
-                  esc.data[measurementKey] = [measurementValue];
+                  if (options.replace) {
+                    esc.data[measurementKey] = [measurementValue];
+                  } else {
+                    esc.data[measurementKey].push(measurementValue);
+                  }
                 });
-                state.robot.signalStrengths = [
-                  {
-                    value: snr,
-                    timestamp,
-                  },
-                ];
+                // snr
+                const signalStrength = {
+                  value: snr,
+                  timestamp,
+                };
+                if (options.replace) {
+                  state.robot.signalStrengths = [signalStrength];
+                } else {
+                  state.robot.signalStrengths.push(signalStrength);
+                }
               }
             }
           }
@@ -85,6 +119,7 @@ const useRobotStore = create<
 
 export const useRobot = () => useRobotStore((state) => state.robot);
 export const useRobotConfig = () => useRobotStore((state) => state.robotConfig);
+export const useClearRobot = () => useRobotStore((state) => state.clearRobot);
 export const useSetRobot = () => useRobotStore((state) => state.setRobot);
 export const useUpdateRobot = () => useRobotStore((state) => state.updateRobot);
 export const useSetRobotConfig = () =>

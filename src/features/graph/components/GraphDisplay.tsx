@@ -150,11 +150,12 @@ export const GraphDisplay = () => {
                   plots.filter(
                     (plotId) => stringifyPlot(plotId) === stringifyPlot(plot),
                   ).length > 0;
+                const plotType =
+                  plot.type === "data" ? plot.measurementName : plot.type;
                 return (
                   <PlotPill
-                    name={
-                      plot.type === "data" ? plot.measurementName : plot.type
-                    }
+                    key={`${escId}-${plotType}`}
+                    name={plotType}
                     escId={escId}
                     isSelected={isSelected}
                     onClick={() => {

@@ -64,6 +64,9 @@ pub fn handle_message(app: AppHandle, raw_message: String) {
             TelemetryMessage::UnknownMessage(_) => {
                 last_messages.insert(4, parsed_message.clone());
             }
+            TelemetryMessage::StartupMessage(_) => {
+                last_messages.insert(5, parsed_message.clone());
+            }
         }
     }
 }
@@ -84,6 +87,7 @@ pub async fn read_serial(app: AppHandle, port: String) -> Result<(), String> {
         }
     };
 
+    // TODO: handshake
     telemetry_session::handle_start(&app);
 
     let mut serial_reader = BufReader::new(stream);

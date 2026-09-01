@@ -46,6 +46,12 @@ impl From<ParseIntError> for TelemetryDataParseError {
 
 #[derive(Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct TelemetryStartup {
+    snr: i8,
+}
+
+#[derive(Serialize, Debug, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct TelemetryError {
     pub esc_id: u8,
     error_code: u8,
@@ -67,6 +73,21 @@ pub enum TelemetryMessage {
     DataMessage(TelemetryData),
     ErrorMessage(TelemetryError),
     UnknownMessage(TelemetryUnknown),
+    StartupMessage(TelemetryStartup),
+}
+
+// <FF FE FD FC FB FA F9 F8 F7 F6 F5 F4 F3 F2 F1 F0 EF [snr]>
+pub fn is_startup_message(message_components: &Vec<&str>) -> bool {
+    let countdown = [
+        "FF", "FE", "FD", "FC", "FB", "FA", "F9", "F8", "F7", "F6", "F5", "F4", "F3", "F2", "F1",
+        "F0", "EF",
+    ];
+
+    let is_startup = message_components
+        .iter()
+        .zip(countdown)
+        .all(|(actual, expected)| actual.eq_ignore_ascii_case(expected));
+    return is_startup;
 }
 
 fn parse_esc_id(info_byte: u8) -> u8 {
@@ -306,8 +327,6 @@ fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, 
 }
 
 pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
-    // TODO: handle pong?
-
     let is_valid_message = validate_message_format(&raw_message);
     if !is_valid_message {
         return TelemetryMessage::UnknownMessage(TelemetryUnknown {
@@ -320,6 +339,18 @@ pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
     let innards = &raw_message[1..(raw_message.len() - 1)];
     // split into vec
     let message_components: Vec<&str> = innards.split(" ").collect();
+
+    if is_startup_message(&message_components) {
+        let parsed_snr = parse_snr(message_components[17]);
+        if let Ok(snr) = parsed_snr {
+            return TelemetryMessage::StartupMessage(TelemetryStartup { snr });
+        } else {
+            return TelemetryMessage::UnknownMessage(TelemetryUnknown {
+                raw_message,
+                reason: "failed to parse ESC ID".to_string(),
+            });
+        }
+    }
 
     let info_byte = parse_hex(message_components[0]);
     let Ok(parsed_info_byte) = info_byte else {
@@ -651,5 +682,23 @@ mod tests {
         assert_eq!(parse_message_type(info_byte_01), 0b01);
         let info_byte_00 = 0b00000000;
         assert_eq!(parse_message_type(info_byte_00), 0b00);
+    }
+
+    #[test]
+    fn validate_is_startup_message_valid_startup() {
+        let is_startup = is_startup_message(&vec![
+            "FF", "FE", "FD", "FC", "FB", "FA", "F9", "F8", "F7", "F6", "F5", "F4", "F3", "F2",
+            "F1", "F0", "EF", "8",
+        ]);
+        assert_eq!(is_startup, true);
+    }
+
+    #[test]
+    fn validate_is_startup_message_not_startup() {
+        let is_startup = is_startup_message(&vec![
+            "FF", "FF", "FF", "FF", "FF", "FF", "FF", "FF", "FF", "FF", "FF", "FF", "FF", "FF",
+            "FF", "FF", "FF", "8",
+        ]);
+        assert_eq!(is_startup, false);
     }
 }
