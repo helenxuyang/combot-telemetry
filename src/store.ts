@@ -18,7 +18,7 @@ type RobotActions = {
   clearRobot: () => void;
   updateRobot: (
     message: TauriTelemetryMessage[],
-    options: { replace: boolean },
+    options?: { replace: boolean },
   ) => void;
   setRobotConfig: (robotConfig: RobotConfig | null) => void;
   addMatchMarker: (marker: MatchMarker) => void;
