@@ -1,5 +1,10 @@
 import { EscId, MeasurementName, Robot } from "./robot";
 
+export type StartupMessage = {
+  messageType: "startupMessage";
+  snr: number;
+};
+
 export type EscDataMessage = {
   messageType: "dataMessage";
   escId: EscId;
@@ -28,6 +33,7 @@ export type UnknownMessage = {
 };
 
 export type TauriTelemetryMessage =
+  | StartupMessage
   | EscDataMessage
   | EscErrorMessage
   | UnknownMessage;
@@ -49,6 +55,10 @@ export const getUpdatedRobot = (
     newRobot.unknownMessages.push({
       rawMessage: message.rawMessage,
     });
+    return newRobot;
+  }
+
+  if (message.messageType === "startupMessage") {
     return newRobot;
   }
 

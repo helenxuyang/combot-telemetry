@@ -51,12 +51,12 @@ const SERIES_COLORS: Record<
   MeasurementName | typeof ERROR,
   [string, string, string, string]
 > = {
-  temperature: ["#7A0000", "#F06262", "#B00020", "#D32F2F"],
-  rpm: ["#B83D00", "#FFB703", "#E85D04", "#F48C06"],
-  voltage: ["#8A6500", "#E8C547", "#B88600", "#D4A017"],
-  current: ["#005A24", "#52B788", "#008C3A", "#00A651"],
-  consumption: ["#003F88", "#4DA3E8", "#0057B8", "#0077CC"],
-  input: ["#303030", "#A0A0A0", "#555555", "#787878"],
+  temperature: ["#7A0000", "#B00020", "#D32F2F", "#F06262"],
+  rpm: ["#B83D00", "#E85D04", "#F48C06", "#FFB703"],
+  voltage: ["#8A6500", "#B88600", "#D4A017", "#E8C547"],
+  current: ["#005A24", "#008C3A", "#00A651", "#52B788"],
+  consumption: ["#003F88", "#0057B8", "#0077CC", "#4DA3E8"],
+  input: ["#4a0080", "#9d4edd", "#c77dff", "#e0aaff"],
   error: ["black", "black", "black", "black"],
 };
 
