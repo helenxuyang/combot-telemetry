@@ -5,7 +5,6 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { DotsLoader } from "./DotsLoader";
-import { initRobotFromConfig } from "./features/configuration/configUtils";
 import { TauriTelemetryMessage } from "./messageUtils";
 import {
   useClearRobot,
@@ -55,6 +54,9 @@ export const RobotImporter = () => {
       IMPORT_SESSIONS_EVENT,
       (event) => {
         setSessions([]);
+        setSelectedSessionIndex(null);
+        clearRobot();
+
         if (robot) {
           const sessions = event.payload;
           for (let session of sessions) {
@@ -96,6 +98,13 @@ export const RobotImporter = () => {
     };
   }, []);
 
+  // if only 1 session, auto-select
+  useEffect(() => {
+    if (sessions.length === 1) {
+      handleSelectSession(0);
+    }
+  }, [sessions]);
+
   const handleSelectSession = (index: number) => {
     setSelectedSessionIndex(index);
     const session = sessions[index];
@@ -127,10 +136,10 @@ export const RobotImporter = () => {
 
   const handleClearSelection = () => {
     if (config) {
-      const emptyRobot = initRobotFromConfig(config);
-      setRobot(emptyRobot);
       setFile(null);
       setSessions([]);
+      setSelectedSessionIndex(null);
+      clearRobot();
     }
   };
 
