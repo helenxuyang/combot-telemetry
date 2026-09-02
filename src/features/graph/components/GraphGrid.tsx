@@ -20,6 +20,7 @@ const GridHolder = styled.div`
   gap: 4px;
   background-color: white;
   border-radius: 8px;
+  padding: 8px;
 `;
 
 const GraphHolder = styled.div<{ $isFullWidth: boolean }>`
@@ -28,7 +29,6 @@ const GraphHolder = styled.div<{ $isFullWidth: boolean }>`
   min-width: 0;
   display: flex;
   flex-direction: column;
-  margin: 16px;
   padding: 8px;
   border: 2px solid #ccc;
   border-radius: 8px;
