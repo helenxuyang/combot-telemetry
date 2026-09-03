@@ -5,6 +5,11 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { DotsLoader } from "./DotsLoader";
+import {
+  getBookendTimestamps,
+  getSessionDuration,
+  getShiftedMessages,
+} from "./importUtils";
 import { TauriTelemetryMessage } from "./messageUtils";
 import {
   useClearRobot,
@@ -12,7 +17,13 @@ import {
   useRobotConfig,
   useUpdateRobot,
 } from "./store";
-import { ButtonsHolder, CondensedButton, Container, media } from "./styles";
+import {
+  ButtonsHolder,
+  CondensedButton,
+  Container,
+  media,
+  SelectableCondensedButton,
+} from "./styles";
 
 const Holder = styled.div`
   display: flex;
@@ -38,10 +49,6 @@ const SessionsContainer = styled(Container)`
   flex-wrap: wrap;
 `;
 
-const SessionButton = styled(CondensedButton)<{ $isSelected: boolean }>`
-  ${({ $isSelected }) => $isSelected && " text-decoration: underline;"};
-`;
-
 // tell rust which file to parse
 const PARSE_RAW_FILE_COMMAND = "parse_raw_file";
 // rust gives array of sessions (arrays of parsed messages)
@@ -50,7 +57,7 @@ const IMPORT_SESSIONS_EVENT = "import-sessions";
 type Session = {
   messages: TauriTelemetryMessage[];
   firstTimestamp: number;
-  duration: number;
+  duration: string;
 };
 
 export const RobotImporter = () => {
@@ -79,32 +86,16 @@ export const RobotImporter = () => {
         if (robot) {
           const sessions = event.payload;
           for (let session of sessions) {
-            const sortedTimestamps = session
-              .filter((message) => "timestamp" in message)
-              .map((message) => message.timestamp)
-              .sort((a, b) => a - b);
-            // shift messages so first timestamp is 0
-            const firstTimestamp = sortedTimestamps[0];
-            const lastTimestamp = sortedTimestamps[sortedTimestamps.length - 1];
-            const durationMin = (lastTimestamp - firstTimestamp) / 1000 / 60;
-            const roundedDurationMin = Number(durationMin.toFixed(2));
-
-            const shiftedMessages = session.map((message) => {
-              if (firstTimestamp && "timestamp" in message) {
-                return {
-                  ...message,
-                  timestamp: message.timestamp - firstTimestamp,
-                };
-              }
-              return message;
-            });
+            const { firstTimestamp, lastTimestamp } =
+              getBookendTimestamps(session);
+            const shiftedMessages = getShiftedMessages(session, firstTimestamp);
 
             setSessions((sessions) => [
               ...sessions,
               {
                 messages: shiftedMessages,
                 firstTimestamp,
-                duration: roundedDurationMin,
+                duration: getSessionDuration(firstTimestamp, lastTimestamp),
               },
             ]);
           }
@@ -177,7 +168,7 @@ export const RobotImporter = () => {
   return (
     <Holder ref={positionRef}>
       <FileContainer>
-        {!file && <p>Import: </p>}
+        {!file && <strong>Import: </strong>}
         {file && (
           <p>
             <strong>Current: </strong>
@@ -204,10 +195,12 @@ export const RobotImporter = () => {
         <SessionsContainer>
           <strong>Sessions:</strong>
           {sessions.map((session, index) => (
-            <SessionButton
+            <SelectableCondensedButton
               $isSelected={index === selectedSessionIndex}
               onClick={() => handleSelectSession(index)}
-            >{`(${index + 1}) ${session.duration}min`}</SessionButton>
+            >
+              {`(${index + 1}) ${session.duration}`}
+            </SelectableCondensedButton>
           ))}
         </SessionsContainer>
       )}
