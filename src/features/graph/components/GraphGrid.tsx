@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import { RobotImporter } from "../../../RobotImporter";
 import { useRobot } from "../../../store";
@@ -85,7 +85,6 @@ export const GraphGrid = () => {
     isFullWidth: true,
   };
   const [graphConfigs, setGraphConfigs] = useState<GraphConfig[]>([emptyGraph]);
-  const sessionsContainerRef = useRef<HTMLDivElement>(null);
 
   if (!robot) {
     return <div>No robot</div>;
