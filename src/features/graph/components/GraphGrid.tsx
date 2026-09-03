@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import styled from "styled-components";
 import { RobotImporter } from "../../../RobotImporter";
 import { useRobot } from "../../../store";
@@ -9,7 +9,7 @@ type UUID = `${string}-${string}-${string}-${string}-${string}`;
 const Holder = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
   margin-bottom: 16px;
 `;
 
@@ -27,6 +27,7 @@ const GraphHolder = styled.div<{ $isFullWidth: boolean }>`
   flex-basis: ${({ $isFullWidth }) =>
     $isFullWidth ? "100%" : "calc(50% - 2px)"}; // to account for gap
   min-width: 0;
+  height: 94dvh;
   display: flex;
   flex-direction: column;
   padding: 8px;
@@ -84,6 +85,7 @@ export const GraphGrid = () => {
     isFullWidth: true,
   };
   const [graphConfigs, setGraphConfigs] = useState<GraphConfig[]>([emptyGraph]);
+  const sessionsContainerRef = useRef<HTMLDivElement>(null);
 
   if (!robot) {
     return <div>No robot</div>;
@@ -128,7 +130,6 @@ export const GraphGrid = () => {
   return (
     <Holder>
       <RobotImporter />
-
       <GridHolder>
         {graphConfigs.map((graph, index) => {
           const { id, isFullWidth } = graph;
@@ -155,6 +156,9 @@ export const GraphGrid = () => {
                   >
                     {isFullWidth ? "↦↤" : "⇤⇥"}
                   </GraphWidthButton>
+                  <RoundButton title="Add graph" onClick={addGraph}>
+                    ＋
+                  </RoundButton>
 
                   {index < graphConfigs.length - 1 && (
                     <RoundButton
@@ -171,7 +175,6 @@ export const GraphGrid = () => {
           );
         })}
       </GridHolder>
-      <button onClick={addGraph}>+ New</button>
     </Holder>
   );
 };

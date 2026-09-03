@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { appLocalDataDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { DotsLoader } from "./DotsLoader";
 import { TauriTelemetryMessage } from "./messageUtils";
@@ -10,17 +10,35 @@ import {
   useClearRobot,
   useRobot,
   useRobotConfig,
-  useSetRobot,
   useUpdateRobot,
 } from "./store";
-import { ButtonsHolder, Container } from "./styles";
+import { ButtonsHolder, CondensedButton, Container, media } from "./styles";
 
-const StyledContainer = styled(Container)`
-  gap: 16px;
-  padding: 16px;
+const Holder = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  ${media.extraSmall} {
+    flex-direction: column;
+  }
 `;
 
-const SessionButton = styled.button<{ $isSelected: boolean }>`
+const FileContainer = styled(Container)`
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+`;
+
+const SessionsContainer = styled(Container)`
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+`;
+
+const SessionButton = styled(CondensedButton)<{ $isSelected: boolean }>`
   ${({ $isSelected }) => $isSelected && " text-decoration: underline;"};
 `;
 
@@ -37,7 +55,6 @@ type Session = {
 
 export const RobotImporter = () => {
   const robot = useRobot();
-  const setRobot = useSetRobot();
   const clearRobot = useClearRobot();
   const updateRobot = useUpdateRobot();
   const config = useRobotConfig();
@@ -48,6 +65,8 @@ export const RobotImporter = () => {
   const [selectedSessionIndex, setSelectedSessionIndex] = useState<
     number | null
   >(null);
+
+  const positionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unlisten = listen<TauriTelemetryMessage[][]>(
@@ -111,6 +130,18 @@ export const RobotImporter = () => {
     clearRobot();
     updateRobot(session.messages, { replace: false });
     console.log("Imported robot", robot);
+    scrollToPosition();
+  };
+
+  const scrollToPosition = () => {
+    if (positionRef.current) {
+      const rect = positionRef.current.getBoundingClientRect();
+      window.scrollTo({
+        left: 0,
+        top: rect.top + window.scrollY - 2,
+        behavior: "smooth",
+      });
+    }
   };
 
   const handleSelectFile = async () => {
@@ -129,7 +160,7 @@ export const RobotImporter = () => {
     if (selectedFile) {
       setLoading(true);
       await invoke(PARSE_RAW_FILE_COMMAND, { rawFileName: selectedFile });
-      setFile(selectedFile);
+      setFile(selectedFile.substring(selectedFile.lastIndexOf("\\") + 1));
       setLoading(false);
     }
   };
@@ -144,39 +175,42 @@ export const RobotImporter = () => {
   };
 
   return (
-    <StyledContainer>
-      <h2>Import</h2>
-      {file && (
-        <p>
-          <strong>Current: </strong>
-          {file}
-        </p>
-      )}
-      <ButtonsHolder>
-        {!file &&
-          (loading ? (
-            <DotsLoader />
-          ) : (
-            <button onClick={handleSelectFile}>Select CSV</button>
-          ))}
+    <Holder ref={positionRef}>
+      <FileContainer>
+        {!file && <p>Import: </p>}
         {file && (
-          <button onClick={handleClearSelection}>Clear selection</button>
+          <p>
+            <strong>Current: </strong>
+            {file}
+          </p>
         )}
-      </ButtonsHolder>
-
-      {sessions && (
-        <>
-          <h3>Sessions</h3>
-          <ButtonsHolder>
-            {sessions.map((session, index) => (
-              <SessionButton
-                $isSelected={index === selectedSessionIndex}
-                onClick={() => handleSelectSession(index)}
-              >{`Session ${index + 1}: ${session.duration}min`}</SessionButton>
+        <ButtonsHolder>
+          {!file &&
+            (loading ? (
+              <DotsLoader />
+            ) : (
+              <CondensedButton onClick={handleSelectFile}>
+                Select
+              </CondensedButton>
             ))}
-          </ButtonsHolder>
-        </>
+          {file && (
+            <CondensedButton onClick={handleClearSelection}>
+              Clear
+            </CondensedButton>
+          )}
+        </ButtonsHolder>
+      </FileContainer>
+      {sessions.length > 0 && (
+        <SessionsContainer>
+          <strong>Sessions:</strong>
+          {sessions.map((session, index) => (
+            <SessionButton
+              $isSelected={index === selectedSessionIndex}
+              onClick={() => handleSelectSession(index)}
+            >{`(${index + 1}) ${session.duration}min`}</SessionButton>
+          ))}
+        </SessionsContainer>
       )}
-    </StyledContainer>
+    </Holder>
   );
 };
