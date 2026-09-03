@@ -5,6 +5,7 @@ import { ESC, EscId, INPUT } from "../../../robot";
 import styled from "styled-components";
 import { PlotPill } from "../../../PlotPill";
 import { useRobot, useRobotConfig } from "../../../store";
+import { media } from "../../../styles";
 import {
   getAvailablePlots,
   getLabel,
@@ -13,6 +14,13 @@ import {
   stringifyPlot,
   type Plot,
 } from "../graphUtils";
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+`;
 
 const PlotSelectionHolder = styled.div`
   display: flex;
@@ -25,6 +33,9 @@ const PillHolder = styled.div`
   gap: 2px;
   margin: 2px;
   align-items: center;
+  ${media.small} {
+    flex-wrap: wrap;
+  }
 `;
 
 export const GraphDisplay = () => {
@@ -138,7 +149,7 @@ export const GraphDisplay = () => {
   const onEvents = { dataZoom };
 
   return (
-    <div>
+    <Container>
       <PlotSelectionHolder>
         {(Object.entries(robot.escs) as [EscId, ESC][]).map(([escId, esc]) => {
           const availablePlots = getAvailablePlots(escId, esc);
@@ -178,16 +189,16 @@ export const GraphDisplay = () => {
         })}
       </PlotSelectionHolder>
       {plots.length > 0 && (
-        <div>
+        <div style={{ flex: 1, width: "100%" }}>
           <ReactECharts
             ref={graphRef}
             option={option}
             // onEvents={onEvents}
             notMerge={true}
-            style={{ height: "90dvh", width: "100%" }}
+            style={{ height: "100%", width: "100%" }}
           />
         </div>
       )}
-    </div>
+    </Container>
   );
 };

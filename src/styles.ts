@@ -93,6 +93,21 @@ export const CondensedButton = styled.button`
   border: none;
 `;
 
+export const SelectableCondensedButton = styled(CondensedButton)<{
+  $isSelected: boolean;
+}>`
+  ${({ $isSelected }) =>
+    $isSelected &&
+    css`
+      text-decoration: underline;
+      background-color: #222;
+      color: white;
+      &:hover {
+        background-color: #444;
+      }
+    `};
+`;
+
 export const ControlsGrid = styled.div`
   display: flex;
   flex-wrap: wrap;

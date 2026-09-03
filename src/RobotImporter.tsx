@@ -2,27 +2,51 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { appLocalDataDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { DotsLoader } from "./DotsLoader";
-import { initRobotFromConfig } from "./features/configuration/configUtils";
+import {
+  getBookendTimestamps,
+  getSessionDuration,
+  getShiftedMessages,
+} from "./importUtils";
 import { TauriTelemetryMessage } from "./messageUtils";
 import {
   useClearRobot,
   useRobot,
   useRobotConfig,
-  useSetRobot,
   useUpdateRobot,
 } from "./store";
-import { ButtonsHolder, Container } from "./styles";
+import {
+  ButtonsHolder,
+  CondensedButton,
+  Container,
+  media,
+  SelectableCondensedButton,
+} from "./styles";
 
-const StyledContainer = styled(Container)`
-  gap: 16px;
-  padding: 16px;
+const Holder = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  ${media.extraSmall} {
+    flex-direction: column;
+  }
 `;
 
-const SessionButton = styled.button<{ $isSelected: boolean }>`
-  ${({ $isSelected }) => $isSelected && " text-decoration: underline;"};
+const FileContainer = styled(Container)`
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+`;
+
+const SessionsContainer = styled(Container)`
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
 `;
 
 // tell rust which file to parse
@@ -33,12 +57,11 @@ const IMPORT_SESSIONS_EVENT = "import-sessions";
 type Session = {
   messages: TauriTelemetryMessage[];
   firstTimestamp: number;
-  duration: number;
+  duration: string;
 };
 
 export const RobotImporter = () => {
   const robot = useRobot();
-  const setRobot = useSetRobot();
   const clearRobot = useClearRobot();
   const updateRobot = useUpdateRobot();
   const config = useRobotConfig();
@@ -50,40 +73,29 @@ export const RobotImporter = () => {
     number | null
   >(null);
 
+  const positionRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const unlisten = listen<TauriTelemetryMessage[][]>(
       IMPORT_SESSIONS_EVENT,
       (event) => {
         setSessions([]);
+        setSelectedSessionIndex(null);
+        clearRobot();
+
         if (robot) {
           const sessions = event.payload;
           for (let session of sessions) {
-            const sortedTimestamps = session
-              .filter((message) => "timestamp" in message)
-              .map((message) => message.timestamp)
-              .sort((a, b) => a - b);
-            // shift messages so first timestamp is 0
-            const firstTimestamp = sortedTimestamps[0];
-            const lastTimestamp = sortedTimestamps[sortedTimestamps.length - 1];
-            const durationMin = (lastTimestamp - firstTimestamp) / 1000 / 60;
-            const roundedDurationMin = Number(durationMin.toFixed(2));
-
-            const shiftedMessages = session.map((message) => {
-              if (firstTimestamp && "timestamp" in message) {
-                return {
-                  ...message,
-                  timestamp: message.timestamp - firstTimestamp,
-                };
-              }
-              return message;
-            });
+            const { firstTimestamp, lastTimestamp } =
+              getBookendTimestamps(session);
+            const shiftedMessages = getShiftedMessages(session, firstTimestamp);
 
             setSessions((sessions) => [
               ...sessions,
               {
                 messages: shiftedMessages,
                 firstTimestamp,
-                duration: roundedDurationMin,
+                duration: getSessionDuration(firstTimestamp, lastTimestamp),
               },
             ]);
           }
@@ -96,12 +108,31 @@ export const RobotImporter = () => {
     };
   }, []);
 
+  // if only 1 session, auto-select
+  useEffect(() => {
+    if (sessions.length === 1) {
+      handleSelectSession(0);
+    }
+  }, [sessions]);
+
   const handleSelectSession = (index: number) => {
     setSelectedSessionIndex(index);
     const session = sessions[index];
     clearRobot();
     updateRobot(session.messages, { replace: false });
     console.log("Imported robot", robot);
+    scrollToPosition();
+  };
+
+  const scrollToPosition = () => {
+    if (positionRef.current) {
+      const rect = positionRef.current.getBoundingClientRect();
+      window.scrollTo({
+        left: 0,
+        top: rect.top + window.scrollY - 2,
+        behavior: "smooth",
+      });
+    }
   };
 
   const handleSelectFile = async () => {
@@ -120,54 +151,59 @@ export const RobotImporter = () => {
     if (selectedFile) {
       setLoading(true);
       await invoke(PARSE_RAW_FILE_COMMAND, { rawFileName: selectedFile });
-      setFile(selectedFile);
+      setFile(selectedFile.substring(selectedFile.lastIndexOf("\\") + 1));
       setLoading(false);
     }
   };
 
   const handleClearSelection = () => {
     if (config) {
-      const emptyRobot = initRobotFromConfig(config);
-      setRobot(emptyRobot);
       setFile(null);
       setSessions([]);
+      setSelectedSessionIndex(null);
+      clearRobot();
     }
   };
 
   return (
-    <StyledContainer>
-      <h2>Import</h2>
-      {file && (
-        <p>
-          <strong>Current: </strong>
-          {file}
-        </p>
-      )}
-      <ButtonsHolder>
-        {!file &&
-          (loading ? (
-            <DotsLoader />
-          ) : (
-            <button onClick={handleSelectFile}>Select CSV</button>
-          ))}
+    <Holder ref={positionRef}>
+      <FileContainer>
+        {!file && <strong>Import: </strong>}
         {file && (
-          <button onClick={handleClearSelection}>Clear selection</button>
+          <p>
+            <strong>Current: </strong>
+            {file}
+          </p>
         )}
-      </ButtonsHolder>
-
-      {sessions && (
-        <>
-          <h3>Sessions</h3>
-          <ButtonsHolder>
-            {sessions.map((session, index) => (
-              <SessionButton
-                $isSelected={index === selectedSessionIndex}
-                onClick={() => handleSelectSession(index)}
-              >{`Session ${index + 1}: ${session.duration}min`}</SessionButton>
+        <ButtonsHolder>
+          {!file &&
+            (loading ? (
+              <DotsLoader />
+            ) : (
+              <CondensedButton onClick={handleSelectFile}>
+                Select
+              </CondensedButton>
             ))}
-          </ButtonsHolder>
-        </>
+          {file && (
+            <CondensedButton onClick={handleClearSelection}>
+              Clear
+            </CondensedButton>
+          )}
+        </ButtonsHolder>
+      </FileContainer>
+      {sessions.length > 0 && (
+        <SessionsContainer>
+          <strong>Sessions:</strong>
+          {sessions.map((session, index) => (
+            <SelectableCondensedButton
+              $isSelected={index === selectedSessionIndex}
+              onClick={() => handleSelectSession(index)}
+            >
+              {`(${index + 1}) ${session.duration}`}
+            </SelectableCondensedButton>
+          ))}
+        </SessionsContainer>
       )}
-    </StyledContainer>
+    </Holder>
   );
 };

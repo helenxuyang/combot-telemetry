@@ -25,6 +25,10 @@
     vertical-align: baseline;
   }
 
+  strong {
+    font-weight: bold;
+  }
+
   article, aside, details, figcaption, figure, 
   footer, header, hgroup, menu, nav, section {
     display: block;
