@@ -9,7 +9,11 @@ if [[ "$BUMP_TYPE" != "major" && "$BUMP_TYPE" != "minor" && "$BUMP_TYPE" != "pat
     exit 1
 fi
 
-TAURI_CONFIG="../src-tauri/tauri.conf.json"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+TAURI_CONFIG="$REPO_DIR/src-tauri/tauri.conf.json"
+
+cd "$REPO_DIR"
 
 # ---------------------------------------------------------------------------
 # 1. confirm no working changes
@@ -37,13 +41,27 @@ git pull --ff-only origin release
 
 echo "=== Merging main into release ==="
 
-if ! git merge --no-ff main -m "Merge main into release"; then
+if ! git merge --no-commit --no-ff main; then
     echo
     echo "ERROR: Merge conflict."
     echo "Resolve the conflict, commit the merge, then run the release manually."
     echo "The release script has stopped."
     exit 1
 fi
+
+echo "=== Checking TypeScript ==="
+
+if ! npx tsc --noEmit; then
+    echo
+    echo "ERROR: TypeScript check failed."
+    echo "The merge has been aborted and the release has stopped."
+    git merge --abort
+    exit 1
+fi
+
+echo "=== Committing merge ==="
+
+git commit -m "Merge main into release"
 
 # ---------------------------------------------------------------------------
 # 3. figure out version bump
