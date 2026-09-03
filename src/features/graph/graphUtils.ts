@@ -179,14 +179,17 @@ const yAxisSettings = {
 
 export const getYAxisConfig = (
   name: MeasurementName,
+  measurements: number[],
   config: MeasurementConfig,
 ) => {
   const unit = METADATA[name].unit;
+  const actualMin = Math.min(...measurements);
+  const actualMax = Math.max(...measurements);
   return {
     name: `${unit.length > 0 ? unit : name}`,
     ...yAxisSettings,
-    min: config.min,
-    max: config.max,
+    min: Math.min(config.min, actualMin),
+    max: Math.max(config.max, actualMax),
   };
 };
 
@@ -203,7 +206,11 @@ export const getDataYAxis = (
   if (!esc || !measurementConfig) {
     return {};
   }
-  return getYAxisConfig(measurementName, measurementConfig);
+  return getYAxisConfig(
+    measurementName,
+    esc.data[measurementName],
+    measurementConfig,
+  );
 };
 
 export const getErrorYAxis = () => {
