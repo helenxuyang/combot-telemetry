@@ -11,7 +11,6 @@ fi
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
-TAURI_CONFIG="$REPO_DIR/src-tauri/tauri.conf.json"
 
 cd "$REPO_DIR"
 
@@ -68,6 +67,8 @@ git commit -m "Merge main into release"
 # ---------------------------------------------------------------------------
 
 echo "=== Calculating new version ==="
+
+TAURI_CONFIG="$REPO_DIR/src-tauri/tauri.conf.json"
 
 VERSION=$(grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' "$TAURI_CONFIG" \
     | head -1 \
