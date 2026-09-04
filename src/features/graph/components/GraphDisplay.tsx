@@ -51,6 +51,9 @@ export const GraphDisplay = () => {
   const [yAxisSlidersVisible, setYAxisSlidersVisible] =
     useState<boolean>(false);
   const [zoomRange, setZoomRange] = useState<number>(100);
+  const [yAxisZoomRanges, setYAxisZoomRanges] = useState<
+    Record<string, { start: number; end: number }>
+  >({});
 
   const graphRef = useRef<ReactECharts>(null);
 
@@ -83,7 +86,7 @@ export const GraphDisplay = () => {
     yAxis: yAxis.map((y, index) => ({
       ...y,
       position: "left",
-      offset: index * yAxisWidth,
+      offset: (yAxis.length - 1 - index) * yAxisWidth,
       z: zLevels["yAxis"],
       triggerEvent: true,
       axisLabel: {
@@ -129,26 +132,32 @@ export const GraphDisplay = () => {
     },
     dataZoom: [
       {
+        id: "series-inside",
         type: "inside",
         filterMode: "none",
       },
       {
+        id: "series-slider",
         type: "slider",
         filterMode: "none",
       },
 
       ...yAxis.map((_, index) => {
+        const dataZoomId = `yAxis-slider-${stringifyPlot(plots[index])}`;
+        const zoom = yAxisZoomRanges[dataZoomId];
         return {
+          id: dataZoomId,
           type: "slider",
           filterMode: "none",
+          ...zoom,
           yAxisIndex: index,
           orient: "vertical",
-          left: (yAxis.length - 1 - index) * yAxisWidth,
+          left: index * yAxisWidth,
           width: yAxisWidth * 0.75,
           z: zLevels["yAxisSlider"],
           show: yAxisSlidersVisible,
           handleLabel: {
-            show: true, // Forces labels to always show on the handles (v5.6.0+)
+            show: true,
           },
         };
       }),
@@ -156,7 +165,7 @@ export const GraphDisplay = () => {
     animation: false,
   };
 
-  console.log({ option, zoomRange });
+  console.log({ option });
 
   const toggleYAxisSliderVisibility = (params: any) => {
     if (params.componentType === "yAxis") {
@@ -166,8 +175,19 @@ export const GraphDisplay = () => {
 
   const handleZoom = (params: any) => {
     console.log("dataZoom", params);
+    const yAxisZoomUpdates: Record<string, { start: number; end: number }> = {};
+    const recordYAxisZoom = (zoom: any) => {
+      if (zoom.dataZoomId.startsWith("yAxis-slider-")) {
+        yAxisZoomUpdates[zoom.dataZoomId] = {
+          start: zoom.start,
+          end: zoom.end,
+        };
+      }
+    };
+
     if ("batch" in params) {
       for (const zoom of params.batch) {
+        recordYAxisZoom(zoom);
         // scroll zoom - gives percent
         if (zoom.dataZoomId.includes("series")) {
           setZoomRange(zoom.end - zoom.start);
@@ -179,17 +199,22 @@ export const GraphDisplay = () => {
     }
     // slider zoom - gives percent
     else {
+      recordYAxisZoom(params);
       if (params.dataZoomId.includes("series")) {
         if (params.end - params.start) {
           setZoomRange(params.end - params.start);
         }
       }
     }
+
+    if (Object.keys(yAxisZoomUpdates).length > 0) {
+      setYAxisZoomRanges((ranges) => ({ ...ranges, ...yAxisZoomUpdates }));
+    }
   };
 
   const onEvents = {
     click: toggleYAxisSliderVisibility,
-    // dataZoom: handleZoom,
+    dataZoom: handleZoom,
   };
 
   return (
@@ -239,10 +264,9 @@ export const GraphDisplay = () => {
             option={option}
             onEvents={onEvents}
             style={{ height: "100%", width: "100%" }}
-            notMerge={true}
-            // notMerge={false}
-            // replaceMerge={["series", "xAxis", "yAxis"]}
-            // lazyUpdate={true}
+            notMerge={false}
+            replaceMerge={["series", "xAxis", "yAxis", "dataZoom"]}
+            lazyUpdate={true}
           />
         </div>
       )}

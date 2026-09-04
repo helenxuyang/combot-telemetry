@@ -76,10 +76,7 @@ export const getSeriesSymbol = (escId: EscId, zoomRange: number) => {
   const maxSize = baseSize * 1.75;
   return {
     symbol: symbols[index],
-    symbolSize: Math.max(
-      minSize,
-      Math.min(baseSize / (zoomRange * 0.3), maxSize),
-    ),
+    symbolSize: Math.max(minSize, Math.min(baseSize / zoomRange, maxSize)),
   };
 };
 
