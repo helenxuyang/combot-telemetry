@@ -1,9 +1,8 @@
 import ReactECharts from "echarts-for-react";
 import { useRef, useState } from "react";
-import { ESC, EscId, INPUT } from "../../../robot";
-
 import styled from "styled-components";
 import { PlotPill } from "../../../PlotPill";
+import { ESC, EscId, INPUT } from "../../../robot";
 import { useRobot, useRobotConfig } from "../../../store";
 import { media } from "../../../styles";
 import {
@@ -38,13 +37,38 @@ const PillHolder = styled.div`
   }
 `;
 
+const zLevels = {
+  yAxisSlider: 1,
+  yAxis: 2,
+};
+const yAxisWidth = 40;
+const bottomControlsHeight = 110;
+
 export const GraphDisplay = () => {
   const robot = useRobot();
   const config = useRobotConfig();
 
+  const [yAxisSlidersVisible, setYAxisSlidersVisible] =
+    useState<boolean>(false);
   const [zoomRange, setZoomRange] = useState<number>(100);
 
   const graphRef = useRef<ReactECharts>(null);
+
+  const defaultEscId: EscId = robot
+    ? (Object.keys(robot.escs)[0] as EscId)
+    : "0";
+  const [plots, setPlots] = useState<Plot[]>([
+    {
+      escId: defaultEscId,
+      type: "data",
+      measurementName: INPUT,
+    },
+  ]);
+
+  const { xAxis, yAxis, series } =
+    robot && config
+      ? getPlotData(robot, config, plots, zoomRange)
+      : { xAxis: [], yAxis: [], series: [] };
 
   if (!robot || !config) {
     return <div>No robot/config</div>;
@@ -54,22 +78,18 @@ export const GraphDisplay = () => {
     return <div>No ESCs</div>;
   }
 
-  const defaultEscId = Object.keys(robot.escs)[0] as EscId;
-  const [plots, setPlots] = useState<Plot[]>([
-    {
-      escId: defaultEscId,
-      type: "data",
-      measurementName: INPUT,
-    },
-  ]);
-
-  const { xAxis, yAxis, series } = getPlotData(robot, config, plots, zoomRange);
-
   const option = {
     xAxis,
     yAxis: yAxis.map((y, index) => ({
       ...y,
-      offset: index > 1 ? (index - 1) * 45 : 0,
+      position: "left",
+      offset: index * yAxisWidth,
+      z: zLevels["yAxis"],
+      triggerEvent: true,
+      axisLabel: {
+        ...y?.axisLabel,
+        formatter: (value: string) => (yAxisSlidersVisible ? "" : value),
+      },
     })),
     series: series.map((s, index) => ({
       ...s,
@@ -98,7 +118,7 @@ export const GraphDisplay = () => {
       padding: 2,
       borderWidth: 0,
     },
-    grid: { bottom: 110, left: 100 },
+    grid: { bottom: bottomControlsHeight, left: yAxis.length * yAxisWidth },
     toolbox: {
       feature: {
         // select rectangle to zoom
@@ -116,14 +136,36 @@ export const GraphDisplay = () => {
         type: "slider",
         filterMode: "none",
       },
+
+      ...yAxis.map((_, index) => {
+        return {
+          type: "slider",
+          filterMode: "none",
+          yAxisIndex: index,
+          orient: "vertical",
+          left: (yAxis.length - 1 - index) * yAxisWidth,
+          width: yAxisWidth * 0.75,
+          z: zLevels["yAxisSlider"],
+          show: yAxisSlidersVisible,
+          handleLabel: {
+            show: true, // Forces labels to always show on the handles (v5.6.0+)
+          },
+        };
+      }),
     ],
     animation: false,
   };
 
   console.log({ option, zoomRange });
 
-  const dataZoom = (params: any) => {
-    console.log(params);
+  const toggleYAxisSliderVisibility = (params: any) => {
+    if (params.componentType === "yAxis") {
+      setYAxisSlidersVisible((visible) => !visible);
+    }
+  };
+
+  const handleZoom = (params: any) => {
+    console.log("dataZoom", params);
     if ("batch" in params) {
       for (const zoom of params.batch) {
         // scroll zoom - gives percent
@@ -145,8 +187,10 @@ export const GraphDisplay = () => {
     }
   };
 
-  // @ts-expect-error TODO wip try to prevent zoom reset
-  const onEvents = { dataZoom };
+  const onEvents = {
+    click: toggleYAxisSliderVisibility,
+    // dataZoom: handleZoom,
+  };
 
   return (
     <Container>
@@ -193,9 +237,12 @@ export const GraphDisplay = () => {
           <ReactECharts
             ref={graphRef}
             option={option}
-            // onEvents={onEvents}
-            notMerge={true}
+            onEvents={onEvents}
             style={{ height: "100%", width: "100%" }}
+            notMerge={true}
+            // notMerge={false}
+            // replaceMerge={["series", "xAxis", "yAxis"]}
+            // lazyUpdate={true}
           />
         </div>
       )}
