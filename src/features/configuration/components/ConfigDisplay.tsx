@@ -2,18 +2,14 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
+import { useIsEditing, useSetIsEditing } from "../../../configStore";
+import { useRobotConfig, useSetRobot } from "../../../robotStore";
 import {
   baseDir,
   getAllConfigNames,
   getCurrentConfig,
   useStorageUtils,
 } from "../../../storageUtils";
-import {
-  useIsEditing,
-  useRobotConfig,
-  useSetIsEditing,
-  useSetRobot,
-} from "../../../store";
 import { initRobotFromConfig, RobotConfig } from "../configUtils";
 import { ConfigEditor } from "./ConfigEditor";
 

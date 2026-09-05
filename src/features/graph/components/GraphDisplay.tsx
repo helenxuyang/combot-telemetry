@@ -1,10 +1,9 @@
 import ReactECharts from "echarts-for-react";
 import { useRef, useState } from "react";
-import { ESC, EscId, INPUT } from "../../../robot";
-
 import styled from "styled-components";
 import { PlotPill } from "../../../PlotPill";
-import { useRobot, useRobotConfig } from "../../../store";
+import { ESC, EscId, INPUT } from "../../../robot";
+import { useRobot, useRobotConfig } from "../../../robotStore";
 import { media } from "../../../styles";
 import {
   getAvailablePlots,
@@ -38,13 +37,41 @@ const PillHolder = styled.div`
   }
 `;
 
+const zLevels = {
+  yAxisSlider: 1,
+  yAxis: 2,
+};
+const yAxisWidth = 40;
+const bottomControlsHeight = 110;
+
 export const GraphDisplay = () => {
   const robot = useRobot();
   const config = useRobotConfig();
 
+  const [yAxisSlidersVisible, setYAxisSlidersVisible] =
+    useState<boolean>(false);
   const [zoomRange, setZoomRange] = useState<number>(100);
+  const [yAxisZoomRanges, setYAxisZoomRanges] = useState<
+    Record<string, { start: number; end: number }>
+  >({});
 
   const graphRef = useRef<ReactECharts>(null);
+
+  const defaultEscId: EscId = robot
+    ? (Object.keys(robot.escs)[0] as EscId)
+    : "0";
+  const [plots, setPlots] = useState<Plot[]>([
+    {
+      escId: defaultEscId,
+      type: "data",
+      measurementName: INPUT,
+    },
+  ]);
+
+  const { xAxis, yAxis, series } =
+    robot && config
+      ? getPlotData(robot, config, plots, zoomRange)
+      : { xAxis: [], yAxis: [], series: [] };
 
   if (!robot || !config) {
     return <div>No robot/config</div>;
@@ -54,22 +81,18 @@ export const GraphDisplay = () => {
     return <div>No ESCs</div>;
   }
 
-  const defaultEscId = Object.keys(robot.escs)[0] as EscId;
-  const [plots, setPlots] = useState<Plot[]>([
-    {
-      escId: defaultEscId,
-      type: "data",
-      measurementName: INPUT,
-    },
-  ]);
-
-  const { xAxis, yAxis, series } = getPlotData(robot, config, plots, zoomRange);
-
   const option = {
     xAxis,
     yAxis: yAxis.map((y, index) => ({
       ...y,
-      offset: index > 1 ? (index - 1) * 45 : 0,
+      position: "left",
+      offset: (yAxis.length - 1 - index) * yAxisWidth,
+      z: zLevels["yAxis"],
+      triggerEvent: true,
+      axisLabel: {
+        ...y?.axisLabel,
+        formatter: (value: string) => (yAxisSlidersVisible ? "" : value),
+      },
     })),
     series: series.map((s, index) => ({
       ...s,
@@ -98,7 +121,7 @@ export const GraphDisplay = () => {
       padding: 2,
       borderWidth: 0,
     },
-    grid: { bottom: 110, left: 100 },
+    grid: { bottom: bottomControlsHeight, left: yAxis.length * yAxisWidth },
     toolbox: {
       feature: {
         // select rectangle to zoom
@@ -109,23 +132,80 @@ export const GraphDisplay = () => {
     },
     dataZoom: [
       {
+        id: "series-inside",
         type: "inside",
         filterMode: "none",
       },
       {
+        id: "series-slider",
         type: "slider",
         filterMode: "none",
       },
+
+      ...yAxis.map((_, index) => {
+        const dataZoomId = `yAxis-slider-${stringifyPlot(plots[index])}`;
+        const zoom = yAxisZoomRanges[dataZoomId];
+        return {
+          id: dataZoomId,
+          type: "slider",
+          filterMode: "none",
+          ...zoom,
+          yAxisIndex: index,
+          orient: "vertical",
+          left: index * yAxisWidth,
+          width: yAxisWidth * 0.75,
+          z: zLevels["yAxisSlider"],
+          show: yAxisSlidersVisible,
+          handleLabel: {
+            show: true,
+          },
+        };
+      }),
     ],
     animation: false,
   };
 
-  console.log({ option, zoomRange });
+  console.log({ option });
 
-  const dataZoom = (params: any) => {
-    console.log(params);
+  const dispatchClickPoint = (params: any) => {
+    if (params.componentType === "series") {
+      const timestamp = params.data[0];
+      const escId = parsePlot(params.seriesId).escId;
+
+      const event = new CustomEvent("clickPoint", {
+        detail: { timestamp, escId },
+      });
+      window.dispatchEvent(event);
+    }
+  };
+
+  const toggleYAxisSliderVisibility = () => {
+    setYAxisSlidersVisible((visible) => !visible);
+  };
+
+  const handleClick = (params: any) => {
+    if (params.componentType === "yAxis") {
+      toggleYAxisSliderVisibility();
+    } else if (params.componentType === "series") {
+      dispatchClickPoint(params);
+    }
+  };
+
+  const handleZoom = (params: any) => {
+    console.log("dataZoom", params);
+    const yAxisZoomUpdates: Record<string, { start: number; end: number }> = {};
+    const recordYAxisZoom = (zoom: any) => {
+      if (zoom.dataZoomId.startsWith("yAxis-slider-")) {
+        yAxisZoomUpdates[zoom.dataZoomId] = {
+          start: zoom.start,
+          end: zoom.end,
+        };
+      }
+    };
+
     if ("batch" in params) {
       for (const zoom of params.batch) {
+        recordYAxisZoom(zoom);
         // scroll zoom - gives percent
         if (zoom.dataZoomId.includes("series")) {
           setZoomRange(zoom.end - zoom.start);
@@ -137,16 +217,23 @@ export const GraphDisplay = () => {
     }
     // slider zoom - gives percent
     else {
+      recordYAxisZoom(params);
       if (params.dataZoomId.includes("series")) {
         if (params.end - params.start) {
           setZoomRange(params.end - params.start);
         }
       }
     }
+
+    if (Object.keys(yAxisZoomUpdates).length > 0) {
+      setYAxisZoomRanges((ranges) => ({ ...ranges, ...yAxisZoomUpdates }));
+    }
   };
 
-  // @ts-expect-error TODO wip try to prevent zoom reset
-  const onEvents = { dataZoom };
+  const onEvents = {
+    click: handleClick,
+    dataZoom: handleZoom,
+  };
 
   return (
     <Container>
@@ -193,9 +280,11 @@ export const GraphDisplay = () => {
           <ReactECharts
             ref={graphRef}
             option={option}
-            // onEvents={onEvents}
-            notMerge={true}
+            onEvents={onEvents}
             style={{ height: "100%", width: "100%" }}
+            notMerge={false}
+            replaceMerge={["series", "xAxis", "yAxis", "dataZoom"]}
+            lazyUpdate={true}
           />
         </div>
       )}

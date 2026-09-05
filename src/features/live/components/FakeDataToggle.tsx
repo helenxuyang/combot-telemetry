@@ -1,4 +1,4 @@
-import { useIsFakeData, useToggleFakeData } from "../../../store";
+import { useIsFakeData, useToggleFakeData } from "../../../fakeDataStore";
 
 export const FakeDataToggle = () => {
   const isFakeData = useIsFakeData();

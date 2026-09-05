@@ -5,13 +5,13 @@ import styled from "styled-components";
 import { useImmer } from "use-immer";
 import { ALL_ESC_IDs, EscId } from "../../../robot";
 import { useStorageUtils } from "../../../storageUtils";
+
+import { useIsEditing, useSetIsEditing } from "../../../configStore";
 import {
-  useIsEditing,
   useRobotConfig,
-  useSetIsEditing,
   useSetRobot,
   useSetRobotConfig,
-} from "../../../store";
+} from "../../../robotStore";
 import { ButtonsHolder, media, SpacedRow } from "../../../styles";
 import {
   EscConfig,

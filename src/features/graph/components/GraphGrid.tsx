@@ -1,8 +1,10 @@
 import { useState } from "react";
 import styled from "styled-components";
 import { RobotImporter } from "../../../RobotImporter";
-import { useRobot } from "../../../store";
+import { useRobot } from "../../../robotStore";
+import { CondensedButton } from "../../../styles";
 import { GraphDisplay } from "./GraphDisplay";
+import { MessagesDisplay } from "./MessagesDisplay";
 
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
@@ -85,6 +87,7 @@ export const GraphGrid = () => {
     isFullWidth: true,
   };
   const [graphConfigs, setGraphConfigs] = useState<GraphConfig[]>([emptyGraph]);
+  const [showMessages, setShowMessages] = useState<boolean>(false);
 
   if (!robot) {
     return <div>No robot</div>;
@@ -173,7 +176,24 @@ export const GraphGrid = () => {
             </GraphHolder>
           );
         })}
+
+        {showMessages && (
+          <GraphHolder $isFullWidth={false}>
+            <RoundButton
+              title="Hide messages"
+              onClick={() => setShowMessages(false)}
+            >
+              ✖
+            </RoundButton>
+            <MessagesDisplay />
+          </GraphHolder>
+        )}
       </GridHolder>
+      {!showMessages && (
+        <CondensedButton onClick={() => setShowMessages(true)}>
+          Show messages
+        </CondensedButton>
+      )}
     </Holder>
   );
 };

@@ -1,9 +1,9 @@
 import { Draft } from "immer";
+import { useIsEditing } from "../../../configStore";
 import { EscId } from "../../../robot";
+import { Table } from "../../../styles";
 import { MotorConfig } from "../configUtils";
 import { NumberInput } from "./inputStyles";
-import { Table } from "../../../styles";
-import { useIsEditing } from "../../../store";
 
 type Props = {
   config: MotorConfig;

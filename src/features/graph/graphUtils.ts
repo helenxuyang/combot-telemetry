@@ -170,10 +170,19 @@ export const getXAxis = () => {
 
 const yAxisSettings = {
   axisLine: { onZero: false },
-  axisLabel: { fontSize: 10 },
-  nameTextStyle: {
+  axisLabel: {
     fontSize: 10,
   },
+  nameTextStyle: {
+    color: "black",
+    fontSize: 10,
+    backgroundColor: "#eee",
+    padding: 4,
+    borderColor: "black",
+    borderWidth: 1,
+    borderRadius: 4,
+  },
+  nameGap: 24,
   alignTicks: true,
 };
 
@@ -185,11 +194,13 @@ export const getYAxisConfig = (
   const unit = METADATA[name].unit;
   const actualMin = Math.min(...measurements);
   const actualMax = Math.max(...measurements);
+  const min = Math.min(config.min, actualMin);
+  const max = Math.max(config.max, actualMax);
   return {
     name: `${unit.length > 0 ? unit : name}`,
     ...yAxisSettings,
-    min: Math.min(config.min, actualMin),
-    max: Math.max(config.max, actualMax),
+    min,
+    max,
   };
 };
 
@@ -197,14 +208,14 @@ export const getDataYAxis = (
   robot: Robot,
   robotConfig: RobotConfig,
   plot: DataPlot,
-) => {
+): ReturnType<typeof getYAxisConfig> | null => {
   const { escId, measurementName } = plot;
   const esc = robot.escs[escId];
   const measurementConfig =
     robotConfig.escConfigs[escId]?.measurementConfigs[measurementName];
 
   if (!esc || !measurementConfig) {
-    return {};
+    return null;
   }
   return getYAxisConfig(
     measurementName,
