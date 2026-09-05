@@ -5,6 +5,8 @@ import {
   ERROR,
   ESC,
   EscId,
+  SignalStrength,
+  SNR,
 } from "../../robot";
 import { MeasurementConfig, RobotConfig } from "../configuration/configUtils";
 
@@ -151,6 +153,24 @@ export const getErrorSeries = (robot: Robot, plot: ErrorPlot) => {
   };
 };
 
+export const getSnrSeries = (robot: Robot) => {
+  const snr = robot.signalStrengths;
+
+  return {
+    data: getSeriesData(
+      snr.map((s) => s.timestamp),
+      snr.map((s) => s.value),
+    ),
+    id: SNR,
+    name: SNR,
+    type: "line",
+    showSymbol: true,
+    itemStyle: {
+      color: "black",
+    },
+  };
+};
+
 export const getXAxis = () => {
   const axis = {
     name: "seconds",
@@ -228,36 +248,73 @@ export const getErrorYAxis = () => {
   return { ...yAxisSettings, min: 0, max: 1, show: false };
 };
 
+export const getSnrYAxis = (signalStrengths: SignalStrength[]) => {
+  const values = signalStrengths.map((s) => s.value);
+  return {
+    ...yAxisSettings,
+    name: SNR,
+    min: Math.min(...values, -20),
+    max: Math.max(...values, 10),
+  };
+};
+
 export const getPlotData = (
   robot: Robot,
   config: RobotConfig,
   plots: Plot[],
   zoomRange: number,
+  showSnr: boolean,
 ) => {
-  const series = plots.map((plot) => {
-    switch (plot.type) {
-      case "data":
-        return getDataSeries(robot, plot, zoomRange);
-      case "error":
-        return getErrorSeries(robot, plot);
-      default:
-        throw Error("unhandled plot data");
-    }
-  });
   const xAxis = getXAxis();
-  const yAxis = plots.map((plot) => {
+
+  let yAxis = plots.map((plot) => {
     switch (plot.type) {
       case "data":
         return getDataYAxis(robot, config, plot);
       case "error":
         return getErrorYAxis();
+      default:
+        throw Error("unhandled plot - y axis");
     }
   });
+
+  let series: any = plots.map((plot, index) => {
+    switch (plot.type) {
+      case "data":
+        return { ...getDataSeries(robot, plot, zoomRange), yAxisIndex: index };
+      case "error":
+        return { ...getErrorSeries(robot, plot), yAxisIndex: index };
+      default:
+        throw Error("unhandled plot - series");
+    }
+  });
+
+  const sliders = yAxis.map((_, index) => {
+    const dataZoomId = `yAxis-slider-${stringifyPlot(plots[index])}`;
+    return {
+      id: dataZoomId,
+      type: "slider",
+      filterMode: "none",
+      yAxisIndex: index,
+      orient: "vertical",
+      handleLabel: {
+        show: true,
+      },
+    };
+  });
+
+  const numEscPlots = plots.length;
+
+  if (showSnr) {
+    yAxis.push(getSnrYAxis(robot.signalStrengths));
+    series.push({ ...getSnrSeries(robot), yAxisIndex: numEscPlots });
+  }
 
   return {
     series,
     xAxis,
     yAxis,
+    sliders,
   };
 };
 

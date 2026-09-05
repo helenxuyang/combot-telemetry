@@ -2,9 +2,9 @@ import ReactECharts from "echarts-for-react";
 import { useRef, useState } from "react";
 import styled from "styled-components";
 import { PlotPill } from "../../../PlotPill";
-import { ESC, EscId, INPUT } from "../../../robot";
+import { ESC, EscId, INPUT, SNR } from "../../../robot";
 import { useRobot, useRobotConfig } from "../../../robotStore";
-import { media } from "../../../styles";
+import { media, StyledPill } from "../../../styles";
 import {
   getAvailablePlots,
   getLabel,
@@ -67,11 +67,12 @@ export const GraphDisplay = () => {
       measurementName: INPUT,
     },
   ]);
+  const [showSnr, setShowSnr] = useState<boolean>(false);
 
-  const { xAxis, yAxis, series } =
+  const { xAxis, yAxis, series, sliders } =
     robot && config
-      ? getPlotData(robot, config, plots, zoomRange)
-      : { xAxis: [], yAxis: [], series: [] };
+      ? getPlotData(robot, config, plots, zoomRange, showSnr)
+      : { xAxis: [], yAxis: [], series: [], sliders: [] };
 
   if (!robot || !config) {
     return <div>No robot/config</div>;
@@ -94,10 +95,7 @@ export const GraphDisplay = () => {
         formatter: (value: string) => (yAxisSlidersVisible ? "" : value),
       },
     })),
-    series: series.map((s, index) => ({
-      ...s,
-      yAxisIndex: index,
-    })),
+    series,
     legend: {
       bottom: 50,
     },
@@ -107,6 +105,9 @@ export const GraphDisplay = () => {
       formatter: (params: any) => {
         if (params.componentType === "markLine") {
           return;
+        }
+        if (params.seriesId === SNR) {
+          return params.value[1];
         }
         const plot = parsePlot(params.seriesId);
         const escName = params.seriesName.split(" ")[0];
@@ -138,27 +139,20 @@ export const GraphDisplay = () => {
         filterMode: "none",
       },
       {
-        id: "series-slider",
+        id: "xAxis-slider",
         type: "slider",
         filterMode: "none",
       },
 
-      ...yAxis.map((_, index) => {
+      ...sliders.map((slider, index) => {
         const dataZoomId = `yAxis-slider-${stringifyPlot(plots[index])}`;
         const zoom = yAxisZoomRanges[dataZoomId];
         return {
-          id: dataZoomId,
-          type: "slider",
-          filterMode: "none",
-          yAxisIndex: index,
-          orient: "vertical",
+          ...slider,
           left: index * yAxisWidth,
           width: yAxisWidth * 0.75,
           z: zLevels["yAxisSlider"],
           show: yAxisSlidersVisible,
-          handleLabel: {
-            show: true,
-          },
           ...zoom,
         };
       }),
@@ -193,7 +187,6 @@ export const GraphDisplay = () => {
   };
 
   const handleZoom = (params: any) => {
-    console.log("dataZoom", params);
     const yAxisZoomUpdates: Record<string, { start: number; end: number }> = {};
     const recordYAxisZoom = (zoom: any) => {
       if (zoom.dataZoomId.startsWith("yAxis-slider-")) {
@@ -275,8 +268,18 @@ export const GraphDisplay = () => {
             </PillHolder>
           );
         })}
+        <PillHolder>
+          <strong>General: </strong>
+          <StyledPill
+            $isSelected={showSnr}
+            $color="black"
+            onClick={() => setShowSnr((show) => !show)}
+          >
+            SNR
+          </StyledPill>
+        </PillHolder>
       </PlotSelectionHolder>
-      {plots.length > 0 && (
+      {(plots.length > 0 || showSnr) && (
         <div style={{ flex: 1, width: "100%" }}>
           <ReactECharts
             ref={graphRef}

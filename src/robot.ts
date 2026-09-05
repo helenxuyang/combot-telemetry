@@ -40,6 +40,7 @@ export const CONSUMPTION = "consumption" as const;
 
 export const INPUT = "input" as const;
 export const ERROR = "error" as const;
+export const SNR = "snr" as const;
 
 export type MeasurementName =
   | typeof TEMPERATURE
