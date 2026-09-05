@@ -1,13 +1,16 @@
-import { ColorIndicatorEditor } from "./ColorIndicatorEditor";
-import { ColorIndicator, getNewColorIndicator } from "../configUtils";
-import { EscId, MeasurementName } from "../../../robot";
-import { MeasurementConfig } from "../configUtils";
-import { METADATA } from "../../../displayUtils";
-import { CheckboxInput, NumberInput } from "./inputStyles";
-import { CondensedButton } from "../../../styles";
 import { Draft } from "immer";
 import styled from "styled-components";
-import { useIsEditing } from "../../../store";
+import { useIsEditing } from "../../../configStore";
+import { METADATA } from "../../../displayUtils";
+import { EscId, MeasurementName } from "../../../robot";
+import { CondensedButton } from "../../../styles";
+import {
+  ColorIndicator,
+  getNewColorIndicator,
+  MeasurementConfig,
+} from "../configUtils";
+import { ColorIndicatorEditor } from "./ColorIndicatorEditor";
+import { CheckboxInput, NumberInput } from "./inputStyles";
 
 const AddButton = styled(CondensedButton)`
   display: block;

@@ -4,7 +4,7 @@ import {
   getSessionDuration,
   getShiftedMessages,
 } from "../importUtils";
-import { TauriTelemetryMessage } from "../messageUtils";
+import { TauriTelemetryMessage } from "../messageTypes";
 
 const createDataMessage = (timestamp: number): TauriTelemetryMessage => ({
   messageType: "dataMessage",

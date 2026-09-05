@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import styled from "styled-components";
 import { PlotPill } from "../../../PlotPill";
 import { ESC, EscId, INPUT } from "../../../robot";
-import { useRobot, useRobotConfig } from "../../../store";
+import { useRobot, useRobotConfig } from "../../../robotStore";
 import { media } from "../../../styles";
 import {
   getAvailablePlots,
@@ -167,9 +167,27 @@ export const GraphDisplay = () => {
 
   console.log({ option });
 
-  const toggleYAxisSliderVisibility = (params: any) => {
+  const dispatchClickPoint = (params: any) => {
+    if (params.componentType === "series") {
+      const timestamp = params.data[0];
+      const escId = parsePlot(params.seriesId).escId;
+
+      const event = new CustomEvent("clickPoint", {
+        detail: { timestamp, escId },
+      });
+      window.dispatchEvent(event);
+    }
+  };
+
+  const toggleYAxisSliderVisibility = () => {
+    setYAxisSlidersVisible((visible) => !visible);
+  };
+
+  const handleClick = (params: any) => {
     if (params.componentType === "yAxis") {
-      setYAxisSlidersVisible((visible) => !visible);
+      toggleYAxisSliderVisibility();
+    } else if (params.componentType === "series") {
+      dispatchClickPoint(params);
     }
   };
 
@@ -213,7 +231,7 @@ export const GraphDisplay = () => {
   };
 
   const onEvents = {
-    click: toggleYAxisSliderVisibility,
+    click: handleClick,
     dataZoom: handleZoom,
   };
 

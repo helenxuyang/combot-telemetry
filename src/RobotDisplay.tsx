@@ -9,7 +9,7 @@ import { SerialConnector } from "./features/live/components/SerialConnector";
 import { VoltageDisplay } from "./features/live/components/VoltageDisplay";
 import { useMediaQuery } from "./features/useMediaQuery";
 import { CURRENT, ESC, EscId, VOLTAGE } from "./robot";
-import { useRobot, useRobotConfig } from "./store";
+import { useRobot, useRobotConfig } from "./robotStore";
 import { ESC_COLORS, media } from "./styles";
 
 const FOCUS_LAYOUT = css`

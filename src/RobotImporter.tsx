@@ -10,13 +10,14 @@ import {
   getSessionDuration,
   getShiftedMessages,
 } from "./importUtils";
-import { TauriTelemetryMessage } from "./messageUtils";
+import { useSetParsedMessages } from "./messagesStore";
+import { TauriTelemetryMessage } from "./messageTypes";
 import {
   useClearRobot,
   useRobot,
   useRobotConfig,
   useUpdateRobot,
-} from "./store";
+} from "./robotStore";
 import {
   ButtonsHolder,
   CondensedButton,
@@ -65,6 +66,7 @@ export const RobotImporter = () => {
   const clearRobot = useClearRobot();
   const updateRobot = useUpdateRobot();
   const config = useRobotConfig();
+  const setParsedMessages = useSetParsedMessages();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [file, setFile] = useState<string | null>(null);
@@ -82,6 +84,7 @@ export const RobotImporter = () => {
         setSessions([]);
         setSelectedSessionIndex(null);
         clearRobot();
+        setParsedMessages([]);
 
         if (robot) {
           const sessions = event.payload;
@@ -121,6 +124,7 @@ export const RobotImporter = () => {
     clearRobot();
     updateRobot(session.messages, { replace: false });
     console.log("Imported robot", robot);
+    setParsedMessages(session.messages);
     scrollToPosition();
   };
 
@@ -162,6 +166,7 @@ export const RobotImporter = () => {
       setSessions([]);
       setSelectedSessionIndex(null);
       clearRobot();
+      setParsedMessages([]);
     }
   };
 
@@ -196,6 +201,7 @@ export const RobotImporter = () => {
           <strong>Sessions:</strong>
           {sessions.map((session, index) => (
             <SelectableCondensedButton
+              key={`${session.firstTimestamp}-${session.duration}`}
               $isSelected={index === selectedSessionIndex}
               onClick={() => handleSelectSession(index)}
             >

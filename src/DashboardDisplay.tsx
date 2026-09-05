@@ -4,7 +4,7 @@ import { RobotDisplay } from "./RobotDisplay";
 import { NavigationTabs, type Tab } from "./Tabs";
 import { ConfigDisplay } from "./features/configuration/components/ConfigDisplay";
 import { GraphGrid } from "./features/graph/components/GraphGrid";
-import { useRobotConfig } from "./store";
+import { useRobotConfig } from "./robotStore";
 import { useInitializer } from "./useInitializer";
 
 const Layout = styled.div`

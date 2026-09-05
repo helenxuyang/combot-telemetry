@@ -2,12 +2,15 @@ use regex::Regex;
 use serde::Serialize;
 use std::{fmt::Display, num::ParseIntError};
 use tauri::AppHandle;
+use uuid::Uuid;
 
 use crate::robot_config::{get_esc_config, EscConfig};
 
 #[derive(Debug, PartialEq, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryData {
+    uuid: String,
+    raw_message: String,
     pub esc_id: u8,
     temperature: u8,
     voltage: f32,
@@ -47,12 +50,16 @@ impl From<ParseIntError> for TelemetryDataParseError {
 #[derive(Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryStartup {
+    uuid: String,
+    raw_message: String,
     snr: i8,
 }
 
 #[derive(Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryError {
+    uuid: String,
+    raw_message: String,
     pub esc_id: u8,
     error_code: u8,
     timestamp: u32,
@@ -62,6 +69,7 @@ pub struct TelemetryError {
 #[derive(Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryUnknown {
+    uuid: String,
     raw_message: String,
     reason: String,
 }
@@ -219,9 +227,10 @@ snr: as-is, in dB
 
  */
 fn parse_data_message(
-    message_components: Vec<&str>,
+    raw_message: &str,
     esc_config: Option<EscConfig>,
 ) -> Result<TelemetryData, TelemetryDataParseError> {
+    let message_components = get_message_components(raw_message);
     let info_byte = parse_hex(message_components[0])?;
     // let message_type = info_byte & 0b1100 >> 2;
     let esc_id = parse_esc_id(info_byte);
@@ -268,6 +277,8 @@ fn parse_data_message(
         Ok(is_correct_checksum) => {
             if is_correct_checksum {
                 return Ok(TelemetryData {
+                    uuid: Uuid::new_v4().to_string(),
+                    raw_message: raw_message.to_string(),
                     esc_id,
                     temperature,
                     voltage,
@@ -311,7 +322,8 @@ fn validate_message_format(raw_message: &str) -> bool {
 16. Timestamp byte 0
 17. SNR
  */
-fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, ParseIntError> {
+fn parse_error_message(raw_message: &str) -> Result<TelemetryError, ParseIntError> {
+    let message_components = get_message_components(raw_message);
     let info_byte = parse_hex(message_components[0])?;
     let esc_id = parse_esc_id(info_byte);
     let error_code = parse_hex(message_components[1])?;
@@ -319,6 +331,8 @@ fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, 
     let snr = parse_snr(message_components[17])?;
 
     return Ok(TelemetryError {
+        uuid: Uuid::new_v4().to_string(),
+        raw_message: raw_message.to_string(),
         esc_id,
         error_code,
         timestamp,
@@ -326,10 +340,19 @@ fn parse_error_message(message_components: Vec<&str>) -> Result<TelemetryError, 
     });
 }
 
+fn get_message_components(raw_message: &str) -> Vec<&str> {
+    // remove < and >
+    let innards = &raw_message[1..(raw_message.len() - 1)];
+    // split into vec
+    let message_components: Vec<&str> = innards.split(" ").collect();
+    return message_components;
+}
+
 pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
     let is_valid_message = validate_message_format(&raw_message);
     if !is_valid_message {
         return TelemetryMessage::UnknownMessage(TelemetryUnknown {
+            uuid: Uuid::new_v4().to_string(),
             raw_message,
             reason: "invalid format".to_string(),
         });
@@ -343,9 +366,14 @@ pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
     if is_startup_message(&message_components) {
         let parsed_snr = parse_snr(message_components[17]);
         if let Ok(snr) = parsed_snr {
-            return TelemetryMessage::StartupMessage(TelemetryStartup { snr });
+            return TelemetryMessage::StartupMessage(TelemetryStartup {
+                uuid: Uuid::new_v4().to_string(),
+                raw_message,
+                snr,
+            });
         } else {
             return TelemetryMessage::UnknownMessage(TelemetryUnknown {
+                uuid: Uuid::new_v4().to_string(),
                 raw_message,
                 reason: "failed to parse ESC ID".to_string(),
             });
@@ -355,8 +383,9 @@ pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
     let info_byte = parse_hex(message_components[0]);
     let Ok(parsed_info_byte) = info_byte else {
         return TelemetryMessage::UnknownMessage(TelemetryUnknown {
+            uuid: Uuid::new_v4().to_string(),
             raw_message,
-            reason: "failed to parse ESC ID".to_string(),
+            reason: "failed to parse info byte".to_string(),
         });
     };
     let message_type = parse_message_type(parsed_info_byte);
@@ -369,10 +398,11 @@ pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
     11 - error
     */
     if message_type == 0b11 {
-        let telemetry_error = parse_error_message(message_components);
+        let telemetry_error = parse_error_message(&raw_message);
         return match telemetry_error {
             Ok(parsed_error) => TelemetryMessage::ErrorMessage(parsed_error),
             Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
+                uuid: Uuid::new_v4().to_string(),
                 raw_message,
                 reason: "failed to parse error message".to_string(),
             }),
@@ -382,10 +412,11 @@ pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
 
         let esc_id = parse_esc_id(parsed_info_byte);
         let esc_config = get_esc_config(&app, esc_id);
-        let telemetry_data = parse_data_message(message_components, esc_config);
+        let telemetry_data = parse_data_message(&raw_message, esc_config);
         return match telemetry_data {
             Ok(parsed_data) => TelemetryMessage::DataMessage(parsed_data),
             Err(_error) => TelemetryMessage::UnknownMessage(TelemetryUnknown {
+                uuid: Uuid::new_v4().to_string(),
                 raw_message,
                 reason: "failed to parse data message".to_string(),
             }),
@@ -426,7 +457,7 @@ mod tests {
     #[test]
     fn test_parse_input_positive() {
         let result = parse_input("7", "08");
-        assert_eq!(result, Ok(2));
+        assert_eq!(result, Ok(60));
     }
 
     #[test]
@@ -556,16 +587,11 @@ mod tests {
             },
             name: "foobar".to_string(),
         };
-        let result = parse_data_message(
-            [
-                "1", "17", "5", "7B", "0", "13", "0", "0", "0", "3", "94", "5", "DD", "0", "0",
-                "1D", "D8", "8",
-            ]
-            .to_vec(),
-            Some(mock_config),
-        )
-        .unwrap();
+        let raw = "<1 17 5 7B 0 13 0 0 0 3 94 5 DD 0 0 1D D8 8>".to_string();
+        let result = parse_data_message(&raw, Some(mock_config)).unwrap();
         let expected = TelemetryData {
+            uuid: result.uuid.clone(),
+            raw_message: raw,
             esc_id: 1,
             temperature: 23,
             voltage: 14.03,
@@ -576,21 +602,17 @@ mod tests {
             input: 0,
             snr: 8,
         };
+        assert!(Uuid::parse_str(&result.uuid).is_ok());
         assert_eq!(result, expected);
     }
 
     #[test]
     fn parse_data_message_without_config() {
-        let result = parse_data_message(
-            [
-                "1", "17", "5", "7B", "0", "13", "0", "0", "0", "3", "94", "5", "DD", "0", "0",
-                "1D", "D8", "8",
-            ]
-            .to_vec(),
-            None,
-        )
-        .unwrap();
+        let raw = "<1 17 5 7B 0 13 0 0 0 3 94 5 DD 0 0 1D D8 8>".to_string();
+        let result = parse_data_message(&raw, None).unwrap();
         let expected = TelemetryData {
+            uuid: result.uuid.clone(),
+            raw_message: raw,
             esc_id: 1,
             temperature: 23,
             voltage: 14.03,
@@ -601,42 +623,43 @@ mod tests {
             input: 0,
             snr: 8,
         };
+        assert!(Uuid::parse_str(&result.uuid).is_ok());
         assert_eq!(result, expected);
     }
 
     #[test]
     fn parse_error_message_for_code_1() {
-        let result = parse_error_message(vec![
-            "D", "1", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1D", "D8",
-            "8",
-        ])
-        .unwrap();
+        let raw = "<D 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1D D8 8>".to_string();
+        let result = parse_error_message(&raw).unwrap();
 
         let expected = TelemetryError {
+            uuid: result.uuid.clone(),
+            raw_message: raw,
             esc_id: 1,
             error_code: 1,
             timestamp: 7640,
             snr: 8,
         };
 
+        assert!(Uuid::parse_str(&result.uuid).is_ok());
         assert_eq!(result, expected);
     }
 
     #[test]
     fn parse_error_message_for_code_2() {
-        let result = parse_error_message(vec![
-            "D", "2", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1D", "D8",
-            "8",
-        ])
-        .unwrap();
+        let raw = "<D 2 0 0 0 0 0 0 0 0 0 0 0 0 0 1D D8 8>".to_string();
+        let result = parse_error_message(&raw).unwrap();
 
         let expected = TelemetryError {
+            uuid: result.uuid.clone(),
+            raw_message: raw,
             esc_id: 1,
             error_code: 2,
             timestamp: 7640,
             snr: 8,
         };
 
+        assert!(Uuid::parse_str(&result.uuid).is_ok());
         assert_eq!(result, expected);
     }
 

@@ -1,11 +1,11 @@
 import { useEffect } from "react";
+import { initRobotFromConfig } from "./features/configuration/configUtils";
+import { useSetRobot, useSetRobotConfig } from "./robotStore";
 import {
   getCurrentConfig,
   initializeStorage,
   tauriFetchConfig,
 } from "./storageUtils";
-import { useSetRobot, useSetRobotConfig } from "./store";
-import { initRobotFromConfig } from "./features/configuration/configUtils";
 
 export const useInitializer = () => {
   const setRobot = useSetRobot();

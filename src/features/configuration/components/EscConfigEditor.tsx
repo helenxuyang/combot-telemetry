@@ -1,7 +1,7 @@
 import { Draft } from "immer";
 import styled from "styled-components";
+import { useIsEditing } from "../../../configStore";
 import { ALL_ESC_IDs, EscId, MeasurementName } from "../../../robot";
-import { useIsEditing } from "../../../store";
 import { media, SpacedRow, Table } from "../../../styles";
 import { EscConfig, MeasurementConfig, MotorConfig } from "../configUtils";
 import { MeasurementConfigEditor } from "./MeasurementConfigEditor";

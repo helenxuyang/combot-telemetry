@@ -34,6 +34,7 @@ tauri-plugin-dialog = "2"
 serialport = "4.9.0"
 tokio-serial = "5.5.0"
 serial2-tokio = "0.1.25"
+uuid = { version = "1", features = ["v4"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"

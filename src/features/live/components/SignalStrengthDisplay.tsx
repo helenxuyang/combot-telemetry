@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useRobot } from "../../../store";
+import { useRobot } from "../../../robotStore";
 import { Value } from "../../../styles";
 
 const barWidth = 6;

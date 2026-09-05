@@ -5,7 +5,7 @@ import {
   initRobotFromConfig,
   RobotConfig,
 } from "./features/configuration/configUtils";
-import { TauriTelemetryMessage } from "./messageUtils";
+import { TauriTelemetryMessage } from "./messageTypes";
 import { MeasurementName, type MatchMarker, type Robot } from "./robot";
 
 type RobotState = {
@@ -38,7 +38,6 @@ const useRobotStore = create<
           state.robot = initRobotFromConfig(config);
         }
       }),
-
     setRobot: (robot: Robot | null) =>
       set((state) => {
         state.robot = robot;
@@ -58,8 +57,6 @@ const useRobotStore = create<
             } else if (message.messageType !== "startupMessage") {
               const { timestamp, escId } = message;
               const esc = state.robot.escs[escId];
-
-              // for Stack--no drive but can still get drive inputs from noise
               if (!esc) {
                 return;
               }
@@ -70,18 +67,22 @@ const useRobotStore = create<
 
               if (messageType === "errorMessage") {
                 const { errorCode, snr } = message;
-
                 esc.errors.push({ errorCode, timestamp, signalStrength: snr });
               } else if (messageType === "dataMessage") {
-                const { messageType, escId, timestamp, snr, ...escData } =
-                  message;
-                // timestamp
+                const {
+                  messageType,
+                  rawMessage,
+                  escId,
+                  timestamp,
+                  snr,
+                  uuid,
+                  ...escData
+                } = message;
                 if (options.replace) {
                   esc.timestamps = [timestamp];
                 } else {
                   esc.timestamps.push(timestamp);
                 }
-                // data
                 (
                   Object.entries(escData) as [MeasurementName, number][]
                 ).forEach(([measurementKey, measurementValue]) => {
@@ -91,7 +92,6 @@ const useRobotStore = create<
                     esc.data[measurementKey].push(measurementValue);
                   }
                 });
-                // snr
                 const signalStrength = {
                   value: snr,
                   timestamp,
@@ -126,51 +126,3 @@ export const useSetRobotConfig = () =>
   useRobotStore((state) => state.setRobotConfig);
 export const useAddMatchMarker = () =>
   useRobotStore((state) => state.addMatchMarker);
-
-type LiveState = {
-  isFakeData: boolean;
-};
-type LiveActions = {
-  toggleFakeData: () => void;
-};
-
-const useLiveStore = create<
-  LiveState & LiveActions,
-  [["zustand/immer", never]]
->(
-  immer((set) => ({
-    isFakeData: false,
-    toggleFakeData: () =>
-      set((state) => {
-        state.isFakeData = !state.isFakeData;
-      }),
-  })),
-);
-
-export const useIsFakeData = () => useLiveStore((state) => state.isFakeData);
-export const useToggleFakeData = () =>
-  useLiveStore((state) => state.toggleFakeData);
-
-type ConfigState = {
-  isEditing: boolean;
-};
-type ConfigActions = {
-  setIsEditing: (isEditing: boolean) => void;
-};
-
-const useConfigStore = create<
-  ConfigState & ConfigActions,
-  [["zustand/immer", never]]
->(
-  immer((set) => ({
-    isEditing: false,
-    setIsEditing: (isEditing: boolean) =>
-      set((state) => {
-        state.isEditing = isEditing;
-      }),
-  })),
-);
-
-export const useIsEditing = () => useConfigStore((state) => state.isEditing);
-export const useSetIsEditing = () =>
-  useConfigStore((state) => state.setIsEditing);

@@ -1,4 +1,4 @@
-import { TauriTelemetryMessage } from "./messageUtils";
+import { TauriTelemetryMessage } from "./messageTypes";
 
 export const getBookendTimestamps = (session: TauriTelemetryMessage[]) => {
   const sortedTimestamps = session

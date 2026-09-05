@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, type ReactNode } from "react";
 import styled from "styled-components";
 import { calculateTotal, getLatestValue } from "../../../dataUtils";
 import { CONSUMPTION, ESC } from "../../../robot";
-import { useRobotConfig } from "../../../store";
+import { useRobotConfig } from "../../../robotStore";
 import { Container, ESC_COLORS } from "../../../styles";
 
 const svgSize = 150;

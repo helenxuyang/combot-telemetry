@@ -1,16 +1,16 @@
+import { invoke } from "@tauri-apps/api/core";
 import {
-  exists,
-  mkdir,
   BaseDirectory,
   create,
-  writeTextFile,
+  exists,
+  mkdir,
+  readDir,
   readTextFile,
   remove,
-  readDir,
+  writeTextFile,
 } from "@tauri-apps/plugin-fs";
 import { RobotConfig } from "./features/configuration/configUtils";
-import { invoke } from "@tauri-apps/api/core";
-import { useSetRobotConfig } from "./store";
+import { useSetRobotConfig } from "./robotStore";
 
 export const baseDir = BaseDirectory.AppLocalData;
 const CONFIGS_DIRECTORY = "configs";
