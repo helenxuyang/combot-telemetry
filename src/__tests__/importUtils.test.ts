@@ -17,6 +17,8 @@ const createDataMessage = (timestamp: number): TauriTelemetryMessage => ({
   timestamp,
   input: 0,
   snr: 1,
+  uuid: "123",
+  rawMessage: "<mock raw message>",
 });
 
 describe("getBookendTimestamps", () => {
