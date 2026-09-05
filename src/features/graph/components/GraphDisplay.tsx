@@ -127,6 +127,7 @@ export const GraphDisplay = () => {
         // select rectangle to zoom
         dataZoom: {
           show: true,
+          filterMode: "none",
         },
       },
     },
@@ -149,7 +150,6 @@ export const GraphDisplay = () => {
           id: dataZoomId,
           type: "slider",
           filterMode: "none",
-          ...zoom,
           yAxisIndex: index,
           orient: "vertical",
           left: index * yAxisWidth,
@@ -159,6 +159,7 @@ export const GraphDisplay = () => {
           handleLabel: {
             show: true,
           },
+          ...zoom,
         };
       }),
     ],
