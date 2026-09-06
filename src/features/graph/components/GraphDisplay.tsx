@@ -147,10 +147,11 @@ export const GraphDisplay = () => {
       ...sliders.map((slider, index) => {
         const dataZoomId = `yAxis-slider-${stringifyPlot(plots[index])}`;
         const zoom = yAxisZoomRanges[dataZoomId];
+        const width = yAxisWidth * 0.6;
         return {
           ...slider,
-          left: index * yAxisWidth,
-          width: yAxisWidth * 0.75,
+          left: index * yAxisWidth + width,
+          width,
           z: zLevels["yAxisSlider"],
           show: yAxisSlidersVisible,
           ...zoom,
