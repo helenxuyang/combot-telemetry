@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import styled from "styled-components";
 import { media } from "./styles";
 
@@ -50,17 +50,6 @@ export const NavigationTabs = ({ tabs }: Props) => {
   const [focusedTabIndex, setFocusedTabIndex] = useState(0);
   const tabListRef = useRef<HTMLDivElement | null>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-
-  const PANEL_ID = "navigation-tab-panel";
-
-  const { name: currentTabName, panelContent: currentPanelContent } =
-    useMemo(() => {
-      return tabs[currentTabIndex];
-    }, [currentTabIndex, tabs]);
-
-  const currentTabId = useMemo(() => {
-    return getTabId(currentTabName);
-  }, [currentTabName]);
 
   const handleArrowKeys: React.KeyboardEventHandler = useCallback(
     (event) => {
@@ -120,7 +109,7 @@ export const NavigationTabs = ({ tabs }: Props) => {
               aria-selected={isCurrent}
               $isCurrent={isCurrent}
               tabIndex={index === focusedTabIndex ? 0 : -1}
-              aria-controls={PANEL_ID}
+              aria-controls={`navigation-tab-panel-${index}`}
               onClick={() => onSelectTab(index)}
               onKeyDown={handleArrowKeys}
             >
@@ -129,9 +118,21 @@ export const NavigationTabs = ({ tabs }: Props) => {
           );
         })}
       </StyledTabButtonHolder>
-      <div id={PANEL_ID} role="tabpanel" aria-labelledby={currentTabId}>
-        {currentPanelContent}
-      </div>
+      {tabs.map(({ name, panelContent }, index) => {
+        const isCurrent = index === currentTabIndex;
+        return (
+          <div
+            id={`navigation-tab-panel-${index}`}
+            key={name}
+            role="tabpanel"
+            aria-labelledby={getTabId(name)}
+            aria-hidden={!isCurrent}
+            hidden={!isCurrent}
+          >
+            {panelContent}
+          </div>
+        );
+      })}
     </>
   );
 };
