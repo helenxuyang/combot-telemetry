@@ -348,7 +348,8 @@ fn get_message_components(raw_message: &str) -> Vec<&str> {
     return message_components;
 }
 
-pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
+#[tauri::command]
+pub fn parse_message(app: AppHandle, raw_message: String) -> TelemetryMessage {
     let is_valid_message = validate_message_format(&raw_message);
     if !is_valid_message {
         return TelemetryMessage::UnknownMessage(TelemetryUnknown {

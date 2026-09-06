@@ -27,7 +27,8 @@ export const CanvasBar = ({
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) {
+    const barHolder = canvas?.parentElement;
+    if (!canvas || !barHolder) {
       return;
     }
 
@@ -37,28 +38,37 @@ export const CanvasBar = ({
       return;
     }
 
-    const width = Math.max(canvas.clientWidth, 1);
-    const height = Math.max(canvas.clientHeight, 1);
+    const draw = () => {
+      const width = Math.max(canvas.clientWidth, 1);
+      const height = Math.max(canvas.clientHeight, 1);
 
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = PLOT_BASE_COLOR;
-    ctx.fillRect(0, 0, width, height);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = PLOT_BASE_COLOR;
+      ctx.fillRect(0, 0, width, height);
 
-    if (percent > 0) {
-      ctx.fillStyle = color;
-      if (orientation === "vertical") {
-        const fillHeight = (height * percent) / 100;
-        ctx.fillRect(0, height - fillHeight, width, fillHeight);
-      } else {
-        const fillWidth = (width * percent) / 100;
-        ctx.fillRect(0, 0, fillWidth, height);
+      if (percent > 0) {
+        ctx.fillStyle = color;
+        if (orientation === "vertical") {
+          const fillHeight = (height * percent) / 100;
+          ctx.fillRect(0, height - fillHeight, width, fillHeight);
+        } else {
+          const fillWidth = (width * percent) / 100;
+          ctx.fillRect(0, 0, fillWidth, height);
+        }
       }
-    }
+    };
+
+    draw();
+
+    const resizeObserver = new ResizeObserver(draw);
+    resizeObserver.observe(barHolder);
+
+    return () => resizeObserver.disconnect();
   }, [percent, color, orientation]);
 
   return <Canvas ref={canvasRef} className={className} />;

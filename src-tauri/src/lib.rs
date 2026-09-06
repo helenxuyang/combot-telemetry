@@ -32,6 +32,7 @@ pub fn run() {
             serial_communication::get_latest_messages,
             serial_communication::read_serial,
             serial_communication::stop_serial,
+            message_parser::parse_message,
             robot_config::fetch_current_config,
         ])
         .run(tauri::generate_context!())
