@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { ButtonsHolder, Container, WarningText } from "../../../styles";
 import { SignalStrengthDisplay } from "./SignalStrengthDisplay";
 import { UnknownMessagesDisplay } from "./UnknownMessagesDisplay";
-import { useMessageHandler } from "./useMessageHandler";
+import { RadioStatus, useMessageHandler } from "./useMessageHandler";
 
 const GET_SERIAL_PORTS = "get_serial_ports";
 const READ_SERIAL_COMMAND = "read_serial";
@@ -23,8 +23,24 @@ const PortInfoHolder = styled.div`
   flex-direction: column;
   gap: 8px;
   justify-content: center;
+  align-items: center;
   flex: 1;
 `;
+
+const Status = styled.strong<{ $color: string }>`
+  font-size: 24px;
+  color: ${({ $color }) => $color};
+`;
+
+const StopButton = styled.button`
+  width: fit-content;
+`;
+
+const radioStatusColors: Record<RadioStatus, string> = {
+  INACTIVE: "red",
+  WAITING: "goldenrod",
+  ACTIVE: "green",
+};
 
 export const SerialConnector = () => {
   const [allPorts, setAllPorts] = useState<string[]>([]);
@@ -46,7 +62,7 @@ export const SerialConnector = () => {
     };
   }, []);
 
-  useMessageHandler();
+  const status = useMessageHandler(port !== null);
 
   const startListening = async (port: string) => {
     try {
@@ -70,14 +86,14 @@ export const SerialConnector = () => {
       <h2>Serial</h2>
       <SignalStrengthDisplay />
       {port ? (
-        <>
-          <h3>Port</h3>
-          <p>{port}</p>
-          <button onClick={stopListening}>Stop listening</button>
-        </>
+        <PortInfoHolder>
+          <Status $color="green">PORT: {port}</Status>
+          <StopButton onClick={stopListening}>Stop listening</StopButton>
+        </PortInfoHolder>
       ) : (
         <PortInfoHolder>
-          <h3>Ports</h3>
+          <Status $color="red">PORT: NONE</Status>
+          <strong>Select port:</strong>
           <ButtonsHolder>
             {allPorts?.map((port) => (
               <button key={port} onClick={() => startListening(port)}>
@@ -88,6 +104,7 @@ export const SerialConnector = () => {
           </ButtonsHolder>
         </PortInfoHolder>
       )}
+      <Status $color={radioStatusColors[status]}>RADIO: {status}</Status>
       {error && <WarningText>Error: {error}</WarningText>}
       <UnknownMessagesDisplay />
     </StyledContainer>
