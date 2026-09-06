@@ -1,15 +1,22 @@
 import { TauriTelemetryMessage } from "./messageTypes";
 
 export const getBookendTimestamps = (session: TauriTelemetryMessage[]) => {
-  const sortedTimestamps = session
-    .filter((message) => "timestamp" in message)
-    .map((message) => message.timestamp)
-    .sort((a, b) => a - b);
-  const firstTimestamp = sortedTimestamps[0];
-  const lastTimestamp =
-    sortedTimestamps.length === 1
-      ? firstTimestamp
-      : sortedTimestamps[sortedTimestamps.length - 1];
+  let firstTimestamp: number | undefined;
+  let lastTimestamp: number | undefined;
+
+  for (const message of session) {
+    if ("timestamp" in message) {
+      firstTimestamp = Math.min(
+        firstTimestamp ?? message.timestamp,
+        message.timestamp,
+      );
+      lastTimestamp = Math.max(
+        lastTimestamp ?? message.timestamp,
+        message.timestamp,
+      );
+    }
+  }
+
   return { firstTimestamp, lastTimestamp };
 };
 

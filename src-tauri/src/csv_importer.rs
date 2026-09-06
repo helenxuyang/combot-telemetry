@@ -20,8 +20,9 @@ pub async fn parse_raw_file(app: AppHandle, raw_file_name: String) {
         let lines = BufReader::new(f).lines();
         for line in lines.map_while(Result::ok) {
             let parsed_message = message_parser::parse_message(app.clone(), line);
-            current_session.push(parsed_message.clone());
-            if let StartupMessage(_) = parsed_message {
+            let is_startup = matches!(&parsed_message, StartupMessage(_));
+            current_session.push(parsed_message);
+            if is_startup {
                 // only push if has more than just the startup message
                 if current_session.len() > 1 {
                     sessions.push(current_session);
