@@ -53,6 +53,7 @@ type Props = {
 
 export const VoltageDisplay = ({ escs, min, max }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const barHolderRef = useRef<HTMLDivElement>(null);
   const values = escs.map((esc) => getLatestValue(esc.data[VOLTAGE]));
 
   const minValue = Math.min(...values);
@@ -62,7 +63,8 @@ export const VoltageDisplay = ({ escs, min, max }: Props) => {
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const barHolder = barHolderRef.current;
+    if (!canvas || !barHolder) return;
 
     const dpr = window.devicePixelRatio || 1;
     const ctx = canvas.getContext("2d");
@@ -77,38 +79,46 @@ export const VoltageDisplay = ({ escs, min, max }: Props) => {
       return { width, height };
     };
 
-    const { width, height } = resizeCanvas();
+    const draw = () => {
+      const { width, height } = resizeCanvas();
 
-    const currentMarkers = values.map((value) =>
-      getClampedPercent(value, min, max),
-    );
+      const currentMarkers = values.map((value) =>
+        getClampedPercent(value, min, max),
+      );
 
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = PLOT_BASE_COLOR;
-    ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = PLOT_BASE_COLOR;
+      ctx.fillRect(0, 0, width, height);
 
-    const minWidth = (width * minPercent) / 100;
-    const maxWidth = (width * (maxPercent - minPercent)) / 100;
+      const minWidth = (width * minPercent) / 100;
+      const maxWidth = (width * (maxPercent - minPercent)) / 100;
 
-    ctx.fillStyle = "skyblue";
-    ctx.fillRect(0, 0, minWidth, height);
+      ctx.fillStyle = "skyblue";
+      ctx.fillRect(0, 0, minWidth, height);
 
-    ctx.fillStyle = "cornflowerblue";
-    ctx.fillRect(minWidth, 0, maxWidth, height);
+      ctx.fillStyle = "cornflowerblue";
+      ctx.fillRect(minWidth, 0, maxWidth, height);
 
-    ctx.fillStyle = "black";
-    currentMarkers.forEach((percent) => {
-      const x = Math.round((width * percent) / 100);
-      ctx.fillRect(x - 1, 0, 2, height);
-    });
-  }, [escs]);
+      ctx.fillStyle = "black";
+      currentMarkers.forEach((percent) => {
+        const x = Math.round((width * percent) / 100);
+        ctx.fillRect(x - 1, 0, 2, height);
+      });
+    };
+
+    draw();
+
+    const resizeObserver = new ResizeObserver(draw);
+    resizeObserver.observe(barHolder);
+
+    return () => resizeObserver.disconnect();
+  }, [values]);
 
   return (
     <StyledContainer>
       <h2>Battery Voltage</h2>
       <BarDisplay>
         <RangeText>{min}</RangeText>
-        <BarHolder>
+        <BarHolder ref={barHolderRef}>
           <Canvas ref={canvasRef} />
           {minValue !== maxValue && (
             <MinValueText $percent={minPercent}>{minValue}</MinValueText>

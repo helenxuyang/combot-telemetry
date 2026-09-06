@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { RobotDisplay } from "./RobotDisplay";
 import { NavigationTabs, type Tab } from "./Tabs";
 import { ConfigDisplay } from "./features/configuration/components/ConfigDisplay";
+import { DevToolsDisplay } from "./features/devtools/DevToolsDisplay";
 import { GraphGrid } from "./features/graph/components/GraphGrid";
 import { useRobotConfig } from "./robotStore";
 import { useInitializer } from "./useInitializer";
@@ -38,6 +39,14 @@ export const DashboardDisplay = () => {
         name: "Config",
         panelContent: <ConfigDisplay />,
       },
+      ...(import.meta.env.DEV
+        ? [
+            {
+              name: "Dev tools",
+              panelContent: <DevToolsDisplay />,
+            },
+          ]
+        : []),
     ],
     [],
   );

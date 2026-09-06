@@ -1,5 +1,9 @@
 import { useLayoutEffect, useRef } from "react";
-import { getColor, getLatestValueDisplay } from "../../../dataUtils";
+import {
+  getClampedValue,
+  getColor,
+  getLatestValueDisplay,
+} from "../../../dataUtils";
 import { METADATA } from "../../../displayUtils";
 import { MeasurementName } from "../../../robot";
 import { PLOT_BASE_COLOR } from "../../../styles";
@@ -38,9 +42,9 @@ export const ArcDisplay = ({
 }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // TODO: fix super fragile sizing
   const aspectRatio = 5 / 7;
-  let width = maxWidth;
+  const maxGraphWidth = 600;
+  let width = Math.min(maxWidth, maxGraphWidth);
   let height = width * aspectRatio;
 
   const outerStrokeWidth = width / 8;
@@ -50,10 +54,14 @@ export const ArcDisplay = ({
   const innerScale = 0.6;
   const innerRadius = outerRadius * innerScale;
   const innerStrokeWidth = outerStrokeWidth / 2;
-  const innerValueY = height - innerRadius / 4;
 
   const centerX = width / 2;
-  const centerY = outerRadius + outerStrokeWidth / 2 + 50;
+  const centerY = height * 0.9;
+
+  const outerLabelY = height * 0.15;
+  const outerLabelFontSize = getClampedValue(width / 10, 20, 50);
+  const innerLabelY = centerY - height * 0.07;
+  const innerLabelFontSize = getClampedValue(width / 12, 20, 50);
 
   const drawArc = (
     ctx: CanvasRenderingContext2D,
@@ -80,8 +88,8 @@ export const ArcDisplay = ({
     for (let colorIndicator of colorIndicators) {
       const { threshold: value } = colorIndicator;
       const onePercent = (max - min) / 100;
-      const targetStart = value - onePercent / 2;
-      const targetEnd = value + onePercent / 2;
+      const targetStart = value - onePercent / 4;
+      const targetEnd = value + onePercent / 4;
       const targetStartAngle =
         Math.PI +
         Math.max(Math.min((targetStart - min) / (max - min), 1), 0) * Math.PI;
@@ -93,7 +101,7 @@ export const ArcDisplay = ({
         outerRadius,
         targetStartAngle,
         targetEndAngle,
-        "darkgreen",
+        "black",
         outerStrokeWidth,
         false,
       );
@@ -157,7 +165,7 @@ export const ArcDisplay = ({
 
     // outer label
     ctx.fillStyle = "black";
-    ctx.font = "bold 30px system-ui";
+    ctx.font = `bold ${outerLabelFontSize}px system-ui`;
     ctx.textAlign = "center";
     ctx.fillText(
       getLatestValueDisplay(
@@ -167,7 +175,7 @@ export const ArcDisplay = ({
         outerMax,
       ),
       centerX,
-      35,
+      outerLabelY,
     );
 
     // inner base
@@ -196,7 +204,7 @@ export const ArcDisplay = ({
     drawMarks(ctx, innerMin, innerMax, innerColorIndicators);
 
     // inner label
-    ctx.font = "bold 26px system-ui";
+    ctx.font = `bold ${innerLabelFontSize}px system-ui`;
     ctx.fillText(
       getLatestValueDisplay(
         innerValue,
@@ -205,7 +213,7 @@ export const ArcDisplay = ({
         innerMax,
       ),
       centerX,
-      innerValueY,
+      innerLabelY,
     );
   }, [
     width,

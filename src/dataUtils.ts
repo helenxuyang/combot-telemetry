@@ -34,6 +34,10 @@ export const getColor = (
   return barColor;
 };
 
+export const getClampedValue = (value: number, min: number, max: number) => {
+  return Math.max(Math.min(value, max), min);
+};
+
 export const getClampedPercent = (value: number, min: number, max: number) => {
   const percent = ((value - min) / (max - min)) * 100;
   return Math.round(Math.max(Math.min(percent, 100), 0));

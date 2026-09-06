@@ -44,7 +44,7 @@ pub fn handle_message(app: AppHandle, raw_message: String) {
     }
 
     // parse
-    let parsed_message = message_parser::parse_message(raw_message, &app);
+    let parsed_message = message_parser::parse_message(app.clone(), raw_message);
 
     // save in state
     let state = app.state::<AppState>();

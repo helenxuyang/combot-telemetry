@@ -87,21 +87,26 @@ export const RobotImporter = () => {
         setParsedMessages([]);
 
         if (robot) {
-          const sessions = event.payload;
-          for (let session of sessions) {
+          const importedSessions: Session[] = event.payload.map((session) => {
             const { firstTimestamp, lastTimestamp } =
               getBookendTimestamps(session);
-            const shiftedMessages = getShiftedMessages(session, firstTimestamp);
 
-            setSessions((sessions) => [
-              ...sessions,
-              {
-                messages: shiftedMessages,
-                firstTimestamp,
-                duration: getSessionDuration(firstTimestamp, lastTimestamp),
-              },
-            ]);
-          }
+            const shiftedMessages =
+              firstTimestamp !== undefined
+                ? getShiftedMessages(session, firstTimestamp)
+                : session;
+
+            return {
+              messages: shiftedMessages,
+              firstTimestamp: firstTimestamp ?? 0,
+              duration:
+                firstTimestamp !== undefined && lastTimestamp !== undefined
+                  ? getSessionDuration(firstTimestamp, lastTimestamp)
+                  : "n/a",
+            };
+          });
+
+          setSessions(importedSessions);
         }
       },
     );

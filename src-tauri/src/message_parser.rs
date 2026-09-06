@@ -1,6 +1,6 @@
 use regex::Regex;
 use serde::Serialize;
-use std::{fmt::Display, num::ParseIntError};
+use std::{fmt::Display, num::ParseIntError, sync::OnceLock};
 use tauri::AppHandle;
 use uuid::Uuid;
 
@@ -301,12 +301,14 @@ fn parse_data_message(
 
 const HEX_REGEX: &str = "[0-9a-fA-F]+";
 fn validate_message_format(raw_message: &str) -> bool {
-    let data_format = format!("^<{HEX_REGEX}(?: {HEX_REGEX}){{17}}>$");
-    let data_regex = Regex::new(&data_format).unwrap();
+    static DATA_REGEX: OnceLock<Regex> = OnceLock::new();
+    let data_regex = DATA_REGEX.get_or_init(|| {
+        let data_format = format!("^<{HEX_REGEX}(?: {HEX_REGEX}){{17}}>$");
+        Regex::new(&data_format).unwrap()
+    });
     return data_regex.is_match(raw_message);
 }
 
-// TODO: update later when error format is finalized
 /* ESC error:
 0.  Info
       bits 7-4: 0000 (TBD)
@@ -348,7 +350,8 @@ fn get_message_components(raw_message: &str) -> Vec<&str> {
     return message_components;
 }
 
-pub fn parse_message(raw_message: String, app: &AppHandle) -> TelemetryMessage {
+#[tauri::command]
+pub fn parse_message(app: AppHandle, raw_message: String) -> TelemetryMessage {
     let is_valid_message = validate_message_format(&raw_message);
     if !is_valid_message {
         return TelemetryMessage::UnknownMessage(TelemetryUnknown {
