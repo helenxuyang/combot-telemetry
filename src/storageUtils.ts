@@ -9,7 +9,7 @@ import {
   remove,
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
-import { RobotConfig } from "./features/configuration/configUtils";
+import { RobotConfig } from "./features/configuration/configTypes";
 import { useSetRobotConfig } from "./robotStore";
 
 export const baseDir = BaseDirectory.AppLocalData;

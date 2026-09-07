@@ -7,7 +7,7 @@ import {
   getLatestValue,
   getLatestValueDisplay,
 } from "../dataUtils";
-import { ColorIndicator } from "../features/configuration/configUtils";
+import { ColorIndicator } from "../features/configuration/configTypes";
 import { PLOT_FILL_COLOR } from "../styles";
 
 describe("getColor", () => {

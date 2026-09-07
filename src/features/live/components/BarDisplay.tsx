@@ -6,7 +6,7 @@ import {
   getLatestValueDisplay,
 } from "../../../dataUtils";
 import { Container, media, PLOT_BASE_COLOR, Value } from "../../../styles";
-import { ColorIndicator } from "../../configuration/configUtils";
+import { ColorIndicator } from "../../configuration/configTypes";
 import { CanvasBar } from "./CanvasBar";
 
 type Orientation = "vertical" | "horizontal";

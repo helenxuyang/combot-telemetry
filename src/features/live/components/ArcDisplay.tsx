@@ -7,7 +7,7 @@ import {
 import { METADATA } from "../../../displayUtils";
 import { MeasurementName } from "../../../robot";
 import { PLOT_BASE_COLOR } from "../../../styles";
-import { ColorIndicator } from "../../configuration/configUtils";
+import { ColorIndicator } from "../../configuration/configTypes";
 
 type Props = {
   innerName: MeasurementName;

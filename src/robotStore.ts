@@ -1,10 +1,8 @@
 import { current } from "immer";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import {
-  initRobotFromConfig,
-  RobotConfig,
-} from "./features/configuration/configUtils";
+import { RobotConfig } from "./features/configuration/configTypes";
+import { initRobotFromConfig } from "./features/configuration/configUtils";
 import { TauriTelemetryMessage } from "./messageTypes";
 import { MeasurementName, type MatchMarker, type Robot } from "./robot";
 

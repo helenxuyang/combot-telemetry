@@ -12,7 +12,7 @@ import {
 } from "../../../robot";
 import { Container, EXTRA_SMALL_VIEWPORT, media } from "../../../styles";
 import { useElementSize } from "../../../useElementSize";
-import { EscConfig } from "../../configuration/configUtils";
+import { EscConfig } from "../../configuration/configTypes";
 import { useMediaQuery } from "../../useMediaQuery";
 import { ArcDisplay } from "./ArcDisplay";
 import { BarDisplay } from "./BarDisplay";

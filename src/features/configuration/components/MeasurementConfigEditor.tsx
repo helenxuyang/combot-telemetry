@@ -4,11 +4,8 @@ import { useIsEditing } from "../../../configStore";
 import { METADATA } from "../../../displayUtils";
 import { EscId, MeasurementName } from "../../../robot";
 import { CondensedButton } from "../../../styles";
-import {
-  ColorIndicator,
-  getNewColorIndicator,
-  MeasurementConfig,
-} from "../configUtils";
+import { ColorIndicator, MeasurementConfig } from "../configTypes";
+import { getNewColorIndicator } from "../configUtils";
 import { ColorIndicatorEditor } from "./ColorIndicatorEditor";
 import { CheckboxInput, NumberInput } from "./inputStyles";
 

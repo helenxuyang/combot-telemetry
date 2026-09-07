@@ -1,4 +1,4 @@
-import { CSSProperties, useState } from "react";
+import { CSSProperties } from "react";
 import styled, { css } from "styled-components";
 import { calculateTotal, getLatestValue } from "./dataUtils";
 import { METADATA } from "./displayUtils";
@@ -126,7 +126,7 @@ export const RobotDisplay = () => {
   const robot = useRobot();
   const config = useRobotConfig();
   const isGridLayout = useMediaQuery("(max-width: 1280px)");
-  const [focusedEscId] = useState<EscId | null>("2");
+  const focusedEscId = config?.uiConfig?.focusedEsc ?? "0";
 
   const layout: Layout = isGridLayout ? "GRID" : "FOCUS";
 

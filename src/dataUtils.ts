@@ -1,4 +1,4 @@
-import { ColorIndicator } from "./features/configuration/configUtils";
+import { ColorIndicator } from "./features/configuration/configTypes";
 import { PLOT_FILL_COLOR } from "./styles";
 
 export const getColor = (

@@ -10,44 +10,7 @@ import {
   TEMPERATURE,
   VOLTAGE,
 } from "../../robot";
-
-export type RobotConfig = {
-  name: string;
-  escConfigs: Partial<Record<EscId, EscConfig>>;
-};
-
-export type EscConfig = {
-  name: string;
-  measurementConfigs: {
-    [TEMPERATURE]: MeasurementConfig;
-    [VOLTAGE]: MeasurementConfig;
-    [CURRENT]: MeasurementConfig;
-    [CONSUMPTION]: MeasurementConfig;
-    [RPM]: MeasurementConfig;
-    [INPUT]: MeasurementConfig;
-  };
-  motorConfig: MotorConfig;
-};
-
-export type MeasurementConfig = {
-  min: number;
-  max: number;
-  colorIndicators: ColorIndicator[];
-  shouldShow: boolean;
-};
-
-export type MotorConfig = {
-  gearRatio: number;
-  motorPolePairs: number;
-};
-
-export type ColorIndicator = {
-  threshold: number;
-  condition: "above" | "below";
-  color: string;
-  playSound: boolean;
-  // TODO: maybe add sound type like positive vs negative
-};
+import { ColorIndicator, EscConfig, RobotConfig } from "./configTypes";
 
 export const getNewRobotConfig = (): RobotConfig => {
   return {

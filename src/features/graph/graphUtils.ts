@@ -8,7 +8,7 @@ import {
   SignalStrength,
   SNR,
 } from "../../robot";
-import { MeasurementConfig, RobotConfig } from "../configuration/configUtils";
+import { MeasurementConfig, RobotConfig } from "../configuration/configTypes";
 
 type DataPlot = {
   escId: EscId;
