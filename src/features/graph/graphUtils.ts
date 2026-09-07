@@ -175,6 +175,7 @@ export const getXAxis = () => {
   const axis = {
     name: "seconds",
     type: "value", // TODO: maybe this should be time?
+    splitNumber: 20,
     nameLocation: "middle",
     axisLabel: {
       formatter: (value: string) => {
@@ -221,6 +222,7 @@ export const getYAxisConfig = (
     ...yAxisSettings,
     min,
     max,
+    splitNumber: 10,
   };
 };
 
@@ -228,7 +230,7 @@ export const getDataYAxis = (
   robot: Robot,
   robotConfig: RobotConfig,
   plot: DataPlot,
-): ReturnType<typeof getYAxisConfig> | null => {
+) => {
   const { escId, measurementName } = plot;
   const esc = robot.escs[escId];
   const measurementConfig =
@@ -255,6 +257,7 @@ export const getSnrYAxis = (signalStrengths: SignalStrength[]) => {
     name: SNR,
     min: Math.min(...values, -20),
     max: Math.max(...values, 10),
+    interval: 1,
   };
 };
 
@@ -267,7 +270,7 @@ export const getPlotData = (
 ) => {
   const xAxis = getXAxis();
 
-  let yAxis = plots.map((plot) => {
+  let yAxis: any[] = plots.map((plot) => {
     switch (plot.type) {
       case "data":
         return getDataYAxis(robot, config, plot);
@@ -278,7 +281,7 @@ export const getPlotData = (
     }
   });
 
-  let series: any = plots.map((plot, index) => {
+  let series: any[] = plots.map((plot, index) => {
     switch (plot.type) {
       case "data":
         return { ...getDataSeries(robot, plot, zoomRange), yAxisIndex: index };
