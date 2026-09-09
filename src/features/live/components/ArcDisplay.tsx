@@ -83,6 +83,8 @@ export const ArcDisplay = ({
     min: number,
     max: number,
     colorIndicators: ColorIndicator[],
+    radius: number,
+    width: number,
   ) => {
     for (let colorIndicator of colorIndicators) {
       const { threshold: value } = colorIndicator;
@@ -97,11 +99,11 @@ export const ArcDisplay = ({
         Math.max(Math.min((targetEnd - min) / (max - min), 1), 0) * Math.PI;
       drawArc(
         ctx,
-        outerRadius,
+        radius,
         targetStartAngle,
         targetEndAngle,
         "black",
-        outerStrokeWidth,
+        width,
         false,
       );
     }
@@ -154,7 +156,14 @@ export const ArcDisplay = ({
     );
 
     // outer indicators
-    drawMarks(ctx, outerMin, outerMax, outerColorIndicators);
+    drawMarks(
+      ctx,
+      outerMin,
+      outerMax,
+      outerColorIndicators,
+      outerRadius,
+      outerStrokeWidth,
+    );
 
     const innerPercent = Math.max(
       Math.min((innerValue - innerMin) / (innerMax - innerMin), 1),
@@ -228,7 +237,14 @@ export const ArcDisplay = ({
     );
 
     // inner indicators
-    drawMarks(ctx, innerMin, innerMax, innerColorIndicators);
+    drawMarks(
+      ctx,
+      innerMin,
+      innerMax,
+      innerColorIndicators,
+      innerRadius,
+      innerStrokeWidth,
+    );
 
     // inner label
     ctx.textAlign = "center";
