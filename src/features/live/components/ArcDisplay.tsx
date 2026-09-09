@@ -43,8 +43,7 @@ export const ArcDisplay = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const aspectRatio = 5 / 7;
-  const maxGraphWidth = 600;
-  let width = Math.min(maxWidth, maxGraphWidth);
+  let width = maxWidth;
   let height = width * aspectRatio;
 
   const outerStrokeWidth = width / 8;
