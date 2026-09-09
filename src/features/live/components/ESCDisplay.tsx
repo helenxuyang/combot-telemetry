@@ -137,13 +137,13 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
         )}
         {rpmConfig.shouldShow && currentConfig.shouldShow && (
           <ArcDisplay
-            innerName={CURRENT}
             innerValue={getLatestValue(current)}
+            innerUnit={METADATA[CURRENT].unit}
             innerMin={currentConfig.min}
             innerMax={currentConfig.max}
             innerColorIndicators={currentConfig.colorIndicators}
-            outerName={RPM}
             outerValue={getLatestValue(rpm)}
+            outerUnit={METADATA[RPM].unit}
             outerMin={rpmConfig.min}
             outerMax={rpmConfig.max}
             outerColorIndicators={rpmConfig.colorIndicators}

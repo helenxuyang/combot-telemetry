@@ -4,19 +4,17 @@ import {
   getColor,
   getLatestValueDisplay,
 } from "../../../dataUtils";
-import { METADATA } from "../../../displayUtils";
-import { MeasurementName } from "../../../robot";
 import { PLOT_BASE_COLOR } from "../../../styles";
 import { ColorIndicator } from "../../configuration/configTypes";
 
 type Props = {
-  innerName: MeasurementName;
   innerValue: number;
+  innerUnit: string;
   innerMin: number;
   innerMax: number;
   innerColorIndicators: ColorIndicator[];
-  outerName: MeasurementName;
   outerValue: number;
+  outerUnit: string;
   outerMin: number;
   outerMax: number;
   outerColorIndicators: ColorIndicator[];
@@ -26,13 +24,13 @@ type Props = {
 };
 
 export const ArcDisplay = ({
-  innerName,
   innerValue,
+  innerUnit,
   innerMin,
   innerMax,
   innerColorIndicators,
-  outerName,
   outerValue,
+  outerUnit,
   outerMin,
   outerMax,
   outerColorIndicators,
@@ -83,6 +81,8 @@ export const ArcDisplay = ({
     min: number,
     max: number,
     colorIndicators: ColorIndicator[],
+    radius: number,
+    width: number,
   ) => {
     for (let colorIndicator of colorIndicators) {
       const { threshold: value } = colorIndicator;
@@ -97,11 +97,11 @@ export const ArcDisplay = ({
         Math.max(Math.min((targetEnd - min) / (max - min), 1), 0) * Math.PI;
       drawArc(
         ctx,
-        outerRadius,
+        radius,
         targetStartAngle,
         targetEndAngle,
         "black",
-        outerStrokeWidth,
+        width,
         false,
       );
     }
@@ -154,7 +154,14 @@ export const ArcDisplay = ({
     );
 
     // outer indicators
-    drawMarks(ctx, outerMin, outerMax, outerColorIndicators);
+    drawMarks(
+      ctx,
+      outerMin,
+      outerMax,
+      outerColorIndicators,
+      outerRadius,
+      outerStrokeWidth,
+    );
 
     const innerPercent = Math.max(
       Math.min((innerValue - innerMin) / (innerMax - innerMin), 1),
@@ -167,14 +174,37 @@ export const ArcDisplay = ({
     ctx.font = `bold ${outerLabelFontSize}px system-ui`;
     ctx.textAlign = "center";
     ctx.fillText(
-      getLatestValueDisplay(
-        outerValue,
-        METADATA[outerName].unit,
-        outerMin,
-        outerMax,
-      ),
+      getLatestValueDisplay(outerValue, outerUnit, outerMin, outerMax),
       centerX,
       outerLabelY,
+    );
+
+    // min and max labels
+    const minMaxLabelFontSize = Math.min(outerLabelFontSize / 2, 16);
+    const minMaxLabelOuterOffset = outerStrokeWidth / 2;
+    const minMaxLabelOffsetInnerPosition = width * 0.21;
+    const minMaxLabelOffsetInnerOffset = innerStrokeWidth / 2;
+    const minMaxLabelHeight = centerY + outerLabelFontSize / 2;
+    ctx.font = `${minMaxLabelFontSize}px system-ui`;
+    // outer min
+    ctx.fillText(String(outerMin), minMaxLabelOuterOffset, minMaxLabelHeight);
+    // outer max
+    ctx.fillText(
+      String(outerMax),
+      width - minMaxLabelOuterOffset,
+      minMaxLabelHeight,
+    );
+    // inner min
+    ctx.fillText(
+      String(innerMin),
+      minMaxLabelOffsetInnerPosition + minMaxLabelOffsetInnerOffset,
+      minMaxLabelHeight,
+    );
+    // inner max
+    ctx.fillText(
+      String(innerMax),
+      width - minMaxLabelOffsetInnerPosition - minMaxLabelOffsetInnerOffset,
+      minMaxLabelHeight,
     );
 
     // inner base
@@ -200,29 +230,32 @@ export const ArcDisplay = ({
     );
 
     // inner indicators
-    drawMarks(ctx, innerMin, innerMax, innerColorIndicators);
+    drawMarks(
+      ctx,
+      innerMin,
+      innerMax,
+      innerColorIndicators,
+      innerRadius,
+      innerStrokeWidth,
+    );
 
     // inner label
+    ctx.textAlign = "center";
     ctx.font = `bold ${innerLabelFontSize}px system-ui`;
     ctx.fillText(
-      getLatestValueDisplay(
-        innerValue,
-        METADATA[innerName].unit,
-        innerMin,
-        innerMax,
-      ),
+      getLatestValueDisplay(innerValue, innerUnit, innerMin, innerMax),
       centerX,
       innerLabelY,
     );
   }, [
     width,
-    innerName,
     innerValue,
+    innerUnit,
     innerMin,
     innerMax,
     innerColorIndicators,
-    outerName,
     outerValue,
+    outerUnit,
     outerMin,
     outerMax,
     outerColorIndicators,

@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import { useRobot } from "../../../robotStore";
 import { Value } from "../../../styles";
 
 const barWidth = 6;
@@ -36,12 +35,10 @@ const getBars = (thresholds: number[]) => {
   });
 };
 
-export const SignalStrengthDisplay = () => {
-  const robot = useRobot();
+type Props = { signalStrength: number };
+
+export const SignalStrengthDisplay = ({ signalStrength }: Props) => {
   const bars = getBars([-20, -10, -5, 0]);
-  const signalStrength = robot?.signalStrengths
-    .map((signalStrength) => signalStrength.value)
-    .at(-1);
 
   return (
     <DisplayHolder>
