@@ -18,13 +18,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const defaultArgs: ComponentProps<typeof ArcDisplay> = {
-  innerName: "current",
   innerValue: 20,
+  innerUnit: "A",
   innerMin: 0,
   innerMax: 100,
   innerColorIndicators: [],
-  outerName: "rpm",
   outerValue: 80,
+  outerUnit: "RPM",
   outerMin: 0,
   outerMax: 100,
   outerColorIndicators: [],

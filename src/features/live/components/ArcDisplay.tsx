@@ -4,19 +4,17 @@ import {
   getColor,
   getLatestValueDisplay,
 } from "../../../dataUtils";
-import { METADATA } from "../../../displayUtils";
-import { MeasurementName } from "../../../robot";
 import { PLOT_BASE_COLOR } from "../../../styles";
 import { ColorIndicator } from "../../configuration/configTypes";
 
 type Props = {
-  innerName: MeasurementName;
   innerValue: number;
+  innerUnit: string;
   innerMin: number;
   innerMax: number;
   innerColorIndicators: ColorIndicator[];
-  outerName: MeasurementName;
   outerValue: number;
+  outerUnit: string;
   outerMin: number;
   outerMax: number;
   outerColorIndicators: ColorIndicator[];
@@ -26,13 +24,13 @@ type Props = {
 };
 
 export const ArcDisplay = ({
-  innerName,
   innerValue,
+  innerUnit,
   innerMin,
   innerMax,
   innerColorIndicators,
-  outerName,
   outerValue,
+  outerUnit,
   outerMin,
   outerMax,
   outerColorIndicators,
@@ -176,12 +174,7 @@ export const ArcDisplay = ({
     ctx.font = `bold ${outerLabelFontSize}px system-ui`;
     ctx.textAlign = "center";
     ctx.fillText(
-      getLatestValueDisplay(
-        outerValue,
-        METADATA[outerName].unit,
-        outerMin,
-        outerMax,
-      ),
+      getLatestValueDisplay(outerValue, outerUnit, outerMin, outerMax),
       centerX,
       outerLabelY,
     );
@@ -250,24 +243,19 @@ export const ArcDisplay = ({
     ctx.textAlign = "center";
     ctx.font = `bold ${innerLabelFontSize}px system-ui`;
     ctx.fillText(
-      getLatestValueDisplay(
-        innerValue,
-        METADATA[innerName].unit,
-        innerMin,
-        innerMax,
-      ),
+      getLatestValueDisplay(innerValue, innerUnit, innerMin, innerMax),
       centerX,
       innerLabelY,
     );
   }, [
     width,
-    innerName,
     innerValue,
+    innerUnit,
     innerMin,
     innerMax,
     innerColorIndicators,
-    outerName,
     outerValue,
+    outerUnit,
     outerMin,
     outerMax,
     outerColorIndicators,
