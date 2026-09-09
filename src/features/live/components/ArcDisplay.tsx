@@ -177,6 +177,34 @@ export const ArcDisplay = ({
       outerLabelY,
     );
 
+    // min and max labels
+    const minMaxLabelFontSize = Math.min(outerLabelFontSize / 2, 16);
+    const minMaxLabelOuterOffset = outerStrokeWidth / 2;
+    const minMaxLabelOffsetInnerPosition = width * 0.21;
+    const minMaxLabelOffsetInnerOffset = innerStrokeWidth / 2;
+    const minMaxLabelHeight = centerY + outerLabelFontSize / 2;
+    ctx.font = `${minMaxLabelFontSize}px system-ui`;
+    // outer min
+    ctx.fillText(String(outerMin), minMaxLabelOuterOffset, minMaxLabelHeight);
+    // outer max
+    ctx.fillText(
+      String(outerMax),
+      width - minMaxLabelOuterOffset,
+      minMaxLabelHeight,
+    );
+    // inner min
+    ctx.fillText(
+      String(innerMin),
+      minMaxLabelOffsetInnerPosition + minMaxLabelOffsetInnerOffset,
+      minMaxLabelHeight,
+    );
+    // inner max
+    ctx.fillText(
+      String(innerMax),
+      width - minMaxLabelOffsetInnerPosition - minMaxLabelOffsetInnerOffset,
+      minMaxLabelHeight,
+    );
+
     // inner base
     drawArc(
       ctx,
@@ -203,6 +231,7 @@ export const ArcDisplay = ({
     drawMarks(ctx, innerMin, innerMax, innerColorIndicators);
 
     // inner label
+    ctx.textAlign = "center";
     ctx.font = `bold ${innerLabelFontSize}px system-ui`;
     ctx.fillText(
       getLatestValueDisplay(
