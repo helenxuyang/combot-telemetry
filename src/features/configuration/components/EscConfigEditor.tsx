@@ -3,10 +3,16 @@ import styled from "styled-components";
 import { useIsEditing } from "../../../configStore";
 import { ALL_ESC_IDs, EscId, MeasurementName } from "../../../robot";
 import { media, SpacedRow, Table } from "../../../styles";
-import { EscConfig, MeasurementConfig, MotorConfig } from "../configUtils";
+import { EscConfig, MeasurementConfig, MotorConfig } from "../configTypes";
 import { MeasurementConfigEditor } from "./MeasurementConfigEditor";
 import { MotorConfigEditor } from "./MotorConfigEditor";
-import { RadioHolder, RadioInput, RadioLabel, TextInput } from "./inputStyles";
+import {
+  RadioGroupName,
+  RadioHolder,
+  RadioInput,
+  RadioLabel,
+  TextInput,
+} from "./inputStyles";
 
 type Props = {
   escId: EscId;
@@ -80,8 +86,8 @@ export const EscConfigEditor = ({
           />
         </div>
         <IdSection>
-          <h3>ID</h3>
           <RadioHolder>
+            <RadioGroupName>ID</RadioGroupName>
             {isEditing ? (
               ALL_ESC_IDs.map((id) => {
                 const radioId = `telemetry-id-${id}`;

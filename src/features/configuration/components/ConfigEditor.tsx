@@ -13,15 +13,20 @@ import {
   useSetRobotConfig,
 } from "../../../robotStore";
 import { ButtonsHolder, media, SpacedRow } from "../../../styles";
+import { EscConfig, RobotConfig } from "../configTypes";
 import {
-  EscConfig,
   getNewEscConfig,
   getNewRobotConfig,
   initRobotFromConfig,
-  RobotConfig,
 } from "../configUtils";
 import { EscConfigEditor } from "./EscConfigEditor";
-import { TextInput } from "./inputStyles";
+import {
+  RadioGroupName,
+  RadioHolder,
+  RadioInput,
+  RadioLabel,
+  TextInput,
+} from "./inputStyles";
 
 const Container = styled.div`
   display: flex;
@@ -65,6 +70,8 @@ export const ConfigEditor = ({ isNewConfig, onDelete }: Props) => {
 
   const usedEscIds = Object.keys(configInput.escConfigs) as EscId[];
   const canAddEsc = ALL_ESC_IDs.length !== usedEscIds.length;
+
+  const focusedEscId = configInput.uiConfig?.focusedEsc;
 
   useEffect(() => {
     setConfigInput(
@@ -235,6 +242,46 @@ export const ConfigEditor = ({ isNewConfig, onDelete }: Props) => {
           },
         )}
       </EscContainer>
+
+      <h2>UI Layout</h2>
+
+      <RadioHolder>
+        <RadioGroupName>Focused ESC</RadioGroupName>
+        {isEditing ? (
+          usedEscIds.map((id) => {
+            const radioId = `focused-esc-id-${id}`;
+            return (
+              <span key={radioId}>
+                <RadioInput
+                  value={id}
+                  type="radio"
+                  id={radioId}
+                  name={`focused-esc-${id}`}
+                  checked={
+                    isEditing
+                      ? configInput.uiConfig?.focusedEsc === id
+                      : focusedEscId === id
+                  }
+                  $isEditable={isEditing}
+                  onChange={(e) => {
+                    const newId = e.target.value as EscId;
+                    console.log(e);
+                    setConfigInput((config) => {
+                      config.uiConfig = {
+                        ...config.uiConfig,
+                        focusedEsc: newId,
+                      };
+                    });
+                  }}
+                />
+                <RadioLabel htmlFor={radioId}>{id}</RadioLabel>
+              </span>
+            );
+          })
+        ) : (
+          <p>{focusedEscId ?? "None"}</p>
+        )}
+      </RadioHolder>
 
       {isEditing && (
         <div>

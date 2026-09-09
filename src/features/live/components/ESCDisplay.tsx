@@ -12,7 +12,7 @@ import {
 } from "../../../robot";
 import { Container, EXTRA_SMALL_VIEWPORT, media } from "../../../styles";
 import { useElementSize } from "../../../useElementSize";
-import { EscConfig } from "../../configuration/configUtils";
+import { EscConfig } from "../../configuration/configTypes";
 import { useMediaQuery } from "../../useMediaQuery";
 import { ArcDisplay } from "./ArcDisplay";
 import { BarDisplay } from "./BarDisplay";
@@ -75,9 +75,13 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
   const { width } = useElementSize(ref);
   const temperatureBarWidth = temperatureBarRef.current?.offsetWidth ?? 0;
   const inputBarWidth = inputBarRef.current?.offsetWidth ?? 0;
+  const absoluteMaxWidth = 500;
   const maxArcWidth = isXs
     ? 300
-    : Math.max(0, width - temperatureBarWidth - inputBarWidth - 16);
+    : Math.min(
+        absoluteMaxWidth,
+        Math.max(0, width - temperatureBarWidth - inputBarWidth - 16),
+      );
 
   if (!config) {
     return null;

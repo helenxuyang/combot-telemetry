@@ -30,14 +30,20 @@ export const NumberInput = styled.input<Editable>`
   }
 `;
 
-export const RadioHolder = styled.div`
+export const RadioHolder = styled.fieldset`
   display: flex;
   gap: 8px;
+  align-items: center;
 
   ${media.small} {
     flex-direction: column;
     align-items: start;
   }
+`;
+
+export const RadioGroupName = styled.legend`
+  float: left;
+  font-weight: bold;
 `;
 
 export const RadioInput = styled.input<Editable>`
@@ -47,7 +53,7 @@ export const RadioInput = styled.input<Editable>`
   }
 `;
 
-export const RadioLabel = styled.label<{ $disabled: boolean }>`
+export const RadioLabel = styled.label<{ $disabled?: boolean }>`
   ${(props) => props.$disabled && "color: #ccc;"}
 `;
 

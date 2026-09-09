@@ -156,6 +156,10 @@ export const Table = styled.table`
     padding: 4px;
   }
 
+  th {
+    font-weight: bold;
+  }
+
   @media (max-width: ${EXTRA_SMALL_VIEWPORT}px) {
     width: 100%;
     tr {

@@ -5,6 +5,31 @@ body,
   height: 100%;
 }
 
+body {
+  margin: 0;
+  display: flex;
+  min-height: 100dvh;
+  background-color: #eeeeee;
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: normal;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: black;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 #root {
   display: flex;
   justify-content: center;
@@ -25,4 +50,35 @@ h2 {
 h3 {
   font-size: 18px;
   font-weight: bold;
+}
+
+a {
+  font-weight: 500;
+  color: cornflowerblue;
+  text-decoration: inherit;
+}
+
+button {
+  background-color: white;
+  border-radius: 8px;
+  border: 2px solid black;
+  padding: 6px 8px;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #eee;
+  border-color: #222;
+}
+
+button:active {
+  background-color: #ddd;
+}
+
+button[disabled] {
+  border-color: #dddddd;
+  cursor: unset;
 }

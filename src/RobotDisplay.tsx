@@ -1,4 +1,4 @@
-import { CSSProperties, useState } from "react";
+import { CSSProperties } from "react";
 import styled, { css } from "styled-components";
 import { calculateTotal, getLatestValue } from "./dataUtils";
 import { METADATA } from "./displayUtils";
@@ -17,6 +17,7 @@ const FOCUS_LAYOUT = css`
   gap: 8px;
   grid-template-columns: repeat(12, 1fr);
   grid-template-rows: 3fr 2fr;
+  max-height: 90dvh;
 `;
 
 const GRID_LAYOUT = css`
@@ -126,7 +127,7 @@ export const RobotDisplay = () => {
   const robot = useRobot();
   const config = useRobotConfig();
   const isGridLayout = useMediaQuery("(max-width: 1280px)");
-  const [focusedEscId] = useState<EscId | null>("2");
+  const focusedEscId = config?.uiConfig?.focusedEsc ?? "0";
 
   const layout: Layout = isGridLayout ? "GRID" : "FOCUS";
 
@@ -135,7 +136,8 @@ export const RobotDisplay = () => {
   }
 
   const escs = Object.values(robot.escs);
-  if (escs.length === 0) {
+  const numEscs = escs.length;
+  if (numEscs === 0) {
     return <div>No ESCs</div>;
   }
   if (config === null) {
@@ -199,8 +201,14 @@ export const RobotDisplay = () => {
             style = { gridArea: `esc${id}` };
           } else {
             style = isFocused
-              ? { gridRow: "1", gridColumn: "4 / span 6" }
-              : { gridRow: "2", gridColumn: "span 4" };
+              ? {
+                  gridRow: "1",
+                  gridColumn: "4 / span 6",
+                }
+              : {
+                  gridRow: "2",
+                  gridColumn: `span ${12 / (numEscs - 1)}`,
+                };
           }
           return (
             <EscDisplayHolder style={style} key={id}>

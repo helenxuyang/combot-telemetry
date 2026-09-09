@@ -2,7 +2,7 @@ import { Draft } from "immer";
 import { useIsEditing } from "../../../configStore";
 import { EscId } from "../../../robot";
 import { Table } from "../../../styles";
-import { MotorConfig } from "../configUtils";
+import { MotorConfig } from "../configTypes";
 import { NumberInput } from "./inputStyles";
 
 type Props = {

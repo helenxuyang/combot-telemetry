@@ -10,7 +10,8 @@ import {
   getCurrentConfig,
   useStorageUtils,
 } from "../../../storageUtils";
-import { initRobotFromConfig, RobotConfig } from "../configUtils";
+import { RobotConfig } from "../configTypes";
+import { initRobotFromConfig } from "../configUtils";
 import { ConfigEditor } from "./ConfigEditor";
 
 const Container = styled.div`

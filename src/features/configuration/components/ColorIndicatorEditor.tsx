@@ -1,13 +1,13 @@
+import { Draft } from "immer";
 import styled from "styled-components";
+import { CondensedButton, media } from "../../../styles";
+import { ColorIndicator } from "../configTypes";
 import {
-  RadioHolder,
-  NumberInput,
   ColorInput,
+  NumberInput,
+  RadioHolder,
   RadioInput,
 } from "./inputStyles";
-import { CondensedButton, media } from "../../../styles";
-import { Draft } from "immer";
-import { ColorIndicator } from "../configUtils";
 
 const Container = styled.div`
   display: flex;
