@@ -18,7 +18,7 @@ type Props = {
   unit: string;
   min: number;
   max: number;
-  colorIndicators: ColorIndicator[];
+  colorIndicators?: ColorIndicator[];
   className?: string;
   orientation?: Orientation;
   valueMinCharacters?: number;
@@ -29,6 +29,7 @@ const StyledContainer = styled(Container)<{
   $orientation: Orientation;
 }>`
   height: 100%;
+  text-align: center;
 
   ${media.small} {
     width: ${({ $orientation }) =>
@@ -75,7 +76,7 @@ const RangeText = styled.p`
 export const BarDisplay = forwardRef<HTMLDivElement, Props>(function BarDisplay(
   {
     name,
-    headingLevel = 4,
+    headingLevel = 2,
     value,
     unit,
     min,

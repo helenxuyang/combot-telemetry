@@ -3,7 +3,7 @@ import { PLOT_FILL_COLOR } from "./styles";
 
 export const getColor = (
   value: number,
-  colorIndicators: ColorIndicator[],
+  colorIndicators?: ColorIndicator[],
   defaultColor?: string,
 ) => {
   let barColor = defaultColor ?? PLOT_FILL_COLOR;
