@@ -116,6 +116,8 @@ const useRobotStore = create<
 );
 
 export const useRobot = () => useRobotStore((state) => state.robot);
+export const useSignalStrength = () =>
+  useRobotStore((state) => state.robot?.signalStrengths.at(-1)?.value ?? -999);
 export const useRobotConfig = () => useRobotStore((state) => state.robotConfig);
 export const useClearRobot = () => useRobotStore((state) => state.clearRobot);
 export const useSetRobot = () => useRobotStore((state) => state.setRobot);

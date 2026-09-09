@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { ButtonsHolder, Container, WarningText } from "../../../styles";
-import { SignalStrengthDisplay } from "./SignalStrengthDisplay";
+import { SignalStrengthContainer } from "./SignalStrengthContainer";
 import { UnknownMessagesDisplay } from "./UnknownMessagesDisplay";
 import { RadioStatus, useMessageHandler } from "./useMessageHandler";
 
@@ -84,7 +84,7 @@ export const SerialConnector = () => {
   return (
     <StyledContainer ref={ref}>
       <h2>Serial</h2>
-      <SignalStrengthDisplay />
+      <SignalStrengthContainer />
       {port ? (
         <PortInfoHolder>
           <Status $color="green">PORT: {port}</Status>
