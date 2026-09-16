@@ -5,6 +5,7 @@ import {
   ERROR,
   ESC,
   EscId,
+  INPUT,
   SignalStrength,
   SNR,
 } from "../../robot";
@@ -293,7 +294,12 @@ export const getPlotData = (
   });
 
   const sliders = yAxis.map((_, index) => {
-    const dataZoomId = `yAxis-slider-${stringifyPlot(plots[index])}`;
+    const plot = plots[index];
+    const dataZoomId = `yAxis-slider-${stringifyPlot(plot)}`;
+    const isInput = plot.type === "data" && plot.measurementName === "input";
+    const inputConfig =
+      config.escConfigs[plot.escId]?.measurementConfigs[INPUT];
+
     return {
       id: dataZoomId,
       type: "slider",
@@ -303,6 +309,8 @@ export const getPlotData = (
       handleLabel: {
         show: true,
       },
+      startValue: isInput ? inputConfig?.min : undefined,
+      endValue: isInput ? inputConfig?.max : undefined,
     };
   });
 
