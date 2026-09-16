@@ -194,6 +194,9 @@ export const GraphGrid = () => {
           Show messages
         </CondensedButton>
       )}
+      {graphConfigs.length === 0 && (
+        <CondensedButton onClick={addGraph}>Add graph</CondensedButton>
+      )}
     </Holder>
   );
 };
