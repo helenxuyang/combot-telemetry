@@ -1,6 +1,7 @@
 import ReactECharts from "echarts-for-react";
 import { useRef, useState } from "react";
 import styled from "styled-components";
+import { METADATA } from "../../../displayUtils";
 import { PlotPill } from "../../../PlotPill";
 import { ESC, EscId, INPUT, SNR } from "../../../robot";
 import { useRobot, useRobotConfig } from "../../../robotStore";
@@ -9,6 +10,8 @@ import {
   getAvailablePlots,
   getLabel,
   getPlotData,
+  getPointId,
+  getPointLabel,
   parsePlot,
   stringifyPlot,
   type Plot,
@@ -54,6 +57,7 @@ export const GraphDisplay = () => {
   const [yAxisZoomRanges, setYAxisZoomRanges] = useState<
     Record<string, { start: number; end: number }>
   >({});
+  const [labelledPoints, setLabelledPoints] = useState<string[]>([]); // format: timestamp:value
 
   const graphRef = useRef<ReactECharts>(null);
 
@@ -95,7 +99,32 @@ export const GraphDisplay = () => {
         formatter: (value: string) => (yAxisSlidersVisible ? "" : value),
       },
     })),
-    series,
+    series: series.map((s) => ({
+      ...s,
+      data: s.data.map((value: number[]) => ({
+        value,
+        label: {
+          show: labelledPoints.includes(getPointId(s.id, value[1], value[0])),
+          formatter: () => {
+            const plot = parsePlot(s.id);
+            if (plot.type !== "data") {
+              return;
+            }
+            return getPointLabel({
+              value: value[1],
+              timestamp: value[0],
+              unit: METADATA[plot.measurementName].unit,
+            });
+          },
+          rich: {
+            value: {
+              fontWeight: "bold",
+              fontSize: 14,
+            },
+          },
+        },
+      })),
+    })),
     legend: {
       bottom: 50,
     },
@@ -110,10 +139,18 @@ export const GraphDisplay = () => {
           return params.value[1];
         }
         const plot = parsePlot(params.seriesId);
+        if (plot.type !== "data") {
+          return;
+        }
         const escName = params.seriesName.split(" ")[0];
         const timestamp = params.value[0];
         const value = params.value[1];
-        return getLabel(plot, timestamp, value, escName);
+        return getLabel({
+          value,
+          timestamp,
+          unit: METADATA[plot.measurementName].unit,
+          escName,
+        });
       },
       textStyle: {
         fontSize: 10,
@@ -165,13 +202,23 @@ export const GraphDisplay = () => {
 
   const dispatchClickPoint = (params: any) => {
     if (params.componentType === "series") {
-      const timestamp = params.data[0];
-      const escId = parsePlot(params.seriesId).escId;
+      const [timestamp, value] = params.data.value;
+      const plot = parsePlot(params.seriesId);
+      const { escId } = plot;
 
-      const event = new CustomEvent("clickPoint", {
+      const clickPointEvent = new CustomEvent("clickPoint", {
         detail: { timestamp, escId },
       });
-      window.dispatchEvent(event);
+      window.dispatchEvent(clickPointEvent);
+
+      const formattedPoint = getPointId(params.seriesId, value, timestamp);
+      if (labelledPoints.includes(formattedPoint)) {
+        setLabelledPoints((points) =>
+          points.filter((point) => point !== formattedPoint),
+        );
+      } else {
+        setLabelledPoints((points) => [...points, formattedPoint]);
+      }
     }
   };
 
