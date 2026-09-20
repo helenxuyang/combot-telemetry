@@ -329,25 +329,56 @@ export const getPlotData = (
   };
 };
 
-export const getLabel = (
-  plot: Plot,
-  timestamp: number,
-  value: number,
-  escName: string,
+export const getTimestampLabel = (
+  timestampMs: number,
+  includeParenthesis: boolean = true,
 ) => {
-  const formattedTimestamp = `(${timestamp / 1000} sec)`;
-  let labelEntries: string[] = [String(value)];
-  switch (plot.type) {
-    case "data": {
-      const unit = METADATA[plot.measurementName].unit;
-      labelEntries.push(unit);
-      break;
-    }
-    default:
-      return null;
+  const label = `${(timestampMs / 1000).toFixed(2)} sec`;
+  if (includeParenthesis) {
+    return `(${label})`;
   }
-  labelEntries.push(formattedTimestamp);
-  labelEntries.push(`[${escName}]`);
+  return label;
+};
+
+export const getPointId = (
+  seriesId: string,
+  value: number,
+  timestamp: number,
+) => {
+  return [seriesId, value, timestamp].join("-");
+};
+
+export const getPointLabel = ({
+  value,
+  timestamp,
+  unit,
+}: {
+  value: number;
+  timestamp: number;
+  unit: string;
+}) => {
+  const formattedTimestamp = getTimestampLabel(timestamp, false);
+  return `{value|${value} ${unit}}\n{timestamp|${formattedTimestamp}}`;
+};
+
+export const getLabel = ({
+  value,
+  timestamp,
+  unit,
+  escName,
+}: {
+  value: number;
+  timestamp: number;
+  unit: string;
+  escName: string;
+}) => {
+  const formattedTimestamp = getTimestampLabel(timestamp);
+  let labelEntries: string[] = [
+    String(value),
+    unit,
+    formattedTimestamp,
+    `[${escName}]`,
+  ];
   return labelEntries.join(" ");
 };
 
