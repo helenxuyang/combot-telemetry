@@ -12,6 +12,8 @@ import {
   getPlotData,
   getPointId,
   getPointLabel,
+  getSyncMarkerSeries,
+  getSyncMarkerYAxis,
   parsePlot,
   stringifyPlot,
   type Plot,
@@ -47,7 +49,14 @@ const zLevels = {
 const yAxisWidth = 40;
 const bottomControlsHeight = 110;
 
-export const GraphDisplay = () => {
+type Props = {
+  playbackTimestamp?: number;
+  syncTimestamps?: number[]; // TODO add types for format: timestamp:value
+};
+
+export const GraphDisplay = ({ playbackTimestamp, syncTimestamps }: Props) => {
+  const isPlaybackActive = playbackTimestamp !== undefined;
+
   const robot = useRobot();
   const config = useRobotConfig();
 
@@ -88,43 +97,49 @@ export const GraphDisplay = () => {
 
   const option = {
     xAxis,
-    yAxis: yAxis.map((y, index) => ({
-      ...y,
-      position: "left",
-      offset: (yAxis.length - 1 - index) * yAxisWidth,
-      z: zLevels["yAxis"],
-      triggerEvent: true,
-      axisLabel: {
-        ...y?.axisLabel,
-        formatter: (value: string) => (yAxisSlidersVisible ? "" : value),
-      },
-    })),
-    series: series.map((s) => ({
-      ...s,
-      data: s.data.map((value: number[]) => ({
-        value,
-        label: {
-          show: labelledPoints.includes(getPointId(s.id, value[1], value[0])),
-          formatter: () => {
-            const plot = parsePlot(s.id);
-            if (plot.type !== "data") {
-              return;
-            }
-            return getPointLabel({
-              value: value[1],
-              timestamp: value[0],
-              unit: METADATA[plot.measurementName].unit,
-            });
-          },
-          rich: {
-            value: {
-              fontWeight: "bold",
-              fontSize: 14,
-            },
-          },
+    yAxis: [
+      ...yAxis.map((y, index) => ({
+        ...y,
+        position: "left",
+        offset: (yAxis.length - 1 - index) * yAxisWidth,
+        z: zLevels["yAxis"],
+        triggerEvent: true,
+        axisLabel: {
+          ...y?.axisLabel,
+          formatter: (value: string) => (yAxisSlidersVisible ? "" : value),
         },
       })),
-    })),
+      ...(syncTimestamps ? [getSyncMarkerYAxis()] : []),
+    ],
+    series: [
+      ...series.map((s) => ({
+        ...s,
+        data: s.data.map((value: number[]) => ({
+          value,
+          label: {
+            show: labelledPoints.includes(getPointId(s.id, value[1], value[0])),
+            formatter: () => {
+              const plot = parsePlot(s.id);
+              if (plot.type !== "data") {
+                return;
+              }
+              return getPointLabel({
+                value: value[1],
+                timestamp: value[0],
+                unit: METADATA[plot.measurementName].unit,
+              });
+            },
+            rich: {
+              value: {
+                fontWeight: "bold",
+                fontSize: 14,
+              },
+            },
+          },
+        })),
+      })),
+      ...(syncTimestamps ? [getSyncMarkerSeries(syncTimestamps)] : []),
+    ],
     legend: {
       bottom: 50,
     },
@@ -160,25 +175,35 @@ export const GraphDisplay = () => {
       borderWidth: 0,
     },
     grid: { bottom: bottomControlsHeight, left: yAxis.length * yAxisWidth },
-    toolbox: {
-      feature: {
-        // select rectangle to zoom
-        dataZoom: {
-          show: true,
-          filterMode: "none",
+    toolbox: isPlaybackActive
+      ? undefined
+      : {
+          feature: {
+            // select rectangle to zoom
+            dataZoom: {
+              show: true,
+              filterMode: "none",
+            },
+          },
         },
-      },
-    },
     dataZoom: [
+      ...(isPlaybackActive
+        ? []
+        : [
+            {
+              id: "series-inside",
+              type: "inside",
+              filterMode: "none",
+            },
+          ]),
       {
-        id: "series-inside",
-        type: "inside",
-        filterMode: "none",
-      },
-      {
+        show: !isPlaybackActive,
         id: "xAxis-slider",
-        type: "slider",
+        orient: "horizontal",
         filterMode: "none",
+        startValue: isPlaybackActive ? playbackTimestamp - 2000 : undefined,
+        endValue: isPlaybackActive ? playbackTimestamp : undefined,
+        throttle: 10,
       },
 
       ...sliders.map((slider, index) => {
@@ -198,7 +223,7 @@ export const GraphDisplay = () => {
     animation: false,
   };
 
-  console.log({ option });
+  // console.log({ option });
 
   const dispatchClickPoint = (params: any) => {
     if (params.componentType === "series") {

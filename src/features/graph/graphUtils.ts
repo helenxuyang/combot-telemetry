@@ -154,6 +154,31 @@ export const getErrorSeries = (robot: Robot, plot: ErrorPlot) => {
   };
 };
 
+export const getSyncMarkerYAxis = () => {
+  return { ...yAxisSettings, min: 0, max: 1, show: false };
+};
+
+export const getSyncMarkerSeries = (timestamps: number[]) => {
+  return {
+    id: "sync-markers",
+    type: "line",
+    name: "Sync markers",
+    data: timestamps,
+    markLine: {
+      silent: true,
+      symbolSize: 5,
+      data: timestamps.map((timestamp) => {
+        return {
+          xAxis: timestamp,
+          label: {
+            formatter: "SYNC",
+          },
+        };
+      }),
+    },
+  };
+};
+
 export const getSnrSeries = (robot: Robot) => {
   const snr = robot.signalStrengths;
 
@@ -206,6 +231,7 @@ const yAxisSettings = {
   },
   nameGap: 24,
   alignTicks: true,
+  type: "value",
 };
 
 export const getYAxisConfig = (
