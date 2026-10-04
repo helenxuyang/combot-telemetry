@@ -27,8 +27,8 @@ const useVideoPlaybackStore = create<
   immer((set) => ({
     isPlaybackActive: false,
     graphCurrentTime: 0,
-    syncPointStart: null,
-    syncPointEnd: null,
+    syncPointStart: null, // { graph: 49.27, video: 60.71 },
+    syncPointEnd: null, // { graph: 305.29, video: 314.3 },
     setIsPlaybackActive: (isPlaybackActive) =>
       set((state) => {
         state.isPlaybackActive = isPlaybackActive;

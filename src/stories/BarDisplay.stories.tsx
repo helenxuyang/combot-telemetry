@@ -145,3 +145,35 @@ export const Colors: Story = {
     </div>
   ),
 };
+
+export const Directional: Story = {
+  args: {
+    name: "Input",
+    unit: "",
+    value: 0,
+    min: -100,
+    max: 100,
+    isDirectional: true,
+  },
+  render: (args) => (
+    <div>
+      <div style={{ display: "flex", gap: "8px", height: "300px" }}>
+        {[-100, -50, 0, 50, 100].map((value) => (
+          <BarDisplay {...args} value={value} />
+        ))}
+      </div>
+      <div
+        style={{
+          marginTop: "8px",
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 400px)",
+          gap: "8px",
+        }}
+      >
+        {[-100, -50, 0, 50, 100].map((value) => (
+          <BarDisplay {...args} value={value} orientation="horizontal" />
+        ))}
+      </div>
+    </div>
+  ),
+};

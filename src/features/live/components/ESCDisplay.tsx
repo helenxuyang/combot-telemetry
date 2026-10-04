@@ -157,6 +157,7 @@ export const ESCDisplay = ({ esc, config, accentColor, className }: Props) => {
             ref={inputBarRef}
             name={METADATA[INPUT].displayName}
             value={getLatestValue(inputs)}
+            isDirectional={true}
             unit={METADATA[INPUT].unit}
             min={inputsConfig.min}
             max={inputsConfig.max}

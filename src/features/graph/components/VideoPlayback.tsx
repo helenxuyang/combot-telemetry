@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
+import { EscId } from "../../../robot";
 import { CondensedButton } from "../../../styles";
 import {
   useIsPlaybackActive,
@@ -10,6 +11,8 @@ import {
   useSyncPointEnd,
   useSyncPointStart,
 } from "../videoPlaybackStore";
+import { DrivePlayback } from "./DrivePlayback";
+import { InputPlayback } from "./InputPlayback";
 
 const SyncPointHolder = styled.div<{ $isSelecting: boolean }>`
   display: flex;
@@ -23,12 +26,15 @@ const SyncPointHolder = styled.div<{ $isSelecting: boolean }>`
       $isSelecting ? "underline dotted" : "none"};
   }
 `;
+const InputPlaybackHolder = styled.div`
+  display: flex;
+  gap: 24px;
+  height: 200px;
+`;
 
 export const VideoPlayback = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoSrc, setVideoSrc] = useState<string | undefined>(
-    "https://nhrl-matches.us-east-1.linodeobjects.com/proxy/Cage-8-Overhead-High-2026-09-12_23-23-55.585_360p.mp4",
-  );
+  const [videoSrc, setVideoSrc] = useState<string | undefined>(undefined); // "https://nhrl-matches.us-east-1.linodeobjects.com/proxy/Cage-8-Overhead-High-2026-09-12_23-23-55.585_360p.mp4"
   const syncPointStart = useSyncPointStart();
   const setSyncPointStart = useSetSyncPointStart();
   const [isSelectingSyncPointStart, setIsSelectingSyncPointStart] =
@@ -130,6 +136,9 @@ export const VideoPlayback = () => {
     };
   }, [isSelectingSyncPointStart, isSelectingSyncPointEnd]);
 
+  // TODO: make configurable
+  const inputPlaybackEscIds: EscId[] = ["2", "3"];
+
   return (
     <>
       <h2>Video Playback</h2>
@@ -218,6 +227,12 @@ export const VideoPlayback = () => {
       <CondensedButton onClick={() => setIsPlaybackActive(!isPlaybackActive)}>
         {isPlaybackActive ? "Disable" : "Enable"} playback
       </CondensedButton>
+      <InputPlaybackHolder>
+        <DrivePlayback />
+        {inputPlaybackEscIds.map((id) => (
+          <InputPlayback escId={id} />
+        ))}
+      </InputPlaybackHolder>
     </>
   );
 };

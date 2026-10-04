@@ -7,7 +7,7 @@ import {
 } from "../../../dataUtils";
 import { Container, media, PLOT_BASE_COLOR, Value } from "../../../styles";
 import { ColorIndicator } from "../../configuration/configTypes";
-import { CanvasBar } from "./CanvasBar";
+import { Bar } from "./Bar";
 
 type Orientation = "vertical" | "horizontal";
 
@@ -15,6 +15,7 @@ type Props = {
   name: string;
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
   value: number;
+  isDirectional?: boolean;
   unit: string;
   min: number;
   max: number;
@@ -60,7 +61,6 @@ const VerticalBarHolder = styled(BarHolder)`
   align-items: flex-end;
   height: 100%;
   width: 30px;
-  min-height: 100px;
 `;
 
 const HorizontalBarHolder = styled(BarHolder)`
@@ -78,6 +78,7 @@ export const BarDisplay = forwardRef<HTMLDivElement, Props>(function BarDisplay(
     name,
     headingLevel = 2,
     value,
+    isDirectional = false,
     unit,
     min,
     max,
@@ -89,7 +90,7 @@ export const BarDisplay = forwardRef<HTMLDivElement, Props>(function BarDisplay(
   },
   ref,
 ) {
-  const percent = getClampedPercent(value, min, max);
+  const percent = getClampedPercent(value, min, max, isDirectional);
   const barColor = getColor(value, colorIndicators, defaultColor);
 
   const Heading = `h${headingLevel}` as const;
@@ -102,10 +103,11 @@ export const BarDisplay = forwardRef<HTMLDivElement, Props>(function BarDisplay(
       <BarDisplayWrapper $orientation={orientation}>
         <RangeText>{max}</RangeText>
         <BarHolderComponent>
-          <CanvasBar
+          <Bar
             percent={percent}
             color={barColor}
             orientation={orientation}
+            isDirectional={isDirectional}
           />
         </BarHolderComponent>
         <RangeText>{min}</RangeText>
