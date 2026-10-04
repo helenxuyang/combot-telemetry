@@ -3,8 +3,15 @@ import styled from "styled-components";
 import { RobotImporter } from "../../../RobotImporter";
 import { useRobot } from "../../../robotStore";
 import { CondensedButton } from "../../../styles";
+import {
+  useGraphCurrentTime,
+  useIsPlaybackActive,
+  useSyncPointEnd,
+  useSyncPointStart,
+} from "../videoPlaybackStore";
 import { GraphDisplay } from "./GraphDisplay";
 import { MessagesDisplay } from "./MessagesDisplay";
+import { VideoPlayback } from "./VideoPlayback";
 
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
@@ -25,7 +32,7 @@ const GridHolder = styled.div`
   padding: 8px;
 `;
 
-const GraphHolder = styled.div<{ $isFullWidth: boolean }>`
+const GridItemHolder = styled.div<{ $isFullWidth: boolean }>`
   flex-basis: ${({ $isFullWidth }) =>
     $isFullWidth ? "100%" : "calc(50% - 2px)"}; // to account for gap
   min-width: 0;
@@ -82,12 +89,17 @@ type GraphConfig = {
 
 export const GraphGrid = () => {
   const robot = useRobot();
+  const isPlaybackActive = useIsPlaybackActive();
+  const graphCurrentTime = useGraphCurrentTime();
+  const syncPointStart = useSyncPointStart();
+  const syncPointEnd = useSyncPointEnd();
   const emptyGraph = {
     id: crypto.randomUUID(),
     isFullWidth: true,
   };
   const [graphConfigs, setGraphConfigs] = useState<GraphConfig[]>([emptyGraph]);
   const [showMessages, setShowMessages] = useState<boolean>(false);
+  const [showVideo, setShowVideo] = useState<boolean>(false);
 
   if (!robot) {
     return <div>No robot</div>;
@@ -136,7 +148,7 @@ export const GraphGrid = () => {
         {graphConfigs.map((graph, index) => {
           const { id, isFullWidth } = graph;
           return (
-            <GraphHolder key={id} $isFullWidth={isFullWidth}>
+            <GridItemHolder key={id} $isFullWidth={isFullWidth}>
               <ButtonsHolder>
                 <RoundButton title="Delete" onClick={() => deleteGraph(index)}>
                   ✖
@@ -172,13 +184,21 @@ export const GraphGrid = () => {
                   )}
                 </ControlsButtons>
               </ButtonsHolder>
-              <GraphDisplay key={id} />
-            </GraphHolder>
+              <GraphDisplay
+                key={id}
+                playbackTimestamp={
+                  isPlaybackActive ? graphCurrentTime * 1000 : undefined
+                }
+                syncTimestamps={[syncPointStart?.graph, syncPointEnd?.graph]
+                  .filter((value) => value !== undefined)
+                  .map((value) => value * 1000)}
+              />
+            </GridItemHolder>
           );
         })}
 
         {showMessages && (
-          <GraphHolder $isFullWidth={false}>
+          <GridItemHolder $isFullWidth={false}>
             <RoundButton
               title="Hide messages"
               onClick={() => setShowMessages(false)}
@@ -186,12 +206,23 @@ export const GraphGrid = () => {
               ✖
             </RoundButton>
             <MessagesDisplay />
-          </GraphHolder>
+          </GridItemHolder>
+        )}
+
+        {showVideo && (
+          <GridItemHolder $isFullWidth={false}>
+            <VideoPlayback />
+          </GridItemHolder>
         )}
       </GridHolder>
       {!showMessages && (
         <CondensedButton onClick={() => setShowMessages(true)}>
           Show messages
+        </CondensedButton>
+      )}
+      {!showVideo && (
+        <CondensedButton onClick={() => setShowVideo(true)}>
+          Enable video playback
         </CondensedButton>
       )}
       {graphConfigs.length === 0 && (

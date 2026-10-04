@@ -38,9 +38,18 @@ export const getClampedValue = (value: number, min: number, max: number) => {
   return Math.max(Math.min(value, max), min);
 };
 
-export const getClampedPercent = (value: number, min: number, max: number) => {
-  const percent = ((value - min) / (max - min)) * 100;
-  return Math.round(Math.max(Math.min(percent, 100), 0));
+export const getClampedPercent = (
+  value: number,
+  min: number,
+  max: number,
+  isDirectional?: boolean,
+) => {
+  const percent = isDirectional
+    ? (value / max) * 100
+    : ((value - min) / (max - min)) * 100;
+
+  const maxClampedPercent = Math.min(percent, 100);
+  return Math.round(Math.max(maxClampedPercent, isDirectional ? -100 : 0));
 };
 
 export const getLatestValue = (values: number[], defaultValue?: number) => {
