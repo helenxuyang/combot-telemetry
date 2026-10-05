@@ -11,7 +11,7 @@ type Props = {
 
 export const JoystickDisplay = ({
   xInput,
-  xMax = 44,
+  xMax = 100,
   yInput,
   yMax = 100,
   showLabels = true,

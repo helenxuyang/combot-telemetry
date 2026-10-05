@@ -52,7 +52,9 @@ export const DrivePlayback = () => {
       <JoystickHolder>
         <JoystickDisplay
           xInput={xInput}
+          xMax={44} /*TODO: make configurable*/
           yInput={yInput}
+          yMax={100} /*TODO: make configurable*/
           showLabels={false}
           joystickColor={ESC_COLORS[driveLeftEscId]}
         />
