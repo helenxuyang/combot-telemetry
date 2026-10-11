@@ -8,7 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "test": "vitest",
+    "test": "vitest --project unit",
+    "test:storybook": "vitest --project storybook",
+    "test:all": "vitest",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
